@@ -9065,8 +9065,8 @@
     };
 
     const STORAGE_KEY = "questlog_rpg_state";
-    const SUPABASE_URL = "";
-    const SUPABASE_ANON_KEY = "";
+    let SUPABASE_URL = "";
+    let SUPABASE_ANON_KEY = "";
     const CLOUD_SAVE_TABLE = "save_states";
     let isLocalStorageAvailable = true;
     let supabaseClient = null;
@@ -9074,6 +9074,7 @@
     let cloudSyncTimer = null;
     let cloudLastSyncedAt = null;
     let cloudLastError = null;
+    let cloudConfigLoaded = false;
 
     try {
       const testKey = "__test_local_storage__";
@@ -9104,6 +9105,23 @@
 
     function isCloudConfigured() {
       return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+    }
+
+    async function loadSupabaseRuntimeConfig() {
+      if (cloudConfigLoaded || (SUPABASE_URL && SUPABASE_ANON_KEY)) return;
+      cloudConfigLoaded = true;
+      try {
+        const response = await fetch('/api/supabase-config', { cache: 'no-store' });
+        if (!response.ok) return;
+        const config = await response.json();
+        if (config && config.supabaseUrl && config.supabaseAnonKey) {
+          SUPABASE_URL = config.supabaseUrl;
+          SUPABASE_ANON_KEY = config.supabaseAnonKey;
+          supabaseClient = null;
+        }
+      } catch (e) {
+        console.warn("Supabase runtime config unavailable:", e);
+      }
     }
 
     function getSupabaseClient() {
@@ -9234,6 +9252,7 @@
     }
 
     async function initCloudAccount() {
+      await loadSupabaseRuntimeConfig();
       const client = getSupabaseClient();
       renderCloudAccountPanel();
       if (!client) return;

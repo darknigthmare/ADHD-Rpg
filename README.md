@@ -13,10 +13,11 @@ Le fichier principal est `index.html`.
 ## Comptes utilisateur avec Supabase
 
 1. Creer un projet sur Supabase.
-2. Dans `index.html`, renseigner :
+2. Dans Vercel, ajouter les variables d'environnement :
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
-3. Dans Supabase, aller dans `SQL Editor` et executer :
+3. L'app les lit automatiquement via `/api/supabase-config`.
+4. Dans Supabase, aller dans `SQL Editor` et executer :
 
 ```sql
 create table if not exists public.save_states (
@@ -44,6 +45,6 @@ using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 ```
 
-4. Dans `Authentication > URL Configuration`, ajouter l'URL Vercel du site dans les URLs autorisees.
+5. Dans `Authentication > URL Configuration`, ajouter l'URL Vercel du site dans les URLs autorisees.
 
 La sauvegarde locale reste active en secours. Quand un utilisateur est connecte, NeuroQuest synchronise aussi la sauvegarde dans `save_states`.
