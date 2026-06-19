@@ -10741,6 +10741,16 @@
       };
     }
 
+    function normalizeFriendStats(stats = {}) {
+      return {
+        STR: Number.isFinite(Number(stats.STR)) ? Number(stats.STR) : 10,
+        INT: Number.isFinite(Number(stats.INT)) ? Number(stats.INT) : 10,
+        WIS: Number.isFinite(Number(stats.WIS)) ? Number(stats.WIS) : 10,
+        CHA: Number.isFinite(Number(stats.CHA)) ? Number(stats.CHA) : 10,
+        CON: Number.isFinite(Number(stats.CON)) ? Number(stats.CON) : 10
+      };
+    }
+
     function generateInviteCode() {
       const data = getPublicHeroCard("local");
       const jsonStr = JSON.stringify(data);
@@ -10854,7 +10864,7 @@
             description: hero.description || "",
             class: hero.class || "Guerrier",
             level: hero.level || 1,
-            stats: hero.stats || { STR: 10, INT: 10, WIS: 10, CHA: 10, CON: 10 },
+            stats: normalizeFriendStats(hero.stats),
             weapon: hero.weapon || "Poing nu",
             userId: profile.user_id,
             source: "account",
@@ -10907,7 +10917,7 @@
 
         const duplicate = state.party.find(f =>
           (data.userId && f.userId === data.userId) ||
-          (f.name.toLowerCase() === data.name.toLowerCase() && f.class === data.class)
+          (String(f.name || "").toLowerCase() === String(data.name || "").toLowerCase() && f.class === data.class)
         );
         if (duplicate) {
           return { success: false, message: "Ce héros est déjà dans votre équipe !" };
@@ -10925,7 +10935,7 @@
           description: data.description || "",
           class: data.class,
           level: data.level,
-          stats: data.stats || { STR: 10, INT: 10, WIS: 10, CHA: 10, CON: 10 },
+          stats: normalizeFriendStats(data.stats),
           weapon: data.weapon || "Poing nu",
           userId: data.userId || null,
           source: data.source || (data.userId ? "account" : "local"),
@@ -11017,9 +11027,33 @@
       }
     }
 
-    function removeFriend(id) {
-      state.party = state.party.filter(f => f.id !== id);
+    async function removeFriend(id) {
+      const friend = (state.party || []).find(f => f.id === id);
+      if (!friend) return { success: false, message: "Compagnon introuvable." };
+      if ((friend.source === "account" || friend.userId) && friend.userId && cloudUser) {
+        const client = getSupabaseClient();
+        if (!client) return { success: false, message: "Cloud indisponible, impossible de retirer cet ami live." };
+        try {
+          const firstDelete = await client
+            .from(FRIENDSHIPS_TABLE)
+            .delete()
+            .eq("user_id", cloudUser.id)
+            .eq("friend_user_id", friend.userId);
+          if (firstDelete.error) throw firstDelete.error;
+          const secondDelete = await client
+            .from(FRIENDSHIPS_TABLE)
+            .delete()
+            .eq("user_id", friend.userId)
+            .eq("friend_user_id", cloudUser.id);
+          if (secondDelete.error) throw secondDelete.error;
+        } catch (e) {
+          console.warn("Live friend removal failed:", e);
+          return { success: false, message: "Impossible de retirer cet ami live pour le moment." };
+        }
+      }
+      state.party = (state.party || []).filter(f => f.id !== id);
       saveState();
+      return { success: true, friend };
     }
 
     function addRaidBoss(name, hp, rewardXp, rewardGold) {
@@ -17209,6 +17243,7 @@
       for (let i = 0; i < 3; i++) {
         const friend = state.party[i];
         if (friend) {
+          const friendStats = normalizeFriendStats(friend.stats);
           const friendCard = document.createElement('div');
           friendCard.className = 'party-member-card';
           friendCard.innerHTML = `
@@ -17220,13 +17255,13 @@
             <span class="member-class-level">${escapeHTML(friend.role || friend.class || 'Allie')} - ${escapeHTML(friend.class || 'Guerrier')} - NIV ${friend.level}</span>
             ${friend.description ? `<span style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.25rem; line-height:1.35;">${escapeHTML(friend.description)}</span>` : ''}
             <span style="font-size:0.68rem; color:var(--color-side); border:1px solid rgba(0,180,216,0.35); border-radius:999px; padding:0.15rem 0.45rem; margin-top:0.25rem;">${friend.source === 'account' || friend.userId ? 'Compte NeuroQuest' : 'Code local'} - +25% raid</span>
-            <span style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Arme : ${friend.weapon}</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Arme : ${escapeHTML(friend.weapon || "Poing nu")}</span>
             <div class="member-stats-mini">
-              <div class="member-stat-col"><span style="color:var(--color-str);">${friend.stats.STR}</span><span class="lbl">FOR</span></div>
-              <div class="member-stat-col"><span style="color:var(--color-int);">${friend.stats.INT}</span><span class="lbl">INT</span></div>
-              <div class="member-stat-col"><span style="color:var(--color-wis);">${friend.stats.WIS}</span><span class="lbl">SAG</span></div>
-              <div class="member-stat-col"><span style="color:var(--color-cha);">${friend.stats.CHA}</span><span class="lbl">CHA</span></div>
-              <div class="member-stat-col"><span style="color:var(--color-con);">${friend.stats.CON}</span><span class="lbl">CON</span></div>
+              <div class="member-stat-col"><span style="color:var(--color-str);">${friendStats.STR}</span><span class="lbl">FOR</span></div>
+              <div class="member-stat-col"><span style="color:var(--color-int);">${friendStats.INT}</span><span class="lbl">INT</span></div>
+              <div class="member-stat-col"><span style="color:var(--color-wis);">${friendStats.WIS}</span><span class="lbl">SAG</span></div>
+              <div class="member-stat-col"><span style="color:var(--color-cha);">${friendStats.CHA}</span><span class="lbl">CHA</span></div>
+              <div class="member-stat-col"><span style="color:var(--color-con);">${friendStats.CON}</span><span class="lbl">CON</span></div>
             </div>
           `;
           grid.appendChild(friendCard);
@@ -18441,8 +18476,14 @@
             const card = removeBtn.closest('.party-member-card');
             if (card) {
               card.classList.add('disintegrate-animation');
-              setTimeout(() => {
-                removeFriend(id);
+              setTimeout(async () => {
+                const result = await removeFriend(id);
+                if (!result.success) {
+                  card.classList.remove('disintegrate-animation');
+                  playErrorSound();
+                  alert(result.message || "Impossible de retirer ce compagnon.");
+                  return;
+                }
                 renderParty();
               }, 350);
             }
