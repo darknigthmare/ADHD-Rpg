@@ -9474,11 +9474,12 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
-    function isHeroSetupComplete() {
-      if (!state.player || !state.player.setupComplete) return false;
-      const className = (state.player.class || "").trim();
-      const role = (state.player.role || "").trim();
-      return Boolean(className && role && state.player.stats);
+    function isHeroSetupComplete(saveStateObj = state) {
+      const player = saveStateObj && saveStateObj.player;
+      if (!player || !player.setupComplete) return false;
+      const className = (player.class || "").trim();
+      const role = (player.role || "").trim();
+      return Boolean(className && role && player.stats);
     }
 
     function renderCloudAccountPanel() {
@@ -9628,7 +9629,9 @@
 
         const localTime = getStateSavedTime(state);
         const cloudTime = getStateSavedTime(data.state) || Date.parse(data.updated_at || "");
-        const shouldLoad = force || cloudTime > localTime;
+        const localHeroReady = isHeroSetupComplete(state);
+        const cloudHeroReady = isHeroSetupComplete(data.state);
+        const shouldLoad = force || cloudTime > localTime || (!localHeroReady && cloudHeroReady);
         if (!shouldLoad) {
           spawnFloatingText("Local plus récent", '#ffb703', 'cloud-account-panel');
           return false;
@@ -18976,6 +18979,7 @@
           description: descriptionInput,
           bonusStats: { ...setupBonusStats }
         });
+        if (cloudUser) saveStateToCloud();
         setupBonusStats = { STR: 0, INT: 0, WIS: 0, CHA: 0, CON: 0 };
         appModals.setupWizardOverlay.classList.add('hidden');
         syncModalScrollLock();
