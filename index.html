@@ -7263,13 +7263,18 @@
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label for="profile-role">Role du heros</label>
-            <input type="text" id="profile-role" placeholder="Gardien du focus" maxlength="28">
+            <label for="profile-role">Role du heros (titre libre)</label>
+            <input type="text" id="profile-role" placeholder="Gardien du focus, Explorateur de projet..." maxlength="28">
           </div>
           <div class="form-group">
             <label for="profile-description">Description courte</label>
             <textarea id="profile-description" rows="2" maxlength="180" placeholder="Ce qui aide ce heros a avancer."></textarea>
           </div>
+        </div>
+        <div class="form-group">
+          <label for="profile-class-select">Classe RPG</label>
+          <select id="profile-class-select" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.4rem 0.8rem; color: #fff; font-size: 0.85rem;"></select>
+          <p class="settings-desc" id="profile-class-change-note" style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.35rem;">La classe controle les stats de base. Changer de classe consomme un Sceau de reconversion achete en boutique.</p>
         </div>
         <div class="form-group">
           <label data-i18n="selectAvatar">Sélectionner un Avatar</label>
@@ -9152,6 +9157,7 @@
       // Consommables divers
       { id: "streak_shield", name: "Bouclier de Volonté", description: "Protège votre série quotidienne de quêtes en cas d'oubli.", cost: 150, type: "consumable", statBoost: null, boostPercent: 0, effect: "Protège votre série quotidienne (Consommable)", icon: "shield" },
 
+      { id: "class_respec_seal", name: "Sceau de reconversion", description: "Permet de changer de classe dans les parametres du heros.", cost: 250, type: "consumable", statBoost: null, boostPercent: 0, effect: "Donne 1 changement de classe", icon: "shuffle" },
       { id: "healing_potion", name: "Fiole de soin", description: "A boire quand les missions ratees vous ont blesse.", cost: 60, type: "consumable", statBoost: null, boostPercent: 0, healPercent: 0.35, effect: "Rend 35% des PV max immediatement", icon: "heart-pulse" },
       { id: "warm_meal", name: "Repas chaud", description: "Pause nourriture simple pour relancer l'energie.", cost: 90, type: "consumable", statBoost: null, boostPercent: 0, healPercent: 0.22, effect: "Rend 22% PV et ajoute 250 ml d'eau", icon: "utensils" },
       { id: "calm_tea", name: "Tisane calme", description: "Rituel court pour redescendre la pression.", cost: 45, type: "consumable", statBoost: null, boostPercent: 0, healPercent: 0.12, effect: "Rend 12% PV et compte comme un verre", icon: "coffee" },
@@ -9338,6 +9344,7 @@
         inventory: [],
         setupComplete: false,
         class: "",
+        classChangeTokens: 0,
         restedBuffActive: false,
         restTimeAccumulated: 0,
         koCount: 0,
@@ -9970,6 +9977,7 @@
         if (item.id === 'short_rest' || item.id === 'campfire_kit') return `Impact: +${heal} PV, bonus repos`;
         return `Impact: +${heal} PV`;
       }
+      if (item.id === 'class_respec_seal') return "Impact: +1 changement de classe dans les parametres";
       if (item.type === 'consumable') return `Impact: ${item.effect}`;
       return `Impact: ${item.effect}`;
     }
@@ -10059,6 +10067,7 @@
           if (!state.raids) state.raids = [];
           if (typeof state.player.setupComplete === "undefined") state.player.setupComplete = false;
           if (typeof state.player.class === "undefined") state.player.class = "";
+          if (typeof state.player.classChangeTokens === "undefined") state.player.classChangeTokens = 0;
           if (typeof state.player.role === "undefined") state.player.role = "";
           if (typeof state.player.description === "undefined") state.player.description = "";
           if (typeof state.soundEnabled === "undefined") state.soundEnabled = true;
@@ -10108,6 +10117,7 @@
         inventory: [],
         setupComplete: false,
         class: "",
+        classChangeTokens: 0,
         restedBuffActive: false,
         restTimeAccumulated: 0,
         koCount: 0,
@@ -10186,6 +10196,37 @@
         TechnicienDuPortail: { STR: 9, INT: 13, WIS: 11, CHA: 10, CON: 10 }
       };
       return { ...(baseByClass[className] || baseByClass.Guerrier) };
+    }
+
+    function getClassLabel(className) {
+      return (CLASS_DESCRIPTIONS[className] && CLASS_DESCRIPTIONS[className].title) || className || "Guerrier";
+    }
+
+    function getPlayableClasses() {
+      return Object.keys(CLASS_DESCRIPTIONS);
+    }
+
+    function changeHeroClass(nextClass) {
+      if (!nextClass || nextClass === state.player.class) return { success: true, changed: false };
+      if (!CLASS_DESCRIPTIONS[nextClass]) return { success: false, message: "Classe inconnue." };
+      if ((state.player.classChangeTokens || 0) <= 0) return { success: false, message: "Achete un Sceau de reconversion dans la boutique." };
+
+      const previousClass = state.player.class || "Guerrier";
+      const previousBase = getClassBaseStats(previousClass);
+      const nextBase = getClassBaseStats(nextClass);
+      const stats = state.player.stats || getClassBaseStats(previousClass);
+      Object.keys(nextBase).forEach(stat => {
+        const earnedDelta = Math.max(0, (Number(stats[stat]) || 0) - (Number(previousBase[stat]) || 10));
+        stats[stat] = Math.max(1, (Number(nextBase[stat]) || 10) + earnedDelta);
+      });
+
+      state.player.stats = stats;
+      state.player.class = nextClass;
+      state.player.classChangeTokens = Math.max(0, (state.player.classChangeTokens || 0) - 1);
+      addShopHistoryEntry('gear', `Reconversion: ${getClassLabel(previousClass)} -> ${getClassLabel(nextClass)} (-1 Sceau)`);
+      addEventJournalEntry("game", `Classe changee: ${getClassLabel(previousClass)} -> ${getClassLabel(nextClass)}`);
+      saveState();
+      return { success: true, changed: true };
     }
 
     function completeSetup(name, avatar, className, sheet = {}) {
@@ -10593,6 +10634,13 @@
           state.player.gold -= gear.cost;
           state.player.streakShields = (state.player.streakShields || 0) + 1;
           addShopHistoryEntry('gear', `${gear.name} (-${gear.cost} PO)`);
+        } else if (gear.id === "class_respec_seal") {
+          state.player.gold -= gear.cost;
+          state.player.classChangeTokens = (state.player.classChangeTokens || 0) + 1;
+          addShopHistoryEntry('gear', `${gear.name}: +1 changement de classe (-${gear.cost} PO)`);
+          addEventJournalEntry("game", `${gear.name} achete: changement de classe disponible`);
+          saveState();
+          return { success: true, gear, consumed: true };
         } else if (gear.id === "healing_potion") {
           const maxHp = Math.max(1, Number(state.player.maxHp) || 100);
           const currentHp = Math.max(0, Math.min(maxHp, Number(state.player.hp) || 0));
@@ -17257,6 +17305,22 @@
       if (roleInput) roleInput.value = state.player.role || "";
       const descriptionInput = document.getElementById('profile-description');
       if (descriptionInput) descriptionInput.value = state.player.description || "";
+      const classSelect = document.getElementById('profile-class-select');
+      const classNote = document.getElementById('profile-class-change-note');
+      if (classSelect) {
+        const currentClass = state.player.class || "Guerrier";
+        classSelect.innerHTML = getPlayableClasses()
+          .map(className => `<option value="${escapeHTML(className)}">${escapeHTML(getClassLabel(className))}</option>`)
+          .join('');
+        classSelect.value = currentClass;
+        classSelect.disabled = (state.player.classChangeTokens || 0) <= 0;
+      }
+      if (classNote) {
+        const tokens = state.player.classChangeTokens || 0;
+        classNote.textContent = tokens > 0
+          ? `Sceaux disponibles : ${tokens}. Changer de classe consommera 1 Sceau et ajustera les stats de base.`
+          : "Role = titre libre. Classe = stats de base. Achete un Sceau de reconversion dans la boutique pour changer de classe.";
+      }
       
       const themeSelect = document.getElementById('theme-select');
       if (themeSelect) {
@@ -19158,6 +19222,7 @@
         const avatar = selectedAvatarSeed;
         const role = document.getElementById('profile-role')?.value || "";
         const description = document.getElementById('profile-description')?.value || "";
+        const selectedClass = document.getElementById('profile-class-select')?.value || state.player.class;
         
         const themeSelect = document.getElementById('theme-select');
         if (themeSelect) {
@@ -19202,6 +19267,15 @@
       if (keyboardCb) state.qol.keyboardShortcuts = keyboardCb.checked;
       applyQoLPreferences();
         
+        if (selectedClass && selectedClass !== state.player.class) {
+          const classChange = changeHeroClass(selectedClass);
+          if (!classChange.success) {
+            alert(classChange.message || "Changement de classe impossible.");
+            setProfileDialogData();
+            return;
+          }
+        }
+
         setPlayerProfile(name, avatar, { role, description });
         closeProfileModal();
         renderHUD();
@@ -19209,7 +19283,8 @@
         renderParty();
         renderQuests();
         renderCommonQuestsProposals();
-      renderBattleArena();
+        renderShop();
+        renderBattleArena();
     }, 'editProfileForm');
 
       const exportSaveBtn = document.getElementById('export-save-btn');
