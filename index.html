@@ -9304,6 +9304,12 @@
       if (!client || !cloudUser) return false;
       try {
         cloudLastError = null;
+        const { data: sessionData } = await client.auth.getSession();
+        if (!sessionData || !sessionData.session || !sessionData.session.user) {
+          cloudUser = null;
+          throw new Error("session absente : reconnecte-toi pour activer la sauvegarde cloud");
+        }
+        cloudUser = sessionData.session.user;
         const payload = JSON.parse(JSON.stringify(state));
         const { error } = await client
           .from(CLOUD_SAVE_TABLE)
@@ -9402,7 +9408,13 @@
         alert("Connexion impossible : " + error.message);
         return;
       }
-      cloudUser = data.user;
+      cloudUser = data && data.session ? data.session.user : null;
+      if (!cloudUser) {
+        alert("Connexion acceptee mais session absente. Verifie ton email puis reconnecte-toi.");
+        renderCloudAccountPanel();
+        renderGlobalCloudAccountUI();
+        return;
+      }
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
       loadStateFromCloud({ force: false });
@@ -9425,7 +9437,7 @@
         alert("Création impossible : " + error.message);
         return;
       }
-      cloudUser = data.user;
+      cloudUser = data && data.session ? data.session.user : null;
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
       if (cloudUser) {
