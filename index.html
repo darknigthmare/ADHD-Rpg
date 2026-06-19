@@ -7042,7 +7042,7 @@
         <div class="quest-log-header">
           <h2 class="section-title"><i data-lucide="users"></i> COMPAGNONS D'ARME</h2>
         </div>
-        <p class="shop-desc" style="margin-bottom: 1.5rem;">Associez-vous avec vos amis en important leurs codes. Être en équipe augmente les dégâts infligés aux Boss Raids !</p>
+        <p class="shop-desc" style="margin-bottom: 1.5rem;">Invitez vos amis via leur compte NeuroQuest pour retrouver leur héros automatiquement. Le code local reste un secours exceptionnel.</p>
         
         <!-- Party Grid -->
         <div class="party-grid" id="party-members-grid">
@@ -7418,7 +7418,7 @@
         <button class="modal-close" id="close-export-profile-btn">&times;</button>
       </div>
       <div class="modal-form">
-        <p class="shop-desc" style="margin-bottom:1rem;">Copiez le code codé ci-dessous et donnez-le à votre ami pour qu'il puisse vous ajouter à son équipe !</p>
+        <p class="shop-desc" style="margin-bottom:1rem;">Partagez le lien live si votre ami a un compte NeuroQuest. Le code local sert seulement si le cloud est indisponible.</p>
         <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Lien live compte</label>
         <textarea class="invite-code-textarea" id="export-link-box" readonly onclick="this.select()" style="min-height:72px; margin-bottom:0.75rem;"></textarea>
         <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Code local secours</label>
@@ -7439,7 +7439,7 @@
         <button class="modal-close" id="close-import-friend-btn">&times;</button>
       </div>
       <form id="import-friend-form" class="modal-form">
-        <p class="shop-desc" style="margin-bottom:1rem;">Collez le code d'invitation de votre ami ci-dessous pour l'ajouter à vos compagnons d'armes.</p>
+        <p class="shop-desc" style="margin-bottom:1rem;">Collez le lien live ou le code de secours de votre ami pour l'ajouter à vos compagnons d'armes.</p>
         <textarea class="invite-code-textarea" id="import-code-box" placeholder="Collez le lien ou le code ici..." required></textarea>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="cancel-import-friend-btn">Annuler</button>
@@ -9425,6 +9425,8 @@
     let SUPABASE_ANON_KEY = "";
     const CLOUD_SAVE_TABLE = "save_states";
     const FRIEND_INVITES_TABLE = "friend_invites";
+    const FRIENDSHIPS_TABLE = "friendships";
+    const PUBLIC_PROFILES_TABLE = "public_profiles";
     let isLocalStorageAvailable = true;
     let supabaseClient = null;
     let cloudUser = null;
@@ -9433,6 +9435,8 @@
     let cloudLastError = null;
     let cloudConfigLoaded = false;
     let cloudPendingEmail = null;
+    let liveFriendsSyncInFlight = false;
+    let liveFriendsLastSyncedAt = 0;
 
     try {
       const testKey = "__test_local_storage__";
@@ -9618,6 +9622,7 @@
           }, { onConflict: "user_id" });
         if (error) throw error;
         cloudLastSyncedAt = new Date().toISOString();
+        await upsertPublicHeroProfile();
         renderCloudAccountPanel();
         return true;
       } catch (e) {
@@ -9682,11 +9687,21 @@
         const { data } = await client.auth.getSession();
         cloudUser = data && data.session ? data.session.user : null;
         renderCloudAccountPanel();
-        if (cloudUser) loadStateFromCloud({ force: false });
+        if (cloudUser) {
+          loadStateFromCloud({ force: false }).then(() => {
+            upsertPublicHeroProfile();
+            syncLiveFriends({ force: true });
+          });
+        }
         client.auth.onAuthStateChange((_event, session) => {
           cloudUser = session ? session.user : null;
           renderCloudAccountPanel();
-          if (cloudUser) loadStateFromCloud({ force: false });
+          if (cloudUser) {
+            loadStateFromCloud({ force: false }).then(() => {
+              upsertPublicHeroProfile();
+              syncLiveFriends({ force: true });
+            });
+          }
         });
       } catch (e) {
         cloudLastError = e.message || "auth impossible";
@@ -9722,6 +9737,8 @@
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
       const loaded = await loadStateFromCloud({ force: false });
+      await upsertPublicHeroProfile();
+      await syncLiveFriends({ force: true });
       if (!loaded && !isHeroSetupComplete()) {
         enterNeuroQuest();
       }
@@ -9750,6 +9767,8 @@
       renderGlobalCloudAccountUI();
       if (cloudUser) {
         await saveStateToCloud();
+        await upsertPublicHeroProfile();
+        await syncLiveFriends({ force: true });
         spawnFloatingText("Compte créé", '#00f5d4', 'cloud-account-panel');
         if (!isHeroSetupComplete()) {
           enterNeuroQuest();
@@ -10754,6 +10773,7 @@
     async function createLiveTeamInvite() {
       const client = getSupabaseClient();
       if (!client || !cloudUser) return { success: false, fallback: true, message: "Compte requis pour le live." };
+      await upsertPublicHeroProfile();
       const inviteCode = generateLiveInviteCode();
       const publicHero = getPublicHeroCard("account");
       const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
@@ -10771,6 +10791,87 @@
       } catch (e) {
         console.warn("Live invite unavailable, using local fallback:", e);
         return { success: false, fallback: true, message: e.message || "Invitation live indisponible." };
+      }
+    }
+
+    async function upsertPublicHeroProfile() {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser || !isHeroSetupComplete()) return false;
+      try {
+        const { error } = await client
+          .from(PUBLIC_PROFILES_TABLE)
+          .upsert({
+            user_id: cloudUser.id,
+            public_hero: getPublicHeroCard("account"),
+            updated_at: new Date().toISOString()
+          }, { onConflict: "user_id" });
+        if (error) throw error;
+        return true;
+      } catch (e) {
+        console.warn("Public profile sync unavailable:", e);
+        return false;
+      }
+    }
+
+    async function syncLiveFriends({ force = false } = {}) {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser) return false;
+      if (liveFriendsSyncInFlight) return false;
+      if (!force && Date.now() - liveFriendsLastSyncedAt < 30000) return false;
+      liveFriendsSyncInFlight = true;
+      try {
+        const { data: links, error } = await client
+          .from(FRIENDSHIPS_TABLE)
+          .select("user_id, friend_user_id, status, created_at")
+          .or(`user_id.eq.${cloudUser.id},friend_user_id.eq.${cloudUser.id}`);
+        if (error) throw error;
+        const friendIds = [...new Set((links || [])
+          .filter(link => link.status === "accepted")
+          .map(link => link.user_id === cloudUser.id ? link.friend_user_id : link.user_id)
+          .filter(Boolean))];
+        if (friendIds.length === 0) {
+          state.party = (state.party || []).filter(friend => !(friend.source === "account" || friend.userId));
+          saveState();
+          renderParty();
+          renderBattleArena();
+          liveFriendsLastSyncedAt = Date.now();
+          return true;
+        }
+        const { data: profiles, error: profileError } = await client
+          .from(PUBLIC_PROFILES_TABLE)
+          .select("user_id, public_hero, updated_at")
+          .in("user_id", friendIds);
+        if (profileError) throw profileError;
+
+        const localFriends = (state.party || []).filter(friend => !(friend.source === "account" || friend.userId));
+        const liveFriends = (profiles || []).map(profile => {
+          const hero = profile.public_hero || {};
+          return {
+            id: `live-${profile.user_id}`,
+            name: hero.name || "Ami NeuroQuest",
+            avatar: hero.avatar || "Knight",
+            role: hero.role || "",
+            description: hero.description || "",
+            class: hero.class || "Guerrier",
+            level: hero.level || 1,
+            stats: hero.stats || { STR: 10, INT: 10, WIS: 10, CHA: 10, CON: 10 },
+            weapon: hero.weapon || "Poing nu",
+            userId: profile.user_id,
+            source: "account",
+            sharedAt: profile.updated_at || hero.sharedAt || new Date().toISOString()
+          };
+        }).slice(0, 3);
+        state.party = [...liveFriends, ...localFriends].slice(0, 3);
+        saveState();
+        renderParty();
+        renderBattleArena();
+        liveFriendsLastSyncedAt = Date.now();
+        return true;
+      } catch (e) {
+        console.warn("Live friends sync unavailable:", e);
+        return false;
+      } finally {
+        liveFriendsSyncInFlight = false;
       }
     }
 
@@ -10859,8 +10960,28 @@
         if (error) throw error;
         if (!data || !data.public_hero) return { success: false, message: "Invitation live introuvable ou expiree." };
         if (data.expires_at && Date.parse(data.expires_at) < Date.now()) return { success: false, message: "Invitation live expiree." };
+        if (data.creator_user_id === cloudUser.id) return { success: false, message: "C'est votre propre invitation." };
+        const { error: friendshipError } = await client
+          .from(FRIENDSHIPS_TABLE)
+          .upsert({
+            user_id: data.creator_user_id,
+            friend_user_id: cloudUser.id,
+            status: "accepted"
+          }, { onConflict: "user_id,friend_user_id" });
+        if (friendshipError) throw friendshipError;
+        await client
+          .from(FRIEND_INVITES_TABLE)
+          .update({
+            status: "accepted",
+            accepted_by_user_id: cloudUser.id,
+            accepted_at: new Date().toISOString()
+          })
+          .eq("code", inviteCode);
+        await upsertPublicHeroProfile();
+        await syncLiveFriends({ force: true });
         const publicHero = { ...data.public_hero, userId: data.creator_user_id || data.public_hero.userId, source: "account" };
-        return importFriend(encodeInvitePayload(publicHero));
+        const friend = (state.party || []).find(item => item.userId === publicHero.userId) || null;
+        return { success: true, friend: friend || { name: publicHero.name || "Ami NeuroQuest" } };
       } catch (e) {
         console.error("Live invite import failed:", e);
         return { success: false, message: "Invitation live indisponible. Demande un code local de secours." };
@@ -17717,6 +17838,7 @@
         renderRaids();
         renderCommonQuestsProposals();
         renderActiveCoopQuests();
+        syncLiveFriends();
       } else {
         viewDash.classList.add('active');
         viewParty.classList.remove('active');
