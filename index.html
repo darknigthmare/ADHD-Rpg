@@ -17248,6 +17248,63 @@
       renderSetupStatBuilder();
     }
 
+    function normalizeQuickText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/['’.,;:!?()[\]{}"]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function inferQuickQuestStat(title) {
+      const text = ` ${normalizeQuickText(title)} `;
+      const statScores = { STR: 0, INT: 0, WIS: 0, CHA: 0, CON: 0 };
+      const rules = {
+        STR: [
+          "porter", "deplacer", "bricoler", "reparer", "monter", "demonter", "jardin", "travaux",
+          "muscu", "pompes", "traction", "squat", "force", "soulever"
+        ],
+        INT: [
+          "lire", "livre", "etudier", "reviser", "apprendre", "cours", "formation", "coder", "code",
+          "developper", "debug", "bug", "documenter", "ecrire rapport", "excel", "calcul", "budget",
+          "analyser", "chercher", "recherche", "tuto", "devoir"
+        ],
+        WIS: [
+          "ranger", "trier", "organiser", "planifier", "planner", "liste", "priorite", "administratif",
+          "papier", "facture", "impot", "classer", "bureau", "menage", "nettoyer", "vaisselle",
+          "lessive", "linge", "routine", "mediter", "respiration", "journal", "clarifier"
+        ],
+        CHA: [
+          "appeler", "appel", "message", "sms", "mail", "email", "repondre", "envoyer", "ami",
+          "famille", "client", "collegue", "chef", "reunion", "rdv", "rendez vous", "voir",
+          "parler", "presentation", "social", "demander"
+        ],
+        CON: [
+          "sport", "courir", "course", "jogging", "marcher", "marche", "velo", "gym", "entrainement",
+          "etirement", "douche", "boire", "eau", "hydratation", "manger", "repas", "cuisiner",
+          "sommeil", "dormir", "sieste", "sante", "medicament", "repos"
+        ]
+      };
+
+      Object.entries(rules).forEach(([stat, words]) => {
+        words.forEach(word => {
+          const normalizedWord = normalizeQuickText(word);
+          const pattern = new RegExp(`(^|\\s)${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`, "i");
+          if (pattern.test(text)) statScores[stat] += normalizedWord.includes(" ") ? 3 : 1;
+        });
+      });
+
+      const ranked = Object.entries(statScores).sort((a, b) => b[1] - a[1]);
+      if (ranked[0][1] <= 0) return "WIS";
+      if (ranked[0][1] === ranked[1][1]) {
+        const fallbackOrder = ["WIS", "CON", "INT", "CHA", "STR"];
+        return fallbackOrder.find(stat => statScores[stat] === ranked[0][1]) || ranked[0][0];
+      }
+      return ranked[0][0];
+    }
+
     function placeQuestSupportPanels() {
       const sideColumn = document.querySelector('.dashboard-side-column');
       const plannerPanel = document.getElementById('quest-planner-panel');
@@ -18068,6 +18125,7 @@
             let recurrence = "none";
             let difficulty = "trivial";
             let associatedStat = "WIS";
+            const explicitStatProvided = /\b\/(str|int|wis|cha|con)\b/i.test(rawTitle);
 
             // Parse Types
             if (/\b\/daily\b/i.test(parsedTitle)) {
@@ -18123,27 +18181,24 @@
             }
 
             // Smart Heuristic Parsing (if no explicit tags were provided)
-            const lowerTitle = parsedTitle.toLowerCase();
+            const normalizedTitle = normalizeQuickText(parsedTitle);
             
             // Auto-Stat
-            if (!/\b\/(str|int|wis|cha|con)\b/i.test(rawTitle)) {
-              if (/\b(sport|course|jogging|gym|pompes|muscu|marcher|vélo)\b/.test(lowerTitle)) associatedStat = "STR";
-              else if (/\b(lire|livre|étudier|apprendre|coder|devoir|réviser|tuto)\b/.test(lowerTitle)) associatedStat = "INT";
-              else if (/\b(appeler|amis|famille|message|mail|email|réunion|voir)\b/.test(lowerTitle)) associatedStat = "CHA";
-              else if (/\b(ménage|nettoyer|vaisselle|cuisiner|manger|santé|douche|eau)\b/.test(lowerTitle)) associatedStat = "CON";
+            if (!explicitStatProvided) {
+              associatedStat = inferQuickQuestStat(parsedTitle);
             }
             
             // Auto-Difficulty
             if (!/\b\/(trivial|easy|medium|hard|epic)\b/i.test(rawTitle)) {
-              if (/\b(vite|rapide|petit)\b/.test(lowerTitle)) difficulty = "trivial";
-              else if (/\b(facile)\b/.test(lowerTitle)) difficulty = "easy";
-              else if (/\b(dur|difficile|gros|long)\b/.test(lowerTitle)) difficulty = "hard";
-              else if (/\b(énorme|massif|impossible)\b/.test(lowerTitle)) difficulty = "epic";
+              if (/\b(vite|rapide|petit|mini|micro)\b/.test(normalizedTitle)) difficulty = "trivial";
+              else if (/\b(facile|simple)\b/.test(normalizedTitle)) difficulty = "easy";
+              else if (/\b(dur|difficile|gros|long|important)\b/.test(normalizedTitle)) difficulty = "hard";
+              else if (/\b(enorme|massif|impossible|critique)\b/.test(normalizedTitle)) difficulty = "epic";
             }
             
             // Auto-Type
             if (!/\b\/(daily|weekly|main|side)\b/i.test(rawTitle)) {
-              if (/\b(tous les jours|quotidien|routine)\b/.test(lowerTitle)) {
+              if (/\b(tous les jours|quotidien|routine)\b/.test(normalizedTitle)) {
                 type = "daily";
                 recurrence = "daily";
               }
