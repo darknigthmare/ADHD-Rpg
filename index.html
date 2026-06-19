@@ -3262,6 +3262,66 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 0.65rem;
     }
+    .team-drawer {
+      overflow: hidden;
+    }
+    .team-drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .team-drawer-header .section-title {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .team-drawer-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .team-drawer-body {
+      display: grid;
+      gap: 1rem;
+    }
+    .team-drawer.is-collapsed {
+      padding-bottom: 0.85rem;
+    }
+    .team-drawer.is-collapsed .team-drawer-body {
+      display: none;
+    }
+    .team-action-help {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+    .team-action-help-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.025);
+      border-radius: 6px;
+      padding: 0.65rem;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+    .team-action-help-card strong {
+      display: block;
+      color: var(--text-primary);
+      font-family: var(--font-game);
+      font-size: 0.72rem;
+      margin-bottom: 0.25rem;
+    }
+    .team-sync-line {
+      margin-top: 0.65rem;
+      color: var(--text-muted);
+      font-size: 0.74rem;
+      line-height: 1.35;
+    }
     .raid-suggestion-card {
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 6px;
@@ -6230,6 +6290,14 @@
         margin-bottom: 0.85rem;
         padding-bottom: 0.55rem;
       }
+      .team-drawer-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .team-drawer-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
 
       .btn,
       button,
@@ -6998,78 +7066,101 @@
         <div id="party-next-action" style="margin-top:0.75rem; border:1px solid rgba(0,245,212,0.22); background:rgba(0,245,212,0.06); border-radius:6px; padding:0.75rem; color:var(--text-secondary); font-size:0.82rem;"></div>
       </section>
 
-      <section class="game-card" id="party-social-card" aria-label="Invitations amis">
-        <div class="quest-log-header">
+      <section class="game-card team-drawer" id="party-social-card" aria-label="Invitations amis" data-team-drawer="social">
+        <div class="team-drawer-header">
           <h2 class="section-title"><i data-lucide="user-plus"></i> INVITER DES AMIS</h2>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <div class="team-drawer-actions">
+            <button class="btn btn-secondary btn-sm team-drawer-toggle" type="button" data-team-drawer-toggle="social" title="Replier ou afficher les invitations">
+              <i data-lucide="chevron-up"></i>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="sync-live-team-btn" type="button" title="Actualiser les amis live depuis le compte">
+              <i data-lucide="refresh-cw"></i> Synchro
+            </button>
             <button class="btn btn-secondary" id="open-export-profile-btn" title="Partager mon lien ou mon code d'invitation">
               <i data-lucide="share-2"></i> Inviter
             </button>
-            <button class="btn btn-primary" id="open-import-friend-btn">
+            <button class="btn btn-primary" id="open-import-friend-btn" title="Coller une invitation reçue">
               <i data-lucide="user-plus"></i> Ajouter
             </button>
           </div>
         </div>
-        <div id="party-social-panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.65rem; color:var(--text-secondary); font-size:0.82rem;">
-          <div class="qol-summary-item"><span class="qol-summary-label">Compte</span><span class="qol-summary-value">Analyse...</span></div>
+        <div class="team-drawer-body">
+          <div class="team-action-help">
+            <div class="team-action-help-card"><strong>Inviter un ami</strong>Crée un lien live lié à ton compte. Ton ami retrouve ton héros automatiquement.</div>
+            <div class="team-action-help-card"><strong>J'ai reçu une invitation</strong>Colle le lien de ton ami. Le code local reste un secours si le cloud est indisponible.</div>
+          </div>
+          <div id="party-social-panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.65rem; color:var(--text-secondary); font-size:0.82rem;">
+            <div class="qol-summary-item"><span class="qol-summary-label">Compte</span><span class="qol-summary-value">Analyse...</span></div>
+          </div>
+          <div class="team-sync-line" id="party-sync-status">Synchro equipe en attente.</div>
         </div>
       </section>
       
       <!-- Proposed Co-op Quests Card -->
-      <section class="game-card" id="coop-quests-proposals-container" style="display: none; padding-bottom: 1.5rem;">
-        <div class="quest-log-header">
+      <section class="game-card team-drawer" id="coop-quests-proposals-container" style="display: none; padding-bottom: 1.5rem;" data-team-drawer="coopProposals">
+        <div class="team-drawer-header">
           <h2 class="section-title" style="color: var(--color-side);"><i data-lucide="users"></i> <span data-i18n="coopProposalsTitle">Quêtes Communes Proposées</span></h2>
+          <button class="btn btn-secondary btn-sm team-drawer-toggle" type="button" data-team-drawer-toggle="coopProposals" title="Replier ou afficher les quêtes proposées"><i data-lucide="chevron-up"></i></button>
         </div>
-        <p class="shop-desc" style="margin-bottom: 1rem;" data-i18n="coopProposalsDesc">Ces quêtes communes exigent la coopération ! Acceptez-les pour les relever ensemble.</p>
-        <div id="coop-quests-proposals-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <!-- Populated dynamically -->
+        <div class="team-drawer-body">
+          <p class="shop-desc" style="margin-bottom: 0;" data-i18n="coopProposalsDesc">Ces quêtes communes exigent la coopération ! Acceptez-les pour les relever ensemble.</p>
+          <div id="coop-quests-proposals-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Populated dynamically -->
+          </div>
         </div>
       </section>
       
       <!-- Active Co-op Quests Card -->
-      <section class="game-card" id="active-coop-quests-container" style="display: none; padding-bottom: 1.5rem;">
-        <div class="quest-log-header">
+      <section class="game-card team-drawer" id="active-coop-quests-container" style="display: none; padding-bottom: 1.5rem;" data-team-drawer="activeCoop">
+        <div class="team-drawer-header">
           <h2 class="section-title" style="color: var(--color-side);"><i data-lucide="scroll"></i> <span data-i18n="activeCoopQuestsTitle">Quêtes Communes Actives</span></h2>
+          <button class="btn btn-secondary btn-sm team-drawer-toggle" type="button" data-team-drawer-toggle="activeCoop" title="Replier ou afficher les quêtes actives"><i data-lucide="chevron-up"></i></button>
         </div>
-        <p class="shop-desc" style="margin-bottom: 1rem;" data-i18n="activeCoopQuestsDesc">Accomplissez ces quêtes pour infliger de lourds dégâts aux Boss !</p>
-        <div id="active-coop-quests-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <!-- Populated dynamically -->
+        <div class="team-drawer-body">
+          <p class="shop-desc" style="margin-bottom: 0;" data-i18n="activeCoopQuestsDesc">Accomplissez ces quêtes pour infliger de lourds dégâts aux Boss !</p>
+          <div id="active-coop-quests-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Populated dynamically -->
+          </div>
         </div>
       </section>
       
       <!-- Party Members Card -->
-      <section class="game-card">
-        <div class="quest-log-header">
+      <section class="game-card team-drawer" data-team-drawer="members">
+        <div class="team-drawer-header">
           <h2 class="section-title"><i data-lucide="users"></i> COMPAGNONS D'ARME</h2>
+          <button class="btn btn-secondary btn-sm team-drawer-toggle" type="button" data-team-drawer-toggle="members" title="Replier ou afficher l'escouade"><i data-lucide="chevron-up"></i></button>
         </div>
-        <p class="shop-desc" style="margin-bottom: 1.5rem;">Invitez vos amis via leur compte NeuroQuest pour retrouver leur héros automatiquement. Le code local reste un secours exceptionnel.</p>
-        
-        <!-- Party Grid -->
-        <div class="party-grid" id="party-members-grid">
-          <!-- Dynamically populated. Slots: User + up to 3 friends -->
+        <div class="team-drawer-body">
+          <p class="shop-desc" style="margin-bottom: 0;">Invitez vos amis via leur compte NeuroQuest pour retrouver leur héros automatiquement. Le code local reste un secours exceptionnel.</p>
+          <div class="party-grid" id="party-members-grid">
+            <!-- Dynamically populated. Slots: User + up to 3 friends -->
+          </div>
         </div>
       </section>
 
       <!-- Co-op Raids Section -->
-      <section class="game-card raids-section">
-        <div class="raids-header">
+      <section class="game-card raids-section team-drawer" data-team-drawer="raids">
+        <div class="team-drawer-header raids-header">
           <h2 class="section-title" style="color: #ff4d6d;"><i data-lucide="swords" style="color:#ff4d6d; filter:drop-shadow(0 0 5px rgba(255, 77, 109, 0.4))"></i> CO-OP BOSS RAIDS</h2>
-          <button class="btn btn-primary" id="open-create-raid-btn" style="background: linear-gradient(135deg, #ff4d6d, #c9184a); box-shadow: 0 4px 12px rgba(255,77,109,0.3);">
-            <i data-lucide="plus"></i> Nouveau Boss
-          </button>
-        </div>
-        <p class="shop-desc" style="margin-bottom: 1.5rem;">Compléter vos quêtes quotidiennes ou principales inflige des dégâts à tous les boss actifs. Triomphez-en pour partager l'or et l'XP !</p>
-        <div class="raid-suggestions-panel" id="raid-suggestions-panel">
-          <div class="raid-suggestions-header">
-            <h3 class="raid-suggestions-title"><i data-lucide="sparkles"></i> Boss suggérés</h3>
-            <span class="shop-desc" style="margin:0; font-size:0.72rem;">Prêts à lancer, en plus des boss personnalisés.</span>
+          <div class="team-drawer-actions">
+            <button class="btn btn-secondary btn-sm team-drawer-toggle" type="button" data-team-drawer-toggle="raids" title="Replier ou afficher les raids"><i data-lucide="chevron-up"></i></button>
+            <button class="btn btn-primary" id="open-create-raid-btn" style="background: linear-gradient(135deg, #ff4d6d, #c9184a); box-shadow: 0 4px 12px rgba(255,77,109,0.3);">
+              <i data-lucide="plus"></i> Nouveau Boss
+            </button>
           </div>
-          <div class="raid-suggestions-list" id="raid-suggestions-list"></div>
         </div>
-        
-        <!-- Active Raids Grid -->
-        <div class="raids-grid" id="raids-bosses-grid">
-          <!-- Dynamically populated -->
+        <div class="team-drawer-body">
+          <p class="shop-desc" style="margin-bottom: 0;">Compléter vos quêtes quotidiennes ou principales inflige des dégâts à tous les boss actifs. Triomphez-en pour partager l'or et l'XP !</p>
+          <div class="raid-suggestions-panel" id="raid-suggestions-panel">
+            <div class="raid-suggestions-header">
+              <h3 class="raid-suggestions-title"><i data-lucide="sparkles"></i> Boss suggérés</h3>
+              <span class="shop-desc" style="margin:0; font-size:0.72rem;">Prêts à lancer, en plus des boss personnalisés.</span>
+            </div>
+            <div class="raid-suggestions-list" id="raid-suggestions-list"></div>
+          </div>
+          <div class="raids-grid" id="raids-bosses-grid">
+            <!-- Dynamically populated -->
+          </div>
         </div>
       </section>
 
@@ -9860,6 +9951,15 @@
       if (typeof state.qol.collapseProposals === "undefined") state.qol.collapseProposals = false;
       if (typeof state.qol.openCalmDefault === "undefined") state.qol.openCalmDefault = false;
       if (typeof state.qol.keyboardShortcuts === "undefined") state.qol.keyboardShortcuts = true;
+      if (!state.qol.teamDrawers || typeof state.qol.teamDrawers !== "object") {
+        state.qol.teamDrawers = {
+          social: false,
+          coopProposals: true,
+          activeCoop: false,
+          members: false,
+          raids: true
+        };
+      }
     }
 
     function applyQoLPreferences() {
@@ -10182,7 +10282,14 @@
         reduceMotion: false,
         collapseProposals: false,
         openCalmDefault: false,
-        keyboardShortcuts: true
+        keyboardShortcuts: true,
+        teamDrawers: {
+          social: false,
+          coopProposals: true,
+          activeCoop: false,
+          members: false,
+          raids: true
+        }
       };
       state.dayMode = "normal";
       state.recoveryJournal = {
@@ -10845,6 +10952,7 @@
           renderParty();
           renderBattleArena();
           liveFriendsLastSyncedAt = Date.now();
+          renderPartySyncStatus("Equipe live synchronisee: aucun ami compte.");
           return true;
         }
         const { data: profiles, error: profileError } = await client
@@ -10876,9 +10984,11 @@
         renderParty();
         renderBattleArena();
         liveFriendsLastSyncedAt = Date.now();
+        renderPartySyncStatus(`Equipe live synchronisee: ${liveFriends.length} ami${liveFriends.length > 1 ? 's' : ''} compte.`);
         return true;
       } catch (e) {
         console.warn("Live friends sync unavailable:", e);
+        renderPartySyncStatus("Synchro live indisponible pour le moment.");
         return false;
       } finally {
         liveFriendsSyncInFlight = false;
@@ -17146,6 +17256,55 @@
       createIcons();
     }
 
+    function getLiveTeamStatus() {
+      if (!isCloudConfigured()) return { label: "Cloud non configure", detail: "Les invitations utilisent le code local de secours.", tone: "warning" };
+      if (cloudPendingEmail && !cloudUser) return { label: "Email a valider", detail: cloudPendingEmail, tone: "warning" };
+      if (cloudUser) return { label: "Live actif", detail: cloudUser.email || "Compte NeuroQuest", tone: "ok" };
+      return { label: "Mode secours local", detail: "Connecte-toi pour synchroniser tes amis live.", tone: "warning" };
+    }
+
+    function formatRelativeSyncTime(timestamp) {
+      if (!timestamp) return "Jamais synchronise";
+      const delta = Math.max(0, Date.now() - timestamp);
+      if (delta < 10000) return "A l'instant";
+      const minutes = Math.floor(delta / 60000);
+      if (minutes < 1) return "Il y a moins d'une minute";
+      if (minutes < 60) return `Il y a ${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      return `Il y a ${hours} h`;
+    }
+
+    function renderTeamDrawers() {
+      normalizeQoLSettings();
+      document.querySelectorAll('[data-team-drawer]').forEach(drawer => {
+        const key = drawer.dataset.teamDrawer;
+        const collapsed = !!state.qol.teamDrawers[key];
+        drawer.classList.toggle('is-collapsed', collapsed);
+        const toggle = drawer.querySelector(`[data-team-drawer-toggle="${key}"]`);
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', String(!collapsed));
+          toggle.setAttribute('title', collapsed ? 'Afficher cette section.' : 'Replier cette section.');
+          toggle.innerHTML = `<i data-lucide="${collapsed ? 'chevron-down' : 'chevron-up'}"></i>`;
+        }
+      });
+    }
+
+    function setTeamDrawerCollapsed(key, collapsed) {
+      normalizeQoLSettings();
+      state.qol.teamDrawers[key] = !!collapsed;
+      saveState();
+      renderTeamDrawers();
+      createIcons();
+    }
+
+    function renderPartySyncStatus(message = null) {
+      const status = document.getElementById('party-sync-status');
+      if (!status) return;
+      const liveStatus = getLiveTeamStatus();
+      const syncText = cloudUser ? `Derniere synchro: ${formatRelativeSyncTime(liveFriendsLastSyncedAt)}.` : "Synchro live inactive tant que le compte n'est pas connecte.";
+      status.textContent = message || `${liveStatus.label}. ${syncText}`;
+    }
+
     function renderPartySummary() {
       const summary = document.getElementById('party-qol-summary');
       const nextAction = document.getElementById('party-next-action');
@@ -17162,11 +17321,13 @@
       if (activeRaids === 0) advice = "Lancer un boss";
       else if (activeCoop > 0) advice = "Faire une coop";
       else if (partySize >= maxParty) advice = "Equipe complete";
+      const liveStatus = getLiveTeamStatus();
       summary.innerHTML = `
         <div class="qol-summary-item"><span class="qol-summary-label">Equipe</span><span class="qol-summary-value">${partySize}/${maxParty}</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Bonus raid</span><span class="qol-summary-value">+${raidBonus}%</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Raids actifs</span><span class="qol-summary-value">${activeRaids}</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Quetes coop</span><span class="qol-summary-value">${activeCoop}</span></div>
+        <div class="qol-summary-item ${liveStatus.tone === 'warning' ? 'is-warning' : ''}"><span class="qol-summary-label">Live</span><span class="qol-summary-value">${escapeHTML(liveStatus.label)}</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Conseil</span><span class="qol-summary-value">${advice}</span></div>
       `;
       if (nextAction) {
@@ -17186,16 +17347,16 @@
     function renderPartySocialPanel() {
       const panel = document.getElementById('party-social-panel');
       if (!panel) return;
-      const accountLabel = cloudUser ? "Compte connecte" : "Mode local";
-      const accountDetail = cloudUser ? (cloudUser.email || "Compte NeuroQuest") : "Invitation par code/lien local";
+      const liveStatus = getLiveTeamStatus();
       const friendCount = (state.party || []).length;
       const accountFriends = (state.party || []).filter(friend => friend.source === "account" || friend.userId).length;
       panel.innerHTML = `
-        <div class="qol-summary-item"><span class="qol-summary-label">Compte</span><span class="qol-summary-value">${escapeHTML(accountLabel)}</span></div>
-        <div class="qol-summary-item"><span class="qol-summary-label">Identite</span><span class="qol-summary-value">${escapeHTML(accountDetail)}</span></div>
+        <div class="qol-summary-item ${liveStatus.tone === 'warning' ? 'is-warning' : ''}"><span class="qol-summary-label">Etat</span><span class="qol-summary-value">${escapeHTML(liveStatus.label)}</span></div>
+        <div class="qol-summary-item"><span class="qol-summary-label">Identite</span><span class="qol-summary-value">${escapeHTML(liveStatus.detail)}</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Amis</span><span class="qol-summary-value">${friendCount}/3</span></div>
         <div class="qol-summary-item"><span class="qol-summary-label">Via compte</span><span class="qol-summary-value">${accountFriends}</span></div>
       `;
+      renderPartySyncStatus();
     }
 
     function orderPartyRaidSections() {
@@ -17213,6 +17374,7 @@
       if (!grid) return;
       renderPartySummary();
       renderPartySocialPanel();
+      renderTeamDrawers();
       grid.innerHTML = '';
 
       const activeWeapon = state.player.equipment.weapon;
@@ -17270,8 +17432,8 @@
           emptySlot.className = 'party-empty-slot';
           emptySlot.innerHTML = `
             <i data-lucide="user-plus" class="party-empty-icon"></i>
-            <span class="party-empty-text">Emplacement vide</span>
-            <span style="font-size:0.7rem; color:var(--text-muted);">Rejoindre via code</span>
+            <span class="party-empty-text">Aucun allie ici</span>
+            <span style="font-size:0.7rem; color:var(--text-muted);">Inviter un ami donne +25% degats boss</span>
           `;
           emptySlot.addEventListener('click', () => {
             openModal(elements.importFriendModal);
@@ -17315,6 +17477,7 @@
       const grid = document.getElementById('raids-bosses-grid');
       if (!grid) return;
       renderPartySummary();
+      renderTeamDrawers();
       orderPartyRaidSections();
       renderRaidSuggestions();
       grid.innerHTML = '';
@@ -18474,6 +18637,11 @@
           if (removeBtn) {
             const id = removeBtn.dataset.id;
             const card = removeBtn.closest('.party-member-card');
+            const friend = (state.party || []).find(item => item.id === id);
+            const isLiveFriend = !!(friend && (friend.source === "account" || friend.userId));
+            if (isLiveFriend && !confirm("Retirer cet ami de l'equipe live ? Il ne reviendra plus a la prochaine synchro.")) {
+              return;
+            }
             if (card) {
               card.classList.add('disintegrate-animation');
               setTimeout(async () => {
@@ -18488,6 +18656,28 @@
               }, 350);
             }
           }
+        });
+      }
+
+      document.querySelectorAll('[data-team-drawer-toggle]').forEach(button => {
+        if (button.dataset.boundTeamDrawer === "true") return;
+        button.dataset.boundTeamDrawer = "true";
+        button.addEventListener('click', () => {
+          const key = button.dataset.teamDrawerToggle;
+          normalizeQoLSettings();
+          setTeamDrawerCollapsed(key, !state.qol.teamDrawers[key]);
+        });
+      });
+
+      const syncLiveTeamBtn = document.getElementById('sync-live-team-btn');
+      if (syncLiveTeamBtn && syncLiveTeamBtn.dataset.boundSyncLiveTeam !== "true") {
+        syncLiveTeamBtn.dataset.boundSyncLiveTeam = "true";
+        syncLiveTeamBtn.addEventListener('click', async () => {
+          renderPartySyncStatus("Synchronisation live en cours...");
+          const ok = await syncLiveFriends({ force: true });
+          spawnFloatingText(ok ? "Equipe synchronisee" : "Synchro indisponible", ok ? '#00f5d4' : '#ffb703', 'party-social-card');
+          renderParty();
+          createIcons();
         });
       }
 
@@ -19220,6 +19410,13 @@
         state.noisePanelCollapsed = true;
         state.soloProposalsCollapsed = true;
         state.qol.collapseProposals = true;
+        state.qol.teamDrawers = {
+          social: false,
+          coopProposals: true,
+          activeCoop: true,
+          members: false,
+          raids: true
+        };
       }
 
       renderHUD();
