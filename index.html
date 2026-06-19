@@ -9398,6 +9398,13 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function isHeroSetupComplete() {
+      if (!state.player || !state.player.setupComplete) return false;
+      const className = (state.player.class || "").trim();
+      const role = (state.player.role || "").trim();
+      return Boolean(className && role && state.player.stats);
+    }
+
     function renderCloudAccountPanel() {
       const status = document.getElementById('cloud-status-pill');
       const signedOut = document.getElementById('cloud-signed-out');
@@ -9513,6 +9520,9 @@
         if (!data || !data.state) {
           await saveStateToCloud();
           spawnFloatingText("Cloud initialisé", '#00f5d4', 'cloud-account-panel');
+          if (!isHeroSetupComplete()) {
+            enterNeuroQuest();
+          }
           return true;
         }
 
@@ -9587,7 +9597,10 @@
       }
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
-      loadStateFromCloud({ force: false });
+      const loaded = await loadStateFromCloud({ force: false });
+      if (!loaded && !isHeroSetupComplete()) {
+        enterNeuroQuest();
+      }
     }
 
     async function registerCloudAccount(emailOverride = null, passwordOverride = null) {
@@ -9614,6 +9627,9 @@
       if (cloudUser) {
         await saveStateToCloud();
         spawnFloatingText("Compte créé", '#00f5d4', 'cloud-account-panel');
+        if (!isHeroSetupComplete()) {
+          enterNeuroQuest();
+        }
       } else {
         alert("Compte créé. Vérifie ton email si Supabase demande une confirmation.");
       }
@@ -18782,7 +18798,7 @@
       const label = document.getElementById('welcome-start-label');
       const note = document.getElementById('welcome-save-note');
       const avatar = document.getElementById('welcome-avatar');
-      const hasHero = !!(state.player && state.player.setupComplete);
+      const hasHero = isHeroSetupComplete();
 
       if (label) label.textContent = hasHero ? "Continuer l'aventure" : "Commencer l'aventure";
       if (note) {
@@ -18811,7 +18827,7 @@
 
     function checkSetupWizard() {
       if (welcomeGateOpen) return;
-      if (!state.player.setupComplete) {
+      if (!isHeroSetupComplete()) {
         appModals.setupWizardOverlay.classList.remove('hidden');
         document.body.classList.add('modal-open');
         populateSetupAvatarOptions();
