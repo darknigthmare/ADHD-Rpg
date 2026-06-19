@@ -1092,6 +1092,22 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
+    .character-role-line {
+      text-align: center;
+      color: var(--color-gold);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: -0.85rem 0 0.55rem;
+    }
+    .character-description-line {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      line-height: 1.35;
+      margin: 0 auto 1.1rem;
+      max-width: 18rem;
+      overflow-wrap: anywhere;
+    }
 
     /* Stat point notification */
     .stat-points-alert {
@@ -2414,6 +2430,94 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
+    }
+    .setup-sheet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    .setup-stat-builder {
+      border: 1px solid rgba(0, 245, 212, 0.18);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      padding: 1rem;
+      margin: 0.75rem 0 1.5rem;
+    }
+    .setup-stat-builder-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+    }
+    .setup-points-pill {
+      color: var(--color-gold);
+      border: 1px solid rgba(255, 215, 0, 0.32);
+      border-radius: 999px;
+      padding: 0.18rem 0.55rem;
+      white-space: nowrap;
+      background: rgba(255, 215, 0, 0.08);
+      font-weight: 800;
+    }
+    .setup-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.55rem;
+    }
+    .setup-stat-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.55rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .setup-stat-label {
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      font-weight: 800;
+    }
+    .setup-stat-value {
+      min-width: 2rem;
+      text-align: center;
+      color: var(--color-xp);
+      font-family: var(--font-game);
+      font-size: 0.8rem;
+    }
+    .setup-stat-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .setup-stat-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .setup-validation-note {
+      min-height: 1.2rem;
+      color: var(--color-danger);
+      font-size: 0.78rem;
+      margin-top: 0.55rem;
+    }
+    @media (max-width: 640px) {
+      .setup-sheet-grid {
+        grid-template-columns: 1fr;
+      }
+      .setup-stat-builder-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
     .form-group label {
       font-family: var(--font-body);
@@ -6442,6 +6546,8 @@
         </div>
 
         <div class="character-class-title" id="character-title">Novice Polyvalent</div>
+        <div class="character-role-line" id="character-role-line"></div>
+        <div class="character-description-line" id="character-description-line"></div>
 
         <!-- Available Stat Points Alert -->
         <div id="stat-points-alert" class="stat-points-alert hidden">
@@ -7095,6 +7201,16 @@
           <label for="profile-name" data-i18n="heroName">Nom du Héros</label>
           <input type="text" id="profile-name" required placeholder="Héros" maxlength="15">
         </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="profile-role">Role du heros</label>
+            <input type="text" id="profile-role" placeholder="Gardien du focus" maxlength="28">
+          </div>
+          <div class="form-group">
+            <label for="profile-description">Description courte</label>
+            <textarea id="profile-description" rows="2" maxlength="180" placeholder="Ce qui aide ce heros a avancer."></textarea>
+          </div>
+        </div>
         <div class="form-group">
           <label data-i18n="selectAvatar">Sélectionner un Avatar</label>
           <div class="avatar-selector-grid" id="avatar-selector">
@@ -7341,13 +7457,24 @@
   <!-- SETUP WIZARD OVERLAY (First-time launch) -->
   <div class="setup-overlay hidden" id="setup-wizard-overlay">
     <div class="setup-card">
-      <h2>CRÉATION DU HÉROS</h2>
-      <p class="setup-subtitle">Définissez votre identité et choisissez votre classe de départ pour commencer l'aventure.</p>
+      <h2>FICHE DE PERSONNAGE</h2>
+      <p class="setup-subtitle">Creez votre heros, choisissez son role et repartissez quelques points de depart comme dans un RPG.</p>
       
       <form id="setup-wizard-form" class="modal-form" style="padding:0; text-align:left;">
         <div class="form-group">
           <label for="setup-name">Nom du Héros</label>
           <input type="text" id="setup-name" required placeholder="Entrez votre nom de joueur..." maxlength="15" style="background:rgba(0,0,0,0.5)">
+        </div>
+
+        <div class="setup-sheet-grid">
+          <div class="form-group">
+            <label for="setup-role">Role du heros</label>
+            <input type="text" id="setup-role" placeholder="Ex: Gardien du focus" maxlength="28" style="background:rgba(0,0,0,0.5)">
+          </div>
+          <div class="form-group">
+            <label for="setup-description">Description courte</label>
+            <textarea id="setup-description" placeholder="Ex: avance mieux avec des micro-actions claires." rows="2" maxlength="180" style="background:rgba(0,0,0,0.5); resize:vertical;"></textarea>
+          </div>
         </div>
 
         <div class="form-group" style="margin-top:1rem;">
@@ -7406,6 +7533,15 @@
             <span>INT -2</span>
             <span>SAG -1</span>
           </div>
+        </div>
+
+        <div class="setup-stat-builder" aria-label="Points de depart">
+          <div class="setup-stat-builder-head">
+            <span>Ajoutez vos points de depart selon votre facon de jouer.</span>
+            <span class="setup-points-pill"><span id="setup-points-left">5</span> point(s) restant(s)</span>
+          </div>
+          <div class="setup-stat-grid" id="setup-stat-builder-grid"></div>
+          <div class="setup-validation-note" id="setup-validation-note"></div>
         </div>
 
         <div class="form-group">
@@ -9109,6 +9245,8 @@
       player: {
         name: "Héros",
         avatar: "Adventurer",
+        role: "",
+        description: "",
         level: 1,
         xp: 0,
         xpNext: 100,
@@ -9798,6 +9936,8 @@
           if (!state.raids) state.raids = [];
           if (typeof state.player.setupComplete === "undefined") state.player.setupComplete = false;
           if (typeof state.player.class === "undefined") state.player.class = "";
+          if (typeof state.player.role === "undefined") state.player.role = "";
+          if (typeof state.player.description === "undefined") state.player.description = "";
           if (typeof state.soundEnabled === "undefined") state.soundEnabled = true;
           if (typeof state.lastSaved === "undefined") state.lastSaved = new Date().toISOString();
           if (typeof state.focusModeActive === "undefined") state.focusModeActive = false;
@@ -9828,6 +9968,8 @@
       state.player = {
         name: "Héros",
         avatar: "Adventurer",
+        role: "",
+        description: "",
         level: 1,
         xp: 0,
         xpNext: 100,
@@ -9923,23 +10065,19 @@
       return { ...(baseByClass[className] || baseByClass.Guerrier) };
     }
 
-    function completeSetup(name, avatar, className) {
+    function completeSetup(name, avatar, className, sheet = {}) {
       state.player.name = name.trim() || "Héros";
       state.player.avatar = avatar || "Adventurer";
       state.player.class = className || "Guerrier";
+      state.player.role = (sheet.role || "").trim() || state.player.class;
+      state.player.description = (sheet.description || "").trim();
       state.player.setupComplete = true;
 
-      if (className === "Guerrier") {
-        state.player.stats = { STR: 13, INT: 8, WIS: 9, CHA: 10, CON: 12 };
-      } else if (className === "Mage") {
-        state.player.stats = { STR: 8, INT: 14, WIS: 11, CHA: 9, CON: 10 };
-      } else if (className === "Voleur") {
-        state.player.stats = { STR: 9, INT: 10, WIS: 11, CHA: 13, CON: 9 };
-      } else if (className === "Prêtre") {
-        state.player.stats = { STR: 9, INT: 9, WIS: 13, CHA: 10, CON: 11 };
-      }
-
       state.player.stats = getClassBaseStats(state.player.class);
+      const bonusStats = sheet.bonusStats || {};
+      Object.keys(state.player.stats).forEach(stat => {
+        state.player.stats[stat] += Math.max(0, Number(bonusStats[stat]) || 0);
+      });
       state.player.level = 1;
       state.player.xp = 0;
       state.player.xpNext = 100;
@@ -9947,9 +10085,11 @@
       saveState();
     }
 
-    function setPlayerProfile(name, avatar) {
+    function setPlayerProfile(name, avatar, profile = {}) {
       state.player.name = name.trim() || "Héros";
       state.player.avatar = avatar || "Adventurer";
+      if (typeof profile.role !== "undefined") state.player.role = (profile.role || "").trim();
+      if (typeof profile.description !== "undefined") state.player.description = (profile.description || "").trim();
       saveState();
     }
 
@@ -14587,6 +14727,8 @@
       
       sheetAvatar: document.getElementById('sheet-avatar'),
       characterTitle: document.getElementById('character-title'),
+      characterRoleLine: document.getElementById('character-role-line'),
+      characterDescriptionLine: document.getElementById('character-description-line'),
       statPointsAlert: document.getElementById('stat-points-alert'),
       statPointsCount: document.getElementById('stat-points-count'),
       
@@ -14746,6 +14888,8 @@
     let selectedAvatarSeed = "Adventurer";
     let setupSelectedAvatarSeed = "Adventurer";
     let setupSelectedClass = "Guerrier";
+    const SETUP_STARTING_POINTS = 5;
+    let setupBonusStats = { STR: 0, INT: 0, WIS: 0, CHA: 0, CON: 0 };
     let openWorldSettingsId = null;
     let welcomeGateOpen = true;
     const WORLD_THEME_OPTIONS = [
@@ -15405,6 +15549,14 @@
     function renderCharacterSheet() {
       elements.sheetAvatar.src = `${getAvatarUrl(state.player.avatar, state.theme)}`;
       elements.characterTitle.textContent = getRankTitle(state.player.level);
+      if (elements.characterRoleLine) {
+        const role = (state.player.role || state.player.class || "").trim();
+        elements.characterRoleLine.textContent = role ? `${role} - ${state.player.class || "Aventurier"}` : "";
+      }
+      if (elements.characterDescriptionLine) {
+        elements.characterDescriptionLine.textContent = (state.player.description || "").trim();
+        elements.characterDescriptionLine.classList.toggle('hidden', !(state.player.description || "").trim());
+      }
       
       elements.statStr.textContent = state.player.stats.STR;
       elements.statInt.textContent = state.player.stats.INT;
@@ -16571,13 +16723,16 @@
       const activeWeapon = state.player.equipment.weapon;
       const weaponItem = GEAR_CATALOG.find(i => i.id === activeWeapon);
       const weaponName = weaponItem ? weaponItem.name : "Poing nu";
+      const playerRole = (state.player.role || state.player.class || "Aventurier").trim();
+      const playerDescription = (state.player.description || "").trim();
       
       const userCard = document.createElement('div');
       userCard.className = 'party-member-card user-card';
       userCard.innerHTML = `
         <img class="member-avatar" src="${getAvatarUrl(state.player.avatar, state.theme)}" alt="Votre Avatar">
         <span class="member-name">${escapeHTML(state.player.name)} <span style="color:var(--color-xp); font-size:0.75rem;">(Vous)</span></span>
-        <span class="member-class-level">${state.player.class || 'Guerrier'} - NIV ${state.player.level}</span>
+        <span class="member-class-level">${escapeHTML(playerRole)} - ${state.player.class || 'Guerrier'} - NIV ${state.player.level}</span>
+        ${playerDescription ? `<span style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.25rem; line-height:1.35;">${escapeHTML(playerDescription)}</span>` : ''}
         <span style="font-size:0.68rem; color:#10b981; border:1px solid rgba(16,185,129,0.35); border-radius:999px; padding:0.15rem 0.45rem; margin-top:0.25rem;">Actif - chef d'equipe</span>
         <span style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Arme : ${weaponName}</span>
         <div class="member-stats-mini">
@@ -16970,6 +17125,10 @@
     function setProfileDialogData() {
       selectedAvatarSeed = state.player.avatar;
       document.getElementById('profile-name').value = state.player.name;
+      const roleInput = document.getElementById('profile-role');
+      if (roleInput) roleInput.value = state.player.role || "";
+      const descriptionInput = document.getElementById('profile-description');
+      if (descriptionInput) descriptionInput.value = state.player.description || "";
       
       const themeSelect = document.getElementById('theme-select');
       if (themeSelect) {
@@ -17049,6 +17208,44 @@
         
         grid.appendChild(item);
       });
+    }
+
+    function getSetupPointsSpent() {
+      return Object.values(setupBonusStats).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    }
+
+    function renderSetupStatBuilder() {
+      const grid = document.getElementById('setup-stat-builder-grid');
+      if (!grid) return;
+      const classStats = getClassBaseStats(setupSelectedClass);
+      const spent = getSetupPointsSpent();
+      const left = Math.max(0, SETUP_STARTING_POINTS - spent);
+      const pointsLeft = document.getElementById('setup-points-left');
+      if (pointsLeft) pointsLeft.textContent = left;
+      const statLabels = { STR: "FOR", INT: "INT", WIS: "SAG", CHA: "CHA", CON: "CON" };
+      grid.innerHTML = Object.keys(setupBonusStats).map(stat => {
+        const bonus = setupBonusStats[stat] || 0;
+        const total = (classStats[stat] || 10) + bonus;
+        return `
+          <div class="setup-stat-row" data-setup-stat="${stat}">
+            <span class="setup-stat-label">${statLabels[stat]}</span>
+            <button class="setup-stat-btn" type="button" data-setup-stat-minus="${stat}" ${bonus <= 0 ? 'disabled' : ''}>-</button>
+            <span class="setup-stat-value">${total}</span>
+            <button class="setup-stat-btn" type="button" data-setup-stat-plus="${stat}" ${left <= 0 ? 'disabled' : ''}>+</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function adjustSetupStat(stat, delta) {
+      if (!Object.prototype.hasOwnProperty.call(setupBonusStats, stat)) return;
+      const current = setupBonusStats[stat] || 0;
+      if (delta < 0 && current <= 0) return;
+      if (delta > 0 && getSetupPointsSpent() >= SETUP_STARTING_POINTS) return;
+      setupBonusStats[stat] = Math.max(0, current + delta);
+      const note = document.getElementById('setup-validation-note');
+      if (note) note.textContent = '';
+      renderSetupStatBuilder();
     }
 
     function placeQuestSupportPanels() {
@@ -17230,7 +17427,14 @@
           classInfo.stats.split(', ').forEach(s => {
             statsBox.innerHTML += `<span>${s}</span>`;
           });
+          renderSetupStatBuilder();
         });
+      });
+      document.addEventListener('click', (e) => {
+        const plus = e.target.closest('[data-setup-stat-plus]');
+        const minus = e.target.closest('[data-setup-stat-minus]');
+        if (plus) adjustSetupStat(plus.dataset.setupStatPlus, 1);
+        if (minus) adjustSetupStat(minus.dataset.setupStatMinus, -1);
       });
       const btnRerollRewards = document.getElementById('btn-reroll-rewards');
       if (btnRerollRewards) {
@@ -18556,6 +18760,7 @@
         appModals.setupWizardOverlay.classList.remove('hidden');
         document.body.classList.add('modal-open');
         populateSetupAvatarOptions();
+        renderSetupStatBuilder();
       } else {
         appModals.setupWizardOverlay.classList.add('hidden');
         document.body.classList.remove('modal-open');
@@ -18577,8 +18782,21 @@
         const nameInput = document.getElementById('setup-name').value;
         const selectedClass = setupSelectedClass;
         const selectedAvatar = setupSelectedAvatarSeed;
+        const roleInput = document.getElementById('setup-role')?.value || "";
+        const descriptionInput = document.getElementById('setup-description')?.value || "";
+        const note = document.getElementById('setup-validation-note');
+        if (getSetupPointsSpent() !== SETUP_STARTING_POINTS) {
+          if (note) note.textContent = `Repartis les ${SETUP_STARTING_POINTS} points de depart avant de commencer.`;
+          renderSetupStatBuilder();
+          return;
+        }
         
-        completeSetup(nameInput, selectedAvatar, selectedClass);
+        completeSetup(nameInput, selectedAvatar, selectedClass, {
+          role: roleInput,
+          description: descriptionInput,
+          bonusStats: { ...setupBonusStats }
+        });
+        setupBonusStats = { STR: 0, INT: 0, WIS: 0, CHA: 0, CON: 0 };
         appModals.setupWizardOverlay.classList.add('hidden');
         document.body.classList.remove('modal-open');
         
@@ -18754,6 +18972,8 @@
         e.preventDefault();
         const name = document.getElementById('profile-name').value;
         const avatar = selectedAvatarSeed;
+        const role = document.getElementById('profile-role')?.value || "";
+        const description = document.getElementById('profile-description')?.value || "";
         
         const themeSelect = document.getElementById('theme-select');
         if (themeSelect) {
@@ -18798,7 +19018,7 @@
       if (keyboardCb) state.qol.keyboardShortcuts = keyboardCb.checked;
       applyQoLPreferences();
         
-        setPlayerProfile(name, avatar);
+        setPlayerProfile(name, avatar, { role, description });
         closeProfileModal();
         renderHUD();
         renderCharacterSheet();
