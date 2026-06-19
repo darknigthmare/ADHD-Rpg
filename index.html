@@ -5973,6 +5973,8 @@
         font-size: 15px;
         padding-bottom: calc(4rem + var(--mobile-safe-bottom));
         background-attachment: scroll;
+        overflow-y: auto;
+        min-height: 100dvh;
       }
 
       .game-hud {
@@ -17194,20 +17196,25 @@
       spawnHeroFloatingText("LEVEL UP!", "var(--color-gold)", null, 38);
     }
 
+    function syncModalScrollLock() {
+      const gate = document.getElementById('welcome-gate');
+      const setupOverlay = document.getElementById('setup-wizard-overlay');
+      const hasWelcome = gate && !gate.classList.contains('hidden');
+      const hasSetup = setupOverlay && !setupOverlay.classList.contains('hidden');
+      const hasModal = !!document.querySelector('.modal-overlay.active');
+      document.body.classList.toggle('modal-open', hasWelcome || hasSetup || hasModal);
+    }
+
     function openModal(modal) {
       modal.classList.add('active');
-      document.body.classList.add('modal-open');
+      syncModalScrollLock();
       const input = modal.querySelector('input');
       if (input) input.focus();
     }
 
     function closeModal(modal) {
       modal.classList.remove('active');
-      const setupOverlay = document.getElementById('setup-wizard-overlay');
-      const hasActiveSetup = setupOverlay && !setupOverlay.classList.contains('hidden');
-      if (!document.querySelector('.modal-overlay.active') && !hasActiveSetup) {
-        document.body.classList.remove('modal-open');
-      }
+      syncModalScrollLock();
       const form = modal.querySelector('form');
       if (form) form.reset();
     }
@@ -17773,7 +17780,7 @@
       if (closeInventoryBtn) {
         closeInventoryBtn.addEventListener('click', () => {
           inventoryModal.classList.remove('active');
-          document.body.classList.remove('modal-open');
+          syncModalScrollLock();
         });
       }
 
@@ -17791,7 +17798,7 @@
           
           renderInventory(type);
           inventoryModal.classList.add('active');
-          document.body.classList.add('modal-open');
+          syncModalScrollLock();
         });
       });
 
@@ -18909,7 +18916,7 @@
       }
 
       gate.classList.remove('hidden');
-      document.body.classList.add('modal-open');
+      syncModalScrollLock();
       if (window.lucide) window.lucide.createIcons({ nameAttr: 'data-lucide' });
     }
 
@@ -18917,7 +18924,7 @@
       const gate = document.getElementById('welcome-gate');
       welcomeGateOpen = false;
       if (gate) gate.classList.add('hidden');
-      document.body.classList.remove('modal-open');
+      syncModalScrollLock();
       checkSetupWizard();
       renderBattleArena();
     }
@@ -18926,12 +18933,12 @@
       if (welcomeGateOpen) return;
       if (!isHeroSetupComplete()) {
         appModals.setupWizardOverlay.classList.remove('hidden');
-        document.body.classList.add('modal-open');
+        syncModalScrollLock();
         populateSetupAvatarOptions();
         renderSetupStatBuilder();
       } else {
         appModals.setupWizardOverlay.classList.add('hidden');
-        document.body.classList.remove('modal-open');
+        syncModalScrollLock();
       }
     }
 
@@ -18966,7 +18973,7 @@
         });
         setupBonusStats = { STR: 0, INT: 0, WIS: 0, CHA: 0, CON: 0 };
         appModals.setupWizardOverlay.classList.add('hidden');
-        document.body.classList.remove('modal-open');
+        syncModalScrollLock();
         
         renderHUD();
         renderCharacterSheet();
