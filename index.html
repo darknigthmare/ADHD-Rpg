@@ -274,12 +274,16 @@
       display: grid;
       place-items: center;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: clamp(1rem, 3vw, 2.5rem);
       background:
         radial-gradient(circle at 18% 18%, rgba(0, 245, 212, 0.16), transparent 26%),
         radial-gradient(circle at 82% 78%, rgba(255, 183, 3, 0.13), transparent 28%),
         linear-gradient(180deg, rgba(2, 6, 23, 0.96), rgba(8, 13, 25, 0.98));
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     .welcome-gate::before,
     .welcome-gate::after {
@@ -508,8 +512,14 @@
       box-shadow: 0 0 12px var(--color-gold);
     }
     @media (max-width: 760px) {
+      .welcome-gate {
+        place-items: start center;
+        align-content: start;
+        padding: max(0.75rem, env(safe-area-inset-top, 0px)) 0.75rem max(1.25rem, env(safe-area-inset-bottom, 0px));
+      }
       .welcome-scene {
         grid-template-columns: 1fr;
+        width: 100%;
       }
       .welcome-portrait {
         min-height: 190px;
