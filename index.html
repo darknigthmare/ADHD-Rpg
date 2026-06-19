@@ -18193,13 +18193,15 @@
       }
 
       window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        const key = typeof e.key === 'string' ? e.key : '';
+        const lowerKey = key.toLowerCase();
+        if ((e.ctrlKey || e.metaKey) && lowerKey === 's') {
           e.preventDefault();
           manualSave();
           return;
         }
 
-        if (e.key === 'Escape') {
+        if (key === 'Escape') {
           const activeModal = document.querySelector('.modal-overlay.active');
           if (activeModal) {
             e.preventDefault();
@@ -18215,14 +18217,14 @@
         const isTyping = ['input', 'textarea', 'select'].includes(activeTag) || (document.activeElement && document.activeElement.isContentEditable);
         if (isTyping) return;
 
-        if (e.key === '/') {
+        if (key === '/') {
           e.preventDefault();
           const quickInput = document.getElementById('quick-quest-title');
           if (quickInput) quickInput.focus();
-        } else if (e.key.toLowerCase() === 'g') {
+        } else if (lowerKey === 'g') {
           e.preventDefault();
           guideNextAdhdAction();
-        } else if (e.key.toLowerCase() === 'f') {
+        } else if (lowerKey === 'f') {
           e.preventDefault();
           toggleFocusMode();
         }
