@@ -362,6 +362,70 @@
       color: var(--text-muted);
       font-size: 0.78rem;
     }
+    .welcome-account-card {
+      margin-top: 1rem;
+      border: 1px solid rgba(0, 245, 212, 0.18);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      padding: 0.85rem;
+      display: grid;
+      gap: 0.65rem;
+      max-width: 560px;
+    }
+    .welcome-account-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+    .welcome-account-head strong {
+      color: var(--color-xp);
+      font-family: var(--font-game);
+      letter-spacing: 0.04em;
+    }
+    .welcome-account-form,
+    .welcome-account-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0.55rem;
+    }
+    .welcome-account-form input {
+      min-width: 0;
+      background: rgba(0,0,0,0.38);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      padding: 0.55rem;
+      outline: none;
+    }
+    .welcome-account-form input:focus {
+      border-color: var(--color-xp);
+    }
+    .welcome-account-connected {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+    .cloud-header-button {
+      width: auto;
+      min-width: 2.2rem;
+      padding: 0 0.65rem;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: var(--color-xp);
+    }
+    .cloud-header-label {
+      max-width: 13rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .welcome-portrait {
       position: relative;
       min-height: 280px;
@@ -436,6 +500,10 @@
       }
       .welcome-primary {
         width: 100%;
+      }
+      .welcome-account-form,
+      .welcome-account-actions {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -6094,6 +6162,26 @@
           </button>
           <span class="welcome-note" id="welcome-save-note">Sauvegarde locale detectee automatiquement.</span>
         </div>
+        <div class="welcome-account-card" id="welcome-account-card">
+          <div class="welcome-account-head">
+            <strong><i data-lucide="cloud"></i> Compte NeuroQuest</strong>
+            <span id="welcome-cloud-status">Verification...</span>
+          </div>
+          <div id="welcome-cloud-signed-out">
+            <div class="welcome-account-form">
+              <input type="email" id="welcome-cloud-email" autocomplete="email" placeholder="email">
+              <input type="password" id="welcome-cloud-password" autocomplete="current-password" placeholder="mot de passe">
+            </div>
+            <div class="welcome-account-actions">
+              <button class="btn btn-primary btn-sm" type="button" id="welcome-cloud-login-btn"><i data-lucide="log-in"></i> Connexion</button>
+              <button class="btn btn-secondary btn-sm" type="button" id="welcome-cloud-register-btn"><i data-lucide="user-plus"></i> Creer un compte</button>
+            </div>
+          </div>
+          <div class="welcome-account-connected hidden" id="welcome-cloud-signed-in">
+            <span>Connecte : <strong id="welcome-cloud-user">-</strong></span>
+            <button class="btn btn-secondary btn-sm" type="button" id="welcome-cloud-logout-btn"><i data-lucide="log-out"></i> Deconnexion</button>
+          </div>
+        </div>
       </div>
       <div class="welcome-portrait" aria-hidden="true">
         <div class="welcome-orbit"></div>
@@ -6143,6 +6231,10 @@
           <span id="hud-streak">0</span>
           <span class="streak-unit" data-i18n="streakUnit">JOURS</span>
         </div>
+        <button class="settings-btn cloud-header-button" id="open-cloud-account-btn" title="Compte NeuroQuest">
+          <i data-lucide="user-circle"></i>
+          <span class="cloud-header-label" id="cloud-header-label">Connexion</span>
+        </button>
         <div class="save-control" title="Sauvegarde locale automatique et manuelle">
           <div class="hud-stat save-status" id="save-status">
             <i data-lucide="cloud-check"></i>
@@ -9143,6 +9235,7 @@
       const signedIn = document.getElementById('cloud-signed-in');
       const email = document.getElementById('cloud-user-email');
       const details = document.getElementById('cloud-sync-details');
+      renderGlobalCloudAccountUI();
       if (!status || !signedOut || !signedIn) return;
 
       status.classList.remove('connected', 'error');
@@ -9178,6 +9271,26 @@
         const copy = signedOut.querySelector('.cloud-account-copy');
         if (copy) copy.textContent = "Connecte-toi pour retrouver ton héros, tes mondes, tes quêtes et ton planner sur un autre appareil.";
       }
+    }
+
+    function renderGlobalCloudAccountUI() {
+      const headerLabel = document.getElementById('cloud-header-label');
+      const welcomeStatus = document.getElementById('welcome-cloud-status');
+      const welcomeSignedOut = document.getElementById('welcome-cloud-signed-out');
+      const welcomeSignedIn = document.getElementById('welcome-cloud-signed-in');
+      const welcomeUser = document.getElementById('welcome-cloud-user');
+      const configured = isCloudConfigured();
+      const label = cloudUser ? (cloudUser.email || "Compte connecte") : (configured ? "Connexion" : "Compte local");
+
+      if (headerLabel) headerLabel.textContent = label;
+      if (welcomeStatus) {
+        welcomeStatus.textContent = !configured ? "Cloud non configure" : (cloudUser ? "Connecte" : "Non connecte");
+      }
+      if (welcomeSignedOut && welcomeSignedIn) {
+        welcomeSignedOut.classList.toggle('hidden', !!cloudUser || !configured);
+        welcomeSignedIn.classList.toggle('hidden', !cloudUser);
+      }
+      if (welcomeUser) welcomeUser.textContent = cloudUser ? (cloudUser.email || "compte connecte") : "-";
     }
 
     function scheduleCloudSave(delay = 1400) {
@@ -9272,14 +9385,14 @@
       }
     }
 
-    async function loginCloudAccount() {
+    async function loginCloudAccount(emailOverride = null, passwordOverride = null) {
       const client = getSupabaseClient();
       if (!client) {
         alert("Le cloud n'est pas encore configuré. Il faut créer un projet Supabase et renseigner l'URL + la clé publique.");
         return;
       }
-      const email = document.getElementById('cloud-email')?.value.trim();
-      const password = document.getElementById('cloud-password')?.value;
+      const email = (emailOverride || document.getElementById('cloud-email')?.value || '').trim();
+      const password = passwordOverride || document.getElementById('cloud-password')?.value;
       if (!email || !password) {
         alert("Entre un email et un mot de passe.");
         return;
@@ -9291,17 +9404,18 @@
       }
       cloudUser = data.user;
       renderCloudAccountPanel();
+      renderGlobalCloudAccountUI();
       loadStateFromCloud({ force: false });
     }
 
-    async function registerCloudAccount() {
+    async function registerCloudAccount(emailOverride = null, passwordOverride = null) {
       const client = getSupabaseClient();
       if (!client) {
         alert("Le cloud n'est pas encore configuré. Il faut créer un projet Supabase et renseigner l'URL + la clé publique.");
         return;
       }
-      const email = document.getElementById('cloud-email')?.value.trim();
-      const password = document.getElementById('cloud-password')?.value;
+      const email = (emailOverride || document.getElementById('cloud-email')?.value || '').trim();
+      const password = passwordOverride || document.getElementById('cloud-password')?.value;
       if (!email || !password || password.length < 6) {
         alert("Entre un email et un mot de passe d'au moins 6 caractères.");
         return;
@@ -9313,6 +9427,7 @@
       }
       cloudUser = data.user;
       renderCloudAccountPanel();
+      renderGlobalCloudAccountUI();
       if (cloudUser) {
         await saveStateToCloud();
         spawnFloatingText("Compte créé", '#00f5d4', 'cloud-account-panel');
@@ -9327,6 +9442,7 @@
       await client.auth.signOut();
       cloudUser = null;
       renderCloudAccountPanel();
+      renderGlobalCloudAccountUI();
     }
 
     function updateSaveStatus(hasError = false) {
@@ -18540,12 +18656,21 @@
         setProfileDialogData();
         openModal(appModals.editProfileModal);
       };
+      const openCloudAccountPanel = () => {
+        openProfileModal();
+        setTimeout(() => {
+          const panel = document.getElementById('cloud-account-panel');
+          if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+      };
       bindSafeListener(appModals.playerTrigger, 'click', openProfileModal, 'playerTrigger');
       bindSafeListener(appModals.changeAvatarBtn, 'click', openProfileModal, 'changeAvatarBtn');
 
       // Open settings from header button
       const openSettingsBtn = document.getElementById('open-settings-btn');
       bindSafeListener(openSettingsBtn, 'click', openProfileModal, 'openSettingsBtn');
+      const openCloudAccountBtn = document.getElementById('open-cloud-account-btn');
+      bindSafeListener(openCloudAccountBtn, 'click', openCloudAccountPanel, 'openCloudAccountBtn');
 
       const openCollectionsBtn = document.getElementById('open-collections-btn');
       if (openCollectionsBtn) {
@@ -18639,6 +18764,23 @@
       if (exportSaveBtn) exportSaveBtn.addEventListener('click', exportFullSave);
       const importSaveBtn = document.getElementById('import-save-btn');
       if (importSaveBtn) importSaveBtn.addEventListener('click', importFullSave);
+
+      const welcomeCloudLoginBtn = document.getElementById('welcome-cloud-login-btn');
+      if (welcomeCloudLoginBtn) welcomeCloudLoginBtn.addEventListener('click', () => {
+        loginCloudAccount(
+          document.getElementById('welcome-cloud-email')?.value,
+          document.getElementById('welcome-cloud-password')?.value
+        );
+      });
+      const welcomeCloudRegisterBtn = document.getElementById('welcome-cloud-register-btn');
+      if (welcomeCloudRegisterBtn) welcomeCloudRegisterBtn.addEventListener('click', () => {
+        registerCloudAccount(
+          document.getElementById('welcome-cloud-email')?.value,
+          document.getElementById('welcome-cloud-password')?.value
+        );
+      });
+      const welcomeCloudLogoutBtn = document.getElementById('welcome-cloud-logout-btn');
+      if (welcomeCloudLogoutBtn) welcomeCloudLogoutBtn.addEventListener('click', logoutCloudAccount);
 
       const cloudLoginBtn = document.getElementById('cloud-login-btn');
       if (cloudLoginBtn) cloudLoginBtn.addEventListener('click', loginCloudAccount);
