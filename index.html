@@ -5722,6 +5722,14 @@
       z-index: 100;
       border: 1px solid rgba(255,255,255,0.2);
     }
+    @media (max-width: 820px), (pointer: coarse) and (max-width: 1024px) {
+      .pet-speech-bubble {
+        max-width: min(58vw, 180px);
+        white-space: normal;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+    }
     @keyframes bubblePop {
       0% { transform: translate(-50%, 10px) scale(0.5); opacity: 0; }
       15% { transform: translate(-50%, 0) scale(1); opacity: 1; }
@@ -6620,7 +6628,7 @@
           <!-- Quick Task Addition Bar -->
           <form id="quick-add-quest-form" style="display:flex; gap:0.5rem; width:100%; margin:0;">
             <input type="text" id="quick-quest-title" placeholder="⚡ Ajout rapide (ex: Lire 10 pages...) + Entrée" style="flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border-color); border-radius:6px; padding:0.4rem 0.8rem; color:#fff; font-size:0.85rem;" required maxlength="60">
-            <button type="submit" class="btn btn-secondary btn-sm" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.25rem;"><i data-lucide="plus" style="width:14px; height:14px;"></i></button>
+            <button type="submit" class="btn btn-secondary btn-sm" aria-label="Ajouter la quete rapide" title="Ajouter la quete rapide" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.25rem;"><i data-lucide="plus" style="width:14px; height:14px;"></i></button>
           </form>
           
           <div class="adhd-next-action-panel" id="adhd-next-action-panel">
