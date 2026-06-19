@@ -2839,10 +2839,14 @@
     /* First-Time Character Creation Setup Wizard */
     .setup-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100vw;
+      width: 100dvw;
+      min-width: 100vw;
       height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(135deg, #07090e 0%, #121622 100%);
       z-index: 9999;
       display: flex;
@@ -6279,7 +6283,7 @@
       }
 
       .modal-content,
-      .setup-wizard-card {
+      .setup-card {
         width: min(100%, calc(100vw - 1rem));
         max-height: calc(100dvh - 1rem);
         overflow-y: auto;
@@ -7499,6 +7503,7 @@
         <div class="splash-reward-item"><i data-lucide="coins" class="coin-icon"></i> +50 Pièces d'or en bonus</div>
       </div>
       <button class="btn btn-primary btn-lg" id="close-level-up-splash-btn">CONTINUER L'AVENTURE</button>
+    </div>
   </div>
 
   <!-- OFFLINE REWARDS MODAL -->
