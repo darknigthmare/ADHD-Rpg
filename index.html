@@ -403,6 +403,14 @@
     .welcome-account-form input:focus {
       border-color: var(--color-xp);
     }
+    .cloud-auth-hint {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+    .cloud-auth-hint.warning {
+      color: #fbbf24;
+    }
     .welcome-account-connected {
       display: flex;
       align-items: center;
@@ -6172,6 +6180,7 @@
               <input type="email" id="welcome-cloud-email" autocomplete="email" placeholder="email">
               <input type="password" id="welcome-cloud-password" autocomplete="current-password" placeholder="mot de passe">
             </div>
+            <p class="cloud-auth-hint warning" id="welcome-cloud-hint">Creation de compte : un email de validation peut etre envoye. La sauvegarde cloud s'active apres validation puis reconnexion.</p>
             <div class="welcome-account-actions">
               <button class="btn btn-primary btn-sm" type="button" id="welcome-cloud-login-btn"><i data-lucide="log-in"></i> Connexion</button>
               <button class="btn btn-secondary btn-sm" type="button" id="welcome-cloud-register-btn"><i data-lucide="user-plus"></i> Creer un compte</button>
@@ -7146,6 +7155,7 @@
               <input type="email" id="cloud-email" autocomplete="email" placeholder="email">
               <input type="password" id="cloud-password" autocomplete="current-password" placeholder="mot de passe">
             </div>
+            <p class="cloud-auth-hint warning" id="cloud-auth-hint">Apres creation, verifie ton email si Supabase demande une validation. Ensuite reconnecte-toi pour activer la sauvegarde cloud.</p>
             <div class="cloud-actions-row">
               <button type="button" class="btn btn-primary btn-sm" id="cloud-login-btn"><i data-lucide="log-in"></i> Connexion</button>
               <button type="button" class="btn btn-secondary btn-sm" id="cloud-register-btn"><i data-lucide="user-plus"></i> Créer le compte</button>
@@ -9167,6 +9177,7 @@
     let cloudLastSyncedAt = null;
     let cloudLastError = null;
     let cloudConfigLoaded = false;
+    let cloudPendingEmail = null;
 
     try {
       const testKey = "__test_local_storage__";
@@ -9284,7 +9295,7 @@
 
       if (headerLabel) headerLabel.textContent = label;
       if (welcomeStatus) {
-        welcomeStatus.textContent = !configured ? "Cloud non configure" : (cloudUser ? "Connecte" : "Non connecte");
+        welcomeStatus.textContent = !configured ? "Cloud non configure" : (cloudUser ? "Connecte" : (cloudPendingEmail ? "Email a valider" : "Non connecte"));
       }
       if (welcomeSignedOut && welcomeSignedIn) {
         welcomeSignedOut.classList.toggle('hidden', !!cloudUser || !configured);
@@ -9409,6 +9420,7 @@
         return;
       }
       cloudUser = data && data.session ? data.session.user : null;
+      cloudPendingEmail = null;
       if (!cloudUser) {
         alert("Connexion acceptee mais session absente. Verifie ton email puis reconnecte-toi.");
         renderCloudAccountPanel();
@@ -9438,6 +9450,7 @@
         return;
       }
       cloudUser = data && data.session ? data.session.user : null;
+      cloudPendingEmail = cloudUser ? null : email;
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
       if (cloudUser) {
@@ -9453,6 +9466,7 @@
       if (!client) return;
       await client.auth.signOut();
       cloudUser = null;
+      cloudPendingEmail = null;
       renderCloudAccountPanel();
       renderGlobalCloudAccountUI();
     }
