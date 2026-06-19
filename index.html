@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Courier+Prime:wght@400;700&family=Creepster&family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Special+Elite&display=swap" rel="stylesheet">
   <!-- Lucide Icons (CDN) -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <!-- Global Error Handler for Debugging -->
   <script>
@@ -823,6 +824,81 @@
       background: rgba(0, 245, 212, 0.16);
       border-left-color: rgba(0, 245, 212, 0.34);
       transform: none;
+    }
+    .cloud-account-panel {
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+    .cloud-account-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .cloud-account-title {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--font-game);
+      font-size: 0.9rem;
+      color: var(--color-xp);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .cloud-status-pill {
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.24);
+      white-space: nowrap;
+    }
+    .cloud-status-pill.connected {
+      color: var(--color-xp);
+      border-color: rgba(0,245,212,0.34);
+      background: rgba(0,245,212,0.08);
+    }
+    .cloud-status-pill.error {
+      color: #fca5a5;
+      border-color: rgba(239,68,68,0.34);
+      background: rgba(239,68,68,0.08);
+    }
+    .cloud-account-body {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .cloud-account-copy {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+    .cloud-form-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0.55rem;
+    }
+    .cloud-form-row input {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      padding: 0.55rem;
+      outline: none;
+    }
+    .cloud-form-row input:focus {
+      border-color: var(--border-focus);
+    }
+    .cloud-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .cloud-actions-row .btn {
+      flex: 1 1 11rem;
     }
     .streak-icon {
       color: var(--color-streak);
@@ -6967,6 +7043,31 @@
           </div>
           <button type="button" class="btn btn-primary" id="prestige-btn" style="width:100%; text-transform:uppercase;" data-i18n="prestigeBtn">Transcender (Niveau 10+)</button>
         </div>
+        <div class="cloud-account-panel" id="cloud-account-panel">
+          <div class="cloud-account-header">
+            <div class="cloud-account-title"><i data-lucide="cloud"></i> Compte NeuroQuest</div>
+            <span class="cloud-status-pill" id="cloud-status-pill">Cloud non configuré</span>
+          </div>
+          <div class="cloud-account-body" id="cloud-signed-out">
+            <p class="cloud-account-copy">Connecte-toi pour retrouver ton héros, tes mondes, tes quêtes et ton planner sur un autre appareil.</p>
+            <div class="cloud-form-row">
+              <input type="email" id="cloud-email" autocomplete="email" placeholder="email">
+              <input type="password" id="cloud-password" autocomplete="current-password" placeholder="mot de passe">
+            </div>
+            <div class="cloud-actions-row">
+              <button type="button" class="btn btn-primary btn-sm" id="cloud-login-btn"><i data-lucide="log-in"></i> Connexion</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="cloud-register-btn"><i data-lucide="user-plus"></i> Créer le compte</button>
+            </div>
+          </div>
+          <div class="cloud-account-body hidden" id="cloud-signed-in">
+            <p class="cloud-account-copy">Connecté : <strong id="cloud-user-email">-</strong><br><span id="cloud-sync-details">Synchronisation prête.</span></p>
+            <div class="cloud-actions-row">
+              <button type="button" class="btn btn-primary btn-sm" id="cloud-sync-now-btn"><i data-lucide="refresh-cw"></i> Sync maintenant</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="cloud-load-btn"><i data-lucide="download-cloud"></i> Récupérer cloud</button>
+              <button type="button" class="btn btn-danger btn-sm" id="cloud-logout-btn"><i data-lucide="log-out"></i> Déconnexion</button>
+            </div>
+          </div>
+        </div>
         <div class="reset-section" style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem; margin-bottom: 1rem;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.7rem;">
             <button type="button" class="btn btn-secondary" id="export-save-btn"><i data-lucide="download"></i> Exporter</button>
@@ -8964,7 +9065,15 @@
     };
 
     const STORAGE_KEY = "questlog_rpg_state";
+    const SUPABASE_URL = "";
+    const SUPABASE_ANON_KEY = "";
+    const CLOUD_SAVE_TABLE = "save_states";
     let isLocalStorageAvailable = true;
+    let supabaseClient = null;
+    let cloudUser = null;
+    let cloudSyncTimer = null;
+    let cloudLastSyncedAt = null;
+    let cloudLastError = null;
 
     try {
       const testKey = "__test_local_storage__";
@@ -8986,10 +9095,219 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         updateSaveStatus(false);
+        scheduleCloudSave();
       } catch (e) {
         console.error("Failed to save state to LocalStorage:", e);
         updateSaveStatus(true);
       }
+    }
+
+    function isCloudConfigured() {
+      return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+    }
+
+    function getSupabaseClient() {
+      if (!isCloudConfigured()) return null;
+      if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      return supabaseClient;
+    }
+
+    function getStateSavedTime(saveStateObj = state) {
+      const parsed = Date.parse(saveStateObj && saveStateObj.lastSaved);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function renderCloudAccountPanel() {
+      const status = document.getElementById('cloud-status-pill');
+      const signedOut = document.getElementById('cloud-signed-out');
+      const signedIn = document.getElementById('cloud-signed-in');
+      const email = document.getElementById('cloud-user-email');
+      const details = document.getElementById('cloud-sync-details');
+      if (!status || !signedOut || !signedIn) return;
+
+      status.classList.remove('connected', 'error');
+      if (!isCloudConfigured()) {
+        status.textContent = "Cloud non configuré";
+        status.classList.add('error');
+        signedOut.classList.remove('hidden');
+        signedIn.classList.add('hidden');
+        const copy = signedOut.querySelector('.cloud-account-copy');
+        if (copy) copy.textContent = "Supabase doit encore être configuré dans le code pour activer les comptes en ligne.";
+        return;
+      }
+
+      if (cloudUser) {
+        status.textContent = "Connecté";
+        status.classList.add('connected');
+        signedOut.classList.add('hidden');
+        signedIn.classList.remove('hidden');
+        if (email) email.textContent = cloudUser.email || "compte connecté";
+        if (details) {
+          if (cloudLastError) {
+            details.textContent = `Dernière erreur : ${cloudLastError}`;
+          } else if (cloudLastSyncedAt) {
+            details.textContent = `Dernière sync : ${new Date(cloudLastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          } else {
+            details.textContent = "Synchronisation prête.";
+          }
+        }
+      } else {
+        status.textContent = "Non connecté";
+        signedOut.classList.remove('hidden');
+        signedIn.classList.add('hidden');
+        const copy = signedOut.querySelector('.cloud-account-copy');
+        if (copy) copy.textContent = "Connecte-toi pour retrouver ton héros, tes mondes, tes quêtes et ton planner sur un autre appareil.";
+      }
+    }
+
+    function scheduleCloudSave(delay = 1400) {
+      if (!cloudUser || !getSupabaseClient()) return;
+      clearTimeout(cloudSyncTimer);
+      cloudSyncTimer = setTimeout(() => saveStateToCloud(), delay);
+    }
+
+    async function saveStateToCloud() {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser) return false;
+      try {
+        cloudLastError = null;
+        const payload = JSON.parse(JSON.stringify(state));
+        const { error } = await client
+          .from(CLOUD_SAVE_TABLE)
+          .upsert({
+            user_id: cloudUser.id,
+            state: payload,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "user_id" });
+        if (error) throw error;
+        cloudLastSyncedAt = new Date().toISOString();
+        renderCloudAccountPanel();
+        return true;
+      } catch (e) {
+        cloudLastError = e.message || "sync impossible";
+        console.error("Cloud save failed:", e);
+        renderCloudAccountPanel();
+        return false;
+      }
+    }
+
+    async function loadStateFromCloud({ force = false } = {}) {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser) return false;
+      try {
+        cloudLastError = null;
+        const { data, error } = await client
+          .from(CLOUD_SAVE_TABLE)
+          .select("state, updated_at")
+          .eq("user_id", cloudUser.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data || !data.state) {
+          await saveStateToCloud();
+          spawnFloatingText("Cloud initialisé", '#00f5d4', 'cloud-account-panel');
+          return true;
+        }
+
+        const localTime = getStateSavedTime(state);
+        const cloudTime = getStateSavedTime(data.state) || Date.parse(data.updated_at || "");
+        const shouldLoad = force || cloudTime > localTime;
+        if (!shouldLoad) {
+          spawnFloatingText("Local plus récent", '#ffb703', 'cloud-account-panel');
+          return false;
+        }
+
+        state = data.state;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        cloudLastSyncedAt = new Date().toISOString();
+        spawnFloatingText("Sauvegarde cloud récupérée", '#00f5d4', 'cloud-account-panel');
+        setTimeout(() => location.reload(), 450);
+        return true;
+      } catch (e) {
+        cloudLastError = e.message || "chargement cloud impossible";
+        console.error("Cloud load failed:", e);
+        renderCloudAccountPanel();
+        alert("Impossible de récupérer la sauvegarde cloud pour le moment.");
+        return false;
+      }
+    }
+
+    async function initCloudAccount() {
+      const client = getSupabaseClient();
+      renderCloudAccountPanel();
+      if (!client) return;
+      try {
+        const { data } = await client.auth.getSession();
+        cloudUser = data && data.session ? data.session.user : null;
+        renderCloudAccountPanel();
+        if (cloudUser) loadStateFromCloud({ force: false });
+        client.auth.onAuthStateChange((_event, session) => {
+          cloudUser = session ? session.user : null;
+          renderCloudAccountPanel();
+          if (cloudUser) loadStateFromCloud({ force: false });
+        });
+      } catch (e) {
+        cloudLastError = e.message || "auth impossible";
+        renderCloudAccountPanel();
+      }
+    }
+
+    async function loginCloudAccount() {
+      const client = getSupabaseClient();
+      if (!client) {
+        alert("Le cloud n'est pas encore configuré. Il faut créer un projet Supabase et renseigner l'URL + la clé publique.");
+        return;
+      }
+      const email = document.getElementById('cloud-email')?.value.trim();
+      const password = document.getElementById('cloud-password')?.value;
+      if (!email || !password) {
+        alert("Entre un email et un mot de passe.");
+        return;
+      }
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert("Connexion impossible : " + error.message);
+        return;
+      }
+      cloudUser = data.user;
+      renderCloudAccountPanel();
+      loadStateFromCloud({ force: false });
+    }
+
+    async function registerCloudAccount() {
+      const client = getSupabaseClient();
+      if (!client) {
+        alert("Le cloud n'est pas encore configuré. Il faut créer un projet Supabase et renseigner l'URL + la clé publique.");
+        return;
+      }
+      const email = document.getElementById('cloud-email')?.value.trim();
+      const password = document.getElementById('cloud-password')?.value;
+      if (!email || !password || password.length < 6) {
+        alert("Entre un email et un mot de passe d'au moins 6 caractères.");
+        return;
+      }
+      const { data, error } = await client.auth.signUp({ email, password });
+      if (error) {
+        alert("Création impossible : " + error.message);
+        return;
+      }
+      cloudUser = data.user;
+      renderCloudAccountPanel();
+      if (cloudUser) {
+        await saveStateToCloud();
+        spawnFloatingText("Compte créé", '#00f5d4', 'cloud-account-panel');
+      } else {
+        alert("Compte créé. Vérifie ton email si Supabase demande une confirmation.");
+      }
+    }
+
+    async function logoutCloudAccount() {
+      const client = getSupabaseClient();
+      if (!client) return;
+      await client.auth.signOut();
+      cloudUser = null;
+      renderCloudAccountPanel();
     }
 
     function updateSaveStatus(hasError = false) {
@@ -16525,6 +16843,8 @@
           prestigeBtn.style.opacity = '0.5';
         }
       }
+
+      renderCloudAccountPanel();
     }
 
     function populateSetupAvatarOptions() {
@@ -17960,6 +18280,7 @@
       setPrimaryTab(state.dashboardTab || "today", { skipSave: true });
       bindModalEvents();
       renderWelcomeGate();
+      initCloudAccount();
 
       document.body.addEventListener('click', () => {
         initAudio();
@@ -18299,6 +18620,24 @@
       if (exportSaveBtn) exportSaveBtn.addEventListener('click', exportFullSave);
       const importSaveBtn = document.getElementById('import-save-btn');
       if (importSaveBtn) importSaveBtn.addEventListener('click', importFullSave);
+
+      const cloudLoginBtn = document.getElementById('cloud-login-btn');
+      if (cloudLoginBtn) cloudLoginBtn.addEventListener('click', loginCloudAccount);
+      const cloudRegisterBtn = document.getElementById('cloud-register-btn');
+      if (cloudRegisterBtn) cloudRegisterBtn.addEventListener('click', registerCloudAccount);
+      const cloudSyncNowBtn = document.getElementById('cloud-sync-now-btn');
+      if (cloudSyncNowBtn) cloudSyncNowBtn.addEventListener('click', async () => {
+        const ok = await saveStateToCloud();
+        spawnFloatingText(ok ? "Cloud synchronisé" : "Cloud indisponible", ok ? '#00f5d4' : '#ff4d6d', 'cloud-account-panel');
+      });
+      const cloudLoadBtn = document.getElementById('cloud-load-btn');
+      if (cloudLoadBtn) cloudLoadBtn.addEventListener('click', () => {
+        if (confirm("Remplacer les données locales par la sauvegarde cloud de ce compte ?")) {
+          loadStateFromCloud({ force: true });
+        }
+      });
+      const cloudLogoutBtn = document.getElementById('cloud-logout-btn');
+      if (cloudLogoutBtn) cloudLogoutBtn.addEventListener('click', logoutCloudAccount);
 
       // Export Profile Invite Code Modal
       bindSafeListener(appModals.openExportProfileBtn, 'click', () => {
