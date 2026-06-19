@@ -7419,9 +7419,9 @@
       </div>
       <div class="modal-form">
         <p class="shop-desc" style="margin-bottom:1rem;">Copiez le code codé ci-dessous et donnez-le à votre ami pour qu'il puisse vous ajouter à son équipe !</p>
-        <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Lien d'invitation</label>
+        <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Lien live compte</label>
         <textarea class="invite-code-textarea" id="export-link-box" readonly onclick="this.select()" style="min-height:72px; margin-bottom:0.75rem;"></textarea>
-        <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Code local</label>
+        <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Code local secours</label>
         <textarea class="invite-code-textarea" id="export-code-box" readonly onclick="this.select()"></textarea>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="copy-export-link-btn"><i data-lucide="link"></i> Copier le lien</button>
@@ -9424,6 +9424,7 @@
     let SUPABASE_URL = "";
     let SUPABASE_ANON_KEY = "";
     const CLOUD_SAVE_TABLE = "save_states";
+    const FRIEND_INVITES_TABLE = "friend_invites";
     let isLocalStorageAvailable = true;
     let supabaseClient = null;
     let cloudUser = null;
@@ -10701,10 +10702,10 @@
       return t('Rank6');
     }
 
-    function generateInviteCode() {
+    function getPublicHeroCard(source = null) {
       const activeWeapon = state.player.equipment.weapon;
       const weaponItem = GEAR_CATALOG.find(i => i.id === activeWeapon);
-      const data = {
+      return {
         version: 2,
         kind: "neuroquest-public-hero",
         userId: cloudUser ? cloudUser.id : null,
@@ -10716,9 +10717,13 @@
         level: state.player.level,
         stats: state.player.stats,
         weapon: weaponItem ? weaponItem.name : "Poing nu",
-        source: cloudUser ? "account" : "local",
+        source: source || (cloudUser ? "account" : "local"),
         sharedAt: new Date().toISOString()
       };
+    }
+
+    function generateInviteCode() {
+      const data = getPublicHeroCard("local");
       const jsonStr = JSON.stringify(data);
       return btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
         return String.fromCharCode(parseInt(p1, 16));
@@ -10729,6 +10734,44 @@
       const code = generateInviteCode();
       const baseUrl = `${location.origin}${location.pathname}`;
       return `${baseUrl}?invite=${encodeURIComponent(code)}`;
+    }
+
+    function generateLiveInviteCode() {
+      const bytes = new Uint8Array(12);
+      if (window.crypto && crypto.getRandomValues) {
+        crypto.getRandomValues(bytes);
+      } else {
+        bytes.forEach((_, index) => { bytes[index] = Math.floor(Math.random() * 256); });
+      }
+      return "live_" + Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function generateLiveInviteLink(inviteCode) {
+      const baseUrl = `${location.origin}${location.pathname}`;
+      return `${baseUrl}?invite=${encodeURIComponent(inviteCode)}`;
+    }
+
+    async function createLiveTeamInvite() {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser) return { success: false, fallback: true, message: "Compte requis pour le live." };
+      const inviteCode = generateLiveInviteCode();
+      const publicHero = getPublicHeroCard("account");
+      const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      try {
+        const { error } = await client
+          .from(FRIEND_INVITES_TABLE)
+          .insert({
+            code: inviteCode,
+            creator_user_id: cloudUser.id,
+            public_hero: publicHero,
+            expires_at: expiresAt
+          });
+        if (error) throw error;
+        return { success: true, code: inviteCode, link: generateLiveInviteLink(inviteCode), publicHero };
+      } catch (e) {
+        console.warn("Live invite unavailable, using local fallback:", e);
+        return { success: false, fallback: true, message: e.message || "Invitation live indisponible." };
+      }
     }
 
     function extractInviteCode(input) {
@@ -10795,6 +10838,39 @@
         console.error("Failed to parse invite code:", e);
         return { success: false, message: "Code d'invitation corrompu ou illisible." };
       }
+    }
+
+    function encodeInvitePayload(data) {
+      const jsonStr = JSON.stringify(data);
+      return btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        return String.fromCharCode(parseInt(p1, 16));
+      }));
+    }
+
+    async function importLiveFriend(inviteCode) {
+      const client = getSupabaseClient();
+      if (!client || !cloudUser) return { success: false, message: "Connecte-toi pour accepter une invitation live." };
+      try {
+        const { data, error } = await client
+          .from(FRIEND_INVITES_TABLE)
+          .select("code, creator_user_id, public_hero, expires_at")
+          .eq("code", inviteCode)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data || !data.public_hero) return { success: false, message: "Invitation live introuvable ou expiree." };
+        if (data.expires_at && Date.parse(data.expires_at) < Date.now()) return { success: false, message: "Invitation live expiree." };
+        const publicHero = { ...data.public_hero, userId: data.creator_user_id || data.public_hero.userId, source: "account" };
+        return importFriend(encodeInvitePayload(publicHero));
+      } catch (e) {
+        console.error("Live invite import failed:", e);
+        return { success: false, message: "Invitation live indisponible. Demande un code local de secours." };
+      }
+    }
+
+    async function importFriendInput(input) {
+      const inviteCode = extractInviteCode(input);
+      if (inviteCode.startsWith("live_")) return importLiveFriend(inviteCode);
+      return importFriend(inviteCode);
     }
 
     function captureIncomingInviteLink() {
@@ -19427,10 +19503,17 @@
       if (cloudLogoutBtn) cloudLogoutBtn.addEventListener('click', logoutCloudAccount);
 
       // Export Profile Invite Code Modal
-      bindSafeListener(appModals.openExportProfileBtn, 'click', () => {
+      bindSafeListener(appModals.openExportProfileBtn, 'click', async () => {
         const code = generateInviteCode();
         appModals.exportCodeBox.value = code;
-        if (appModals.exportLinkBox) appModals.exportLinkBox.value = generateInviteLink();
+        if (appModals.exportLinkBox) {
+          appModals.exportLinkBox.value = "Creation du lien live...";
+          const liveInvite = await createLiveTeamInvite();
+          appModals.exportLinkBox.value = liveInvite.success ? liveInvite.link : generateInviteLink();
+          if (!liveInvite.success) {
+            spawnFloatingText("Live indisponible: lien local de secours", '#ffb703', 'party-social-card');
+          }
+        }
         openModal(appModals.exportProfileModal);
       }, 'openExportProfileBtn');
       
@@ -19483,10 +19566,10 @@
       bindSafeListener(appModals.closeImportFriendBtn, 'click', closeImportModal, 'closeImportFriendBtn');
       bindSafeListener(appModals.cancelImportFriendBtn, 'click', closeImportModal, 'cancelImportFriendBtn');
       
-      bindSafeListener(appModals.importFriendForm, 'submit', (e) => {
+      bindSafeListener(appModals.importFriendForm, 'submit', async (e) => {
         e.preventDefault();
         const code = appModals.importCodeBox.value;
-        const result = importFriend(code);
+        const result = await importFriendInput(code);
         
         if (result.success) {
           closeImportModal();
