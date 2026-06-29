@@ -3369,6 +3369,11 @@
       background: rgba(255, 77, 109, 0.15);
     }
 
+    .boss-card.active-raid-target {
+      border-color: var(--color-xp);
+      box-shadow: 0 0 0 1px rgba(0, 245, 212, 0.45), 0 0 22px rgba(0, 245, 212, 0.12);
+    }
+
     /* Invite Modal Layout */
     .invite-code-textarea {
       font-family: monospace;
@@ -7438,7 +7443,7 @@
         </div>
         <div class="prestige-section" style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
           <h3 style="font-family: var(--font-game); font-size: 0.9rem; color: var(--color-main); margin-bottom: 0.4rem;" data-i18n="prestige">Transcendance</h3>
-          <p class="settings-desc" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.5rem;" data-i18n="prestigeDesc">Réinitialise votre niveau et or en échange d'un bonus permanent de +5% Or/XP et +1 à toutes les statistiques de départ.</p>
+          <p class="settings-desc" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.5rem;" data-i18n="prestigeDesc">Relance un nouveau chapitre au niveau 1 avec +5% Or/XP permanent, +1 aux stats de depart, 1 Essence, un bonus repos, et conserve quetes, mondes, equipement et collections.</p>
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; margin-bottom:0.5rem;">
             <span data-i18n="prestigeCount">Nombre de Transcendances</span>
             <span id="prestige-count-val" style="font-weight:bold; color:var(--color-xp);">0</span>
@@ -7798,7 +7803,7 @@
         theme: "Thème",
         prestige: "Transcendance",
         prestigeCount: "Nombre de Transcendances",
-        prestigeDesc: "Réinitialise votre niveau et or en échange d'un bonus permanent de +5% Or/XP et +1 à toutes les statistiques de départ.",
+        prestigeDesc: "Relance un nouveau chapitre au niveau 1 avec +5% Or/XP permanent, +1 aux stats de depart, 1 Essence, un bonus repos, et conserve quetes, mondes, equipement et collections.",
         prestigeBtn: "Transcender (Niveau 10+)",
         resetBtn: "Wipe / Reset Total",
         focusMode: "Mode Focus",
@@ -7828,7 +7833,7 @@
         createRaid: "Créer un Boss de Raid",
         deleteRaidConfirm: "Supprimer ce boss de raid ?",
         resetConfirm: "Voulez-vous réinitialiser TOUTES vos données définitivement ?",
-        transcendSuccess: "Félicitations ! Vous avez transcendé vers une nouvelle vie !",
+        transcendSuccess: "Chapitre relance ! Vos reperes sont conserves et votre potentiel augmente.",
         notEnoughLevel: "Vous devez être niveau 10 ou plus pour transcender !",
         emptySlot: "Emplacement vide",
         trivial: "Trivial",
@@ -8876,32 +8881,27 @@
       
       const startStatBonus = state.transcendenceCount;
       const className = state.player.class || "Guerrier";
-      let baseStats = { STR: 10, INT: 10, WIS: 10, CHA: 10, CON: 10 };
-      
-      if (className === "Guerrier") {
-        baseStats = { STR: 13, INT: 8, WIS: 9, CHA: 10, CON: 12 };
-      } else if (className === "Mage") {
-        baseStats = { STR: 8, INT: 14, WIS: 11, CHA: 9, CON: 10 };
-      } else if (className === "Voleur") {
-        baseStats = { STR: 9, INT: 10, WIS: 11, CHA: 13, CON: 9 };
-      } else if (className === "Prêtre") {
-        baseStats = { STR: 9, INT: 9, WIS: 13, CHA: 10, CON: 11 };
-      }
-      
-      baseStats = getClassBaseStats(className);
+      const previousStats = { ...(state.player.stats || {}) };
+      const previousGold = Math.max(0, Number(state.player.gold) || 0);
+      let baseStats = getClassBaseStats(className);
       for (const s in baseStats) {
-        baseStats[s] += startStatBonus;
+        const earnedMastery = Math.floor(Math.max(0, (Number(previousStats[s]) || baseStats[s]) - baseStats[s]) * 0.18);
+        baseStats[s] += startStatBonus + Math.min(12, earnedMastery);
       }
       
       state.player.stats = baseStats;
       state.player.level = 1;
       state.player.xp = 0;
       state.player.xpNext = 100;
-      state.player.gold = 50;
-      state.player.statPoints = 0;
-      state.player.equipment = { weapon: null, armor: null, accessory: null, pet: null };
-      state.player.inventory = [];
-      state.quests = [];
+      state.player.gold = Math.max(150, Math.round(previousGold * 0.25) + state.transcendenceCount * 75);
+      state.player.statPoints = 5;
+      state.player.hp = state.player.maxHp || 100;
+      state.player.restedBuffActive = true;
+      state.player.restTimeAccumulated = 300;
+      state.player.prestigeEssence = (state.player.prestigeEssence || 0) + 1;
+      state.activeRaidId = null;
+      normalizeActiveRaidsScaling();
+      addEventJournalEntry("game", `Transcendance ${state.transcendenceCount}: chapitre relance, equipement et quetes conserves.`);
       
       saveState();
       return true;
@@ -9199,6 +9199,106 @@
       hard: { xp: 100, gold: 60, stat: 8 },
       epic: { xp: 250, gold: 150, stat: 20 }
     };
+
+    function processPlayerLevelUps() {
+      let leveledUp = false;
+      while (state.player.xp >= state.player.xpNext) {
+        state.player.xp -= state.player.xpNext;
+        state.player.level += 1;
+        state.player.xpNext = state.player.level * 100;
+        state.player.statPoints += 5;
+        state.player.gold += 50;
+        leveledUp = true;
+      }
+      return leveledUp;
+    }
+
+    function getProgressionTier() {
+      const level = Math.max(1, Number(state.player.level) || 1);
+      const transcendBonus = Math.max(0, Number(state.transcendenceCount) || 0) * 4;
+      return level + transcendBonus;
+    }
+
+    function getRaidScaleForTier(tier = getProgressionTier()) {
+      const overBase = Math.max(0, tier - 1);
+      return {
+        hp: 1 + overBase * 0.08,
+        reward: 1 + overBase * 0.035
+      };
+    }
+
+    function scaleRaidValues(baseHp, baseXp, baseGold, tier = getProgressionTier()) {
+      const scale = getRaidScaleForTier(tier);
+      return {
+        hp: Math.max(1, Math.round(baseHp * scale.hp)),
+        rewardXp: Math.max(1, Math.round(baseXp * scale.reward)),
+        rewardGold: Math.max(1, Math.round(baseGold * scale.reward))
+      };
+    }
+
+    function normalizeRaidScaling(boss) {
+      if (!boss || boss.completed) return boss;
+      const targetTier = Math.max(1, Math.floor(getProgressionTier() / 5) * 5);
+      if ((boss.scaledForTier || 0) >= targetTier) return boss;
+
+      boss.baseMaxHp = boss.baseMaxHp || boss.maxHp || 1;
+      boss.baseRewardXp = boss.baseRewardXp || boss.rewardXp || 1;
+      boss.baseRewardGold = boss.baseRewardGold || boss.rewardGold || 1;
+
+      const previousMaxHp = Math.max(1, Number(boss.maxHp) || boss.baseMaxHp);
+      const hpRatio = Math.max(0.08, Math.min(1, (Number(boss.currentHp) || previousMaxHp) / previousMaxHp));
+      const scaled = scaleRaidValues(boss.baseMaxHp, boss.baseRewardXp, boss.baseRewardGold, targetTier);
+
+      boss.maxHp = scaled.hp;
+      boss.currentHp = Math.max(1, Math.round(scaled.hp * hpRatio));
+      boss.rewardXp = scaled.rewardXp;
+      boss.rewardGold = scaled.rewardGold;
+      boss.scaledForTier = targetTier;
+      return boss;
+    }
+
+    function normalizeActiveRaidsScaling() {
+      if (!Array.isArray(state.raids)) state.raids = [];
+      state.raids.forEach(normalizeRaidScaling);
+    }
+
+    function applyRaidDamageAndRewards(baseDamage) {
+      normalizeActiveRaidsScaling();
+      const activeBosses = (state.raids || []).filter(boss => !boss.completed);
+      const bossesDefeated = [];
+      if (!activeBosses.length) {
+        return { bossesDefeated, primaryDamage: 0, totalDamage: 0 };
+      }
+
+      const preferredBoss = activeBosses.find(boss => boss.id === state.activeRaidId) || activeBosses[0];
+      let totalDamage = 0;
+      activeBosses.forEach(boss => {
+        const isPrimary = boss.id === preferredBoss.id;
+        const damage = isPrimary ? baseDamage : Math.max(1, Math.round(baseDamage * 0.3));
+        boss.currentHp -= damage;
+        totalDamage += damage;
+
+        if (boss.currentHp <= 0) {
+          boss.currentHp = 0;
+          boss.completed = true;
+          if (!state.bestiary) state.bestiary = {};
+          state.bestiary[boss.id] = (state.bestiary[boss.id] || 0) + 1;
+          state.player.gold += boss.rewardGold;
+          state.player.xp += boss.rewardXp;
+          bossesDefeated.push(boss);
+          processPlayerLevelUps();
+        }
+      });
+
+      return { bossesDefeated, primaryDamage: baseDamage, totalDamage };
+    }
+
+    function getScaledStatGain(statKey, baseGain) {
+      const current = Math.max(0, Number(state.player.stats?.[statKey]) || 0);
+      if (current >= 100) return Math.max(1, Math.round(baseGain * 0.35));
+      if (current >= 50) return Math.max(1, Math.round(baseGain * 0.6));
+      return baseGain;
+    }
 
     const GEAR_CATALOG = [
       // Armes
@@ -10490,7 +10590,7 @@
       const baseRewards = DIFFICULTY_VALUES[quest.difficulty];
       let xpGained = baseRewards.xp;
       let goldGained = baseRewards.gold;
-      let statGained = baseRewards.stat;
+      let statGained = getScaledStatGain(quest.associatedStat, baseRewards.stat);
 
       if (quest.type === "main") {
         xpGained = Math.round(xpGained * 1.5);
@@ -10561,15 +10661,7 @@
         state.bestiary[monsterType] = (state.bestiary[monsterType] || 0) + 1;
       }
 
-      let leveledUp = false;
-      while (state.player.xp >= state.player.xpNext) {
-        state.player.xp -= state.player.xpNext;
-        state.player.level += 1;
-        state.player.xpNext = state.player.level * 100;
-        state.player.statPoints += 5;
-        state.player.gold += 50;
-        leveledUp = true;
-      }
+      let leveledUp = processPlayerLevelUps();
 
       if (quest.type === "daily") {
         updateStreak();
@@ -10579,31 +10671,10 @@
       if (quest.isCommon) {
         damageDealt = damageDealt * 3;
       }
-      const bossesDefeated = [];
-      
-      state.raids.forEach(boss => {
-        if (!boss.completed) {
-          boss.currentHp -= damageDealt;
-          if (boss.currentHp <= 0) {
-            boss.currentHp = 0;
-            boss.completed = true;
-            if (!state.bestiary) state.bestiary = {};
-            state.bestiary[boss.id] = (state.bestiary[boss.id] || 0) + 1;
-            state.player.gold += boss.rewardGold;
-            state.player.xp += boss.rewardXp;
-            bossesDefeated.push(boss);
-
-            while (state.player.xp >= state.player.xpNext) {
-              state.player.xp -= state.player.xpNext;
-              state.player.level += 1;
-              state.player.xpNext = state.player.level * 100;
-              state.player.statPoints += 5;
-              state.player.gold += 50;
-              leveledUp = true;
-            }
-          }
-        }
-      });
+      const raidResult = applyRaidDamageAndRewards(damageDealt);
+      const bossesDefeated = raidResult.bossesDefeated;
+      damageDealt = raidResult.primaryDamage || damageDealt;
+      leveledUp = processPlayerLevelUps() || leveledUp;
 
       saveState();
       
@@ -11167,16 +11238,22 @@
     }
 
     function addRaidBoss(name, hp, rewardXp, rewardGold) {
+      const scaled = scaleRaidValues(parseInt(hp, 10), parseInt(rewardXp, 10), parseInt(rewardGold, 10));
       const boss = {
         id: "raid-" + Date.now(),
         name: name.trim(),
-        maxHp: parseInt(hp, 10),
-        currentHp: parseInt(hp, 10),
-        rewardXp: parseInt(rewardXp, 10),
-        rewardGold: parseInt(rewardGold, 10),
+        baseMaxHp: parseInt(hp, 10),
+        maxHp: scaled.hp,
+        currentHp: scaled.hp,
+        baseRewardXp: parseInt(rewardXp, 10),
+        rewardXp: scaled.rewardXp,
+        baseRewardGold: parseInt(rewardGold, 10),
+        rewardGold: scaled.rewardGold,
+        scaledForTier: Math.max(1, Math.floor(getProgressionTier() / 5) * 5),
         completed: false
       };
       state.raids.unshift(boss);
+      state.activeRaidId = boss.id;
       saveState();
       return boss;
     }
@@ -11191,17 +11268,23 @@
       if (!suggestion) return null;
       const alreadyActive = (state.raids || []).some(raid => !raid.completed && raid.suggestionId === suggestion.id);
       if (alreadyActive) return null;
+      const scaled = scaleRaidValues(suggestion.hp, suggestion.rewardXp, suggestion.rewardGold);
       const boss = {
         id: `raid-suggest-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         suggestionId: suggestion.id,
         name: suggestion.name,
-        maxHp: suggestion.hp,
-        currentHp: suggestion.hp,
-        rewardXp: suggestion.rewardXp,
-        rewardGold: suggestion.rewardGold,
+        baseMaxHp: suggestion.hp,
+        maxHp: scaled.hp,
+        currentHp: scaled.hp,
+        baseRewardXp: suggestion.rewardXp,
+        rewardXp: scaled.rewardXp,
+        baseRewardGold: suggestion.rewardGold,
+        rewardGold: scaled.rewardGold,
+        scaledForTier: Math.max(1, Math.floor(getProgressionTier() / 5) * 5),
         completed: false
       };
       state.raids.unshift(boss);
+      state.activeRaidId = boss.id;
       saveState();
       return boss;
     }
@@ -12442,7 +12525,7 @@
       if (isFinal) {
         xpGained = totalXp - (xpGained * (N - 1));
         goldGained = totalGold - (goldGained * (N - 1));
-        statGained = baseRewards.stat;
+        statGained = getScaledStatGain(quest.associatedStat, baseRewards.stat);
         
         quest.completed = true;
         quest.completedAt = new Date().toISOString();
@@ -12473,15 +12556,7 @@
       // Award XP to the equipped pet
       gainPetXp(xpGained, false);
 
-      let leveledUp = false;
-      while (state.player.xp >= state.player.xpNext) {
-        state.player.xp -= state.player.xpNext;
-        state.player.level += 1;
-        state.player.xpNext = state.player.level * 100;
-        state.player.statPoints += 5;
-        state.player.gold += 50;
-        leveledUp = true;
-      }
+      let leveledUp = processPlayerLevelUps();
 
       if (isFinal && quest.type === "daily") {
         updateStreak();
@@ -12491,31 +12566,10 @@
       if (quest.isCommon) {
         damageDealt = damageDealt * 3;
       }
-      const bossesDefeated = [];
-      
-      state.raids.forEach(boss => {
-        if (!boss.completed) {
-          boss.currentHp -= damageDealt;
-          if (boss.currentHp <= 0) {
-            boss.currentHp = 0;
-            boss.completed = true;
-            if (!state.bestiary) state.bestiary = {};
-            state.bestiary[boss.id] = (state.bestiary[boss.id] || 0) + 1;
-            state.player.gold += boss.rewardGold;
-            state.player.xp += boss.rewardXp;
-            bossesDefeated.push(boss);
-
-            while (state.player.xp >= state.player.xpNext) {
-              state.player.xp -= state.player.xpNext;
-              state.player.level += 1;
-              state.player.xpNext = state.player.level * 100;
-              state.player.statPoints += 5;
-              state.player.gold += 50;
-              leveledUp = true;
-            }
-          }
-        }
-      });
+      const raidResult = applyRaidDamageAndRewards(damageDealt);
+      const bossesDefeated = raidResult.bossesDefeated;
+      damageDealt = raidResult.primaryDamage || damageDealt;
+      leveledUp = processPlayerLevelUps() || leveledUp;
 
       saveState();
       if (isFinal && typeof checkAchievements === 'function') {
@@ -12558,15 +12612,7 @@
         state.player.gold += goldEarned;
         state.player.xp += xpEarned;
         
-        let leveledUp = false;
-        while (state.player.xp >= state.player.xpNext) {
-          state.player.xp -= state.player.xpNext;
-          state.player.level += 1;
-          state.player.xpNext = state.player.level * 100;
-          state.player.statPoints += 5;
-          state.player.gold += 50;
-          leveledUp = true;
-        }
+        const leveledUp = processPlayerLevelUps();
         
         saveState();
         
@@ -12612,15 +12658,7 @@
       state.player.gold = Math.round((state.player.gold + goldGained) * 100) / 100;
       state.player.xp = Math.round((state.player.xp + xpGained) * 100) / 100;
       
-      let leveledUp = false;
-      while (state.player.xp >= state.player.xpNext) {
-        state.player.xp -= state.player.xpNext;
-        state.player.level += 1;
-        state.player.xpNext = state.player.level * 100;
-        state.player.statPoints += 5;
-        state.player.gold += 50;
-        leveledUp = true;
-      }
+      const leveledUp = processPlayerLevelUps();
       
       saveState();
       renderHUD();
@@ -13689,21 +13727,15 @@
       state.pomoEndTime = null;
       state.pomoTimeRemaining = 1500;
       
-      state.player.gold += 50;
-      state.player.xp += 50;
+      const focusRewardXp = Math.round((50 + Math.max(0, (state.player.level || 1) - 1) * 5) * (state.transcendenceMultiplier || 1));
+      const focusRewardGold = Math.round((50 + Math.max(0, (state.player.level || 1) - 1) * 3) * (state.transcendenceMultiplier || 1));
+      state.player.gold += focusRewardGold;
+      state.player.xp += focusRewardXp;
       
       // Award XP to the equipped pet
-      gainPetXp(50);
+      gainPetXp(focusRewardXp);
       
-      let levelUp = false;
-      while (state.player.xp >= state.player.xpNext) {
-        state.player.xp -= state.player.xpNext;
-        state.player.level += 1;
-        state.player.xpNext = state.player.level * 100;
-        state.player.statPoints += 5;
-        state.player.gold += 50;
-        levelUp = true;
-      }
+      let levelUp = processPlayerLevelUps();
       
       state.pomoCompletedCount = (state.pomoCompletedCount || 0) + 1;
       
@@ -13718,7 +13750,7 @@
         monsterPomo.classList.add('monster-damaged');
         const rect = monsterPomo.getBoundingClientRect();
         spawnParticleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, '#00f5d4');
-        spawnFloatingText("Focus Réussi ! +50 PO, +50 XP", 'var(--color-gold)', { x: rect.left, y: rect.top - 30 });
+        spawnFloatingText(`Focus Reussi ! +${focusRewardGold} PO, +${focusRewardXp} XP`, 'var(--color-gold)', { x: rect.left, y: rect.top - 30 });
       }
       
       if (levelUp) {
@@ -16961,6 +16993,8 @@
       { id: "ach-transcend-1", name: "Renaissance", desc: "Effectuer votre première Transcendance", condition: () => (state.transcendenceCount || 0) >= 1, icon: "rotate-ccw" },
       { id: "ach-transcend-3", name: "Cycle Éternel", desc: "Effectuer 3 Transcendances", condition: () => (state.transcendenceCount || 0) >= 3, icon: "infinity" },
       { id: "ach-transcend-5", name: "Au-delà du Mortel", desc: "Effectuer 5 Transcendances", condition: () => (state.transcendenceCount || 0) >= 5, icon: "sparkles" },
+      { id: "ach-prestige-essence-3", name: "Ame Persistante", desc: "Posseder 3 Essences de transcendance", condition: () => (state.player.prestigeEssence || 0) >= 3, icon: "gem" },
+      { id: "ach-prestige-essence-10", name: "Constellation Interieure", desc: "Posseder 10 Essences de transcendance", condition: () => (state.player.prestigeEssence || 0) >= 10, icon: "stars" },
 
       // ── STATISTIQUES ──
       { id: "ach-stat-20", name: "Spécialiste", desc: "Monter une stat à 20", condition: () => Object.values(state.player.stats).some(v => v >= 20), icon: "bar-chart-2" },
@@ -17023,6 +17057,10 @@
 
       { id: "ach-pomodoro-1", name: "Concentration !", desc: "Terminer un Focus Raid (Pomodoro)", condition: () => state.pomoCompletedCount >= 1, icon: "clock" },
       { id: "ach-pomodoro-10", name: "Machine à Focus", desc: "Terminer 10 Focus Raids", condition: () => (state.pomoCompletedCount || 0) >= 10, icon: "timer" },
+      { id: "ach-pomodoro-50", name: "Forge du Focus", desc: "Terminer 50 Focus Raids", condition: () => (state.pomoCompletedCount || 0) >= 50, icon: "flame" },
+      { id: "ach-pomodoro-100", name: "Maitre du Rythme", desc: "Terminer 100 Focus Raids", condition: () => (state.pomoCompletedCount || 0) >= 100, icon: "activity" },
+      { id: "ach-scaled-raid-20", name: "Raid de Haut Niveau", desc: "Avoir un raid adapte au niveau 20+", condition: () => (state.raids || []).some(r => (r.scaledForTier || 0) >= 20), icon: "shield-alert" },
+      { id: "ach-scaled-raid-40", name: "Menace Mythique", desc: "Avoir un raid adapte au niveau 40+", condition: () => (state.raids || []).some(r => (r.scaledForTier || 0) >= 40), icon: "skull" },
       { id: "ach-event-chest", name: "Chanceux", desc: "Ouvrir un Coffre Mystère", condition: () => (state.chestsOpened || 0) >= 1, icon: "gift" },
       { id: "ach-event-merchant", name: "Client Mystère", desc: "Acheter au Marchand Mystère", condition: () => (state.relicsBought || 0) >= 1, icon: "store" }
     ];
@@ -17041,7 +17079,7 @@
       else if (id.includes("gold")) base = 80 + Math.round(Math.sqrt(milestone) * 8);
       else if (id.includes("shop") || id.includes("gear") || id.includes("pet")) base = 55 + milestone * 18;
       else if (id.includes("party") || id.includes("coop")) base = 75 + milestone * 20;
-      else if (id.includes("transcend")) base = 220 + milestone * 90;
+      else if (id.includes("transcend") || id.includes("prestige")) base = 220 + milestone * 90;
       else if (id.includes("stat") || id.includes("str") || id.includes("int") || id.includes("wis") || id.includes("cha") || id.includes("con")) base = 80 + milestone * 10;
       else if (id.includes("planner") || id.includes("timer")) base = 65 + milestone * 12;
       else if (id.includes("world") || id.includes("theme")) base = 85 + milestone * 18;
@@ -17454,15 +17492,16 @@
 
       visibleSuggestions.forEach(suggestion => {
         const alreadyActive = (state.raids || []).some(raid => !raid.completed && raid.suggestionId === suggestion.id);
+        const scaled = scaleRaidValues(suggestion.hp, suggestion.rewardXp, suggestion.rewardGold);
         const card = document.createElement('div');
         card.className = 'raid-suggestion-card';
         card.innerHTML = `
           <h4>${escapeHTML(suggestion.name)}</h4>
           <div class="raid-suggestion-meta">
             <span>${escapeHTML(suggestion.tag)}</span>
-            <span>${suggestion.hp} HP</span>
-            <span>+${suggestion.rewardXp} XP</span>
-            <span>+${suggestion.rewardGold} PO</span>
+            <span>${scaled.hp} HP</span>
+            <span>+${scaled.rewardXp} XP</span>
+            <span>+${scaled.rewardGold} PO</span>
           </div>
           <button class="btn btn-primary btn-sm btn-launch-suggested-raid" data-id="${suggestion.id}" ${alreadyActive ? 'disabled' : ''} style="justify-self:start;">
             <i data-lucide="${alreadyActive ? 'check' : 'swords'}"></i> ${alreadyActive ? 'Actif' : 'Lancer'}
@@ -17476,6 +17515,7 @@
     function renderRaids() {
       const grid = document.getElementById('raids-bosses-grid');
       if (!grid) return;
+      normalizeActiveRaidsScaling();
       renderPartySummary();
       renderTeamDrawers();
       orderPartyRaidSections();
@@ -17496,15 +17536,16 @@
 
       state.raids.forEach(boss => {
         const card = document.createElement('div');
-        card.className = `boss-card ${boss.completed ? 'completed' : ''}`;
+        card.className = `boss-card ${boss.completed ? 'completed' : ''} ${state.activeRaidId === boss.id ? 'active-raid-target' : ''}`;
         card.id = boss.id;
+        if (!boss.completed) card.title = "Cliquer pour choisir comme cible principale";
 
         const hpPercent = Math.max(0, Math.round((boss.currentHp / boss.maxHp) * 100));
 
         card.innerHTML = `
           <div class="boss-meta">
             <span class="boss-badge ${boss.completed ? 'victory' : ''}">
-              ${boss.completed ? 'VAINCU' : 'RAID ACTIF'}
+              ${boss.completed ? 'VAINCU' : state.activeRaidId === boss.id ? 'CIBLE PRINCIPALE' : 'RAID ACTIF'}
             </span>
             <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">HP Max : ${boss.maxHp}</span>
           </div>
@@ -17945,27 +17986,32 @@
       const rules = {
         STR: [
           "porter", "deplacer", "bricoler", "reparer", "monter", "demonter", "jardin", "travaux",
-          "muscu", "pompes", "traction", "squat", "force", "soulever"
+          "muscu", "pompes", "traction", "squat", "force", "soulever", "installer", "construire",
+          "fabriquer", "assembler", "amenager"
         ],
         INT: [
           "lire", "livre", "etudier", "reviser", "apprendre", "cours", "formation", "coder", "code",
           "developper", "debug", "bug", "documenter", "ecrire rapport", "excel", "calcul", "budget",
-          "analyser", "chercher", "recherche", "tuto", "devoir"
+          "analyser", "chercher", "recherche", "tuto", "devoir", "prototype", "module", "systeme",
+          "script", "base de donnees", "site", "application", "app", "vaisseau", "portail", "mecanique"
         ],
         WIS: [
           "ranger", "trier", "organiser", "planifier", "planner", "liste", "priorite", "administratif",
           "papier", "facture", "impot", "classer", "bureau", "menage", "nettoyer", "vaisselle",
-          "lessive", "linge", "routine", "mediter", "respiration", "journal", "clarifier"
+          "lessive", "linge", "routine", "mediter", "respiration", "journal", "clarifier", "decouper",
+          "preparer", "structurer", "roadmap", "planning", "projet", "backlog"
         ],
         CHA: [
           "appeler", "appel", "message", "sms", "mail", "email", "repondre", "envoyer", "ami",
           "famille", "client", "collegue", "chef", "reunion", "rdv", "rendez vous", "voir",
-          "parler", "presentation", "social", "demander"
+          "parler", "presentation", "social", "demander", "publier", "communiquer", "texte", "pitch",
+          "dialogue", "personnage", "avatar", "histoire", "scenario"
         ],
         CON: [
           "sport", "courir", "course", "jogging", "marcher", "marche", "velo", "gym", "entrainement",
           "etirement", "douche", "boire", "eau", "hydratation", "manger", "repas", "cuisiner",
-          "sommeil", "dormir", "sieste", "sante", "medicament", "repos"
+          "sommeil", "dormir", "sieste", "sante", "medicament", "repos", "pause", "respirer",
+          "recuperer", "fatigue"
         ]
       };
 
@@ -18695,6 +18741,14 @@
                 renderRaids();
               }, 350);
             }
+            return;
+          }
+          const bossCard = e.target.closest('.boss-card');
+          if (bossCard && !bossCard.classList.contains('completed')) {
+            state.activeRaidId = bossCard.id;
+            saveState();
+            renderRaids();
+            playStatUpSound();
           }
         });
       }
@@ -18838,7 +18892,7 @@
             let parsedTitle = rawTitle;
             let type = "side";
             let recurrence = "none";
-            let difficulty = "trivial";
+            let difficulty = "easy";
             let associatedStat = "WIS";
             const explicitStatProvided = /\b\/(str|int|wis|cha|con)\b/i.test(rawTitle);
 
@@ -18905,10 +18959,12 @@
             
             // Auto-Difficulty
             if (!/\b\/(trivial|easy|medium|hard|epic)\b/i.test(rawTitle)) {
-              if (/\b(vite|rapide|petit|mini|micro)\b/.test(normalizedTitle)) difficulty = "trivial";
+              const wordCount = normalizedTitle.split(/\s+/).filter(Boolean).length;
+              if (/\b(2min|2 min|vite|rapide|petit|mini|micro|ouvrir seulement|juste ouvrir)\b/.test(normalizedTitle)) difficulty = "trivial";
+              else if (/\b(enorme|massif|impossible|critique|urgent absolu|tres gros)\b/.test(normalizedTitle)) difficulty = "epic";
+              else if (/\b(dur|difficile|gros|long|important|bloquant|deadline|finaliser|terminer)\b/.test(normalizedTitle)) difficulty = "hard";
+              else if (/\b(avancer|continuer|projet|module|developper|designer|preparer|corriger|ameliorer|creer)\b/.test(normalizedTitle) || wordCount >= 5) difficulty = "medium";
               else if (/\b(facile|simple)\b/.test(normalizedTitle)) difficulty = "easy";
-              else if (/\b(dur|difficile|gros|long|important)\b/.test(normalizedTitle)) difficulty = "hard";
-              else if (/\b(enorme|massif|impossible|critique)\b/.test(normalizedTitle)) difficulty = "epic";
             }
             
             // Auto-Type
