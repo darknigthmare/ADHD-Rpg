@@ -1195,6 +1195,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       padding: 0.5rem 0.75rem;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-color);
@@ -1320,6 +1321,13 @@
       font-family: var(--font-pixel);
       font-size: 0.75rem;
       font-weight: bold;
+    }
+    .stat-meaning {
+      flex-basis: 100%;
+      margin-top: 0.18rem;
+      color: var(--text-muted);
+      font-size: 0.66rem;
+      line-height: 1.35;
     }
     .btn-stat-up {
       background: none;
@@ -1637,6 +1645,30 @@
       font-size: 0.68rem;
       color: var(--text-secondary);
     }
+    .world-status-label {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+    }
+    .world-tabs-scroll .filter-tab.world-status-overload,
+    .world-tabs-scroll .filter-tab.world-status-urgent {
+      border: 1px solid rgba(239, 68, 68, 0.34);
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .world-tabs-scroll .filter-tab.world-status-threat,
+    .world-tabs-scroll .filter-tab.world-status-missed {
+      border: 1px solid rgba(245, 158, 11, 0.32);
+      background: rgba(245, 158, 11, 0.06);
+    }
+    .world-tabs-scroll .filter-tab.world-status-rest,
+    .world-tabs-scroll .filter-tab.world-status-cleared {
+      border: 1px solid rgba(16, 185, 129, 0.24);
+      background: rgba(16, 185, 129, 0.045);
+    }
+    .world-settings-live {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      line-height: 1.35;
+    }
     .world-settings-pill {
       display: inline-flex;
       align-items: center;
@@ -1864,6 +1896,36 @@
       overflow-y: auto;
       color: var(--text-secondary);
       font-size: 0.74rem;
+    }
+    .daily-review-panel {
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.68rem;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .daily-review-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--color-xp);
+      font-family: var(--font-game);
+      font-size: 0.72rem;
+    }
+    .daily-review-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.4rem;
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+    }
+    .daily-review-grid strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 0.78rem;
+      margin-bottom: 0.08rem;
     }
 
     .adhd-next-action-panel {
@@ -6858,6 +6920,7 @@
             <button class="btn btn-secondary btn-sm" id="today-low-energy-btn" type="button" title="Mode jour difficile: une seule quete prioritaire, moins de panneaux, micro-action visible." style="padding:0.4rem 0.65rem;"><i data-lucide="battery-low"></i> Faible energie</button>
             <button class="btn btn-secondary btn-sm" id="today-save-day-btn" type="button" title="Ouvre 3 choix simples pour sauver la journee: garder, reporter, simplifier." style="padding:0.4rem 0.65rem;"><i data-lucide="life-buoy"></i> Sauver ma journee</button>
           </div>
+          <div class="daily-review-panel" id="daily-review-panel"></div>
           <div class="event-journal-list" id="event-journal-list"></div>
         </div>
 
@@ -6927,6 +6990,8 @@
             <div class="neuro-compass-grid">
               <div class="neuro-compass-chip"><strong>Jalon RPG</strong><span id="neuro-compass-milestone">Analyse...</span></div>
               <div class="neuro-compass-chip"><strong>Signal QoL</strong><span id="neuro-compass-signal">Interface OK</span></div>
+              <div class="neuro-compass-chip"><strong>Campement</strong><span id="neuro-compass-camp">Repos...</span></div>
+              <div class="neuro-compass-chip"><strong>Chapitre</strong><span id="neuro-compass-chapter">Semaine...</span></div>
             </div>
           </div>
           <div class="qol-shortcuts-hint" id="qol-shortcuts-hint">
@@ -6954,6 +7019,7 @@
             <div id="save-day-assistant" style="display:none; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:0.45rem; margin-top:0.45rem;">
               <button class="btn btn-secondary btn-sm" type="button" data-save-day-choice="keep" title="Garde seulement la meilleure priorite et active le focus dessus." style="padding:0.35rem 0.5rem;"><i data-lucide="pin"></i> Garder 1</button>
               <button class="btn btn-secondary btn-sm" type="button" data-save-day-choice="postpone" title="Planifie deux quetes plus tard pour liberer de la place mentale." style="padding:0.35rem 0.5rem;"><i data-lucide="calendar-plus"></i> Reporter 2</button>
+              <button class="btn btn-secondary btn-sm" type="button" data-save-day-choice="two-minute" title="Cree seulement un demarrage 2 minutes sans repenser toute la liste." style="padding:0.35rem 0.5rem;"><i data-lucide="timer"></i> 2 minutes</button>
               <button class="btn btn-primary btn-sm" type="button" data-save-day-choice="simplify" title="Cree une mini-action de 2 minutes issue de la priorite actuelle." style="padding:0.35rem 0.5rem;"><i data-lucide="scissors"></i> Simplifier</button>
             </div>
           </div>
@@ -10594,6 +10660,7 @@
         type,
         difficulty,
         associatedStat,
+        statReason: getStatMeta(associatedStat).meaning,
         completed: false,
         recurrence,
         timerDuration: parseInt(timerDuration) || 0,
@@ -12749,7 +12816,7 @@
 
         // Rested Buff logic
         if (!state.pomoActive && !state.player.restedBuffActive) {
-          const restMultiplier = getHydrationRestMultiplier();
+          const restMultiplier = getHydrationRestMultiplier() * getCampState().multiplier;
           state.player.restTimeAccumulated = (state.player.restTimeAccumulated || 0) + Math.round(15 * restMultiplier);
           const maxHp = Math.max(1, Number(state.player.maxHp) || 100);
           const restHeal = Math.max(1, Math.round(maxHp * 0.015 * restMultiplier));
@@ -15790,6 +15857,130 @@
       return { active: activeQuests.length, timers: timers.length, runningTimers, planned: plannedToday.length, missed, hydration, urgent, visualNoise };
     }
 
+    function getStatMeta(stat) {
+      const meta = {
+        STR: {
+          label: "FOR",
+          meaning: "Force: actions physiques, rangement, menage, sport et taches qui demandent de l'elan corporel.",
+          hint: "Physique, rangement, sport."
+        },
+        INT: {
+          label: "INT",
+          meaning: "Intelligence: apprentissage, analyse, lecture, code, recherche et resolution de problemes.",
+          hint: "Apprendre, lire, analyser."
+        },
+        WIS: {
+          label: "SAG",
+          meaning: "Sagesse: organisation, planification, calme mental, routines et decisions utiles.",
+          hint: "Organiser, planifier, apaiser."
+        },
+        CHA: {
+          label: "CHA",
+          meaning: "Charisme: messages, appels, relations, exposition sociale et demandes d'aide.",
+          hint: "Communiquer, demander, social."
+        },
+        CON: {
+          label: "CON",
+          meaning: "Constitution: sommeil, hydratation, repas, sante et recuperation du corps.",
+          hint: "Sante, eau, repos, repas."
+        }
+      };
+      return meta[stat] || { label: stat || "STAT", meaning: "Stat associee a cette quete.", hint: "Stat de progression." };
+    }
+
+    function getChapterState() {
+      const now = new Date();
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const day = start.getDay() || 7;
+      start.setDate(start.getDate() - day + 1);
+      const completedThisChapter = (state.quests || []).filter(quest => {
+        if (!quest || !quest.completedAt || quest.isCommon) return false;
+        const completedAt = new Date(quest.completedAt);
+        return !Number.isNaN(completedAt.getTime()) && completedAt >= start;
+      }).length;
+      const target = Math.max(6, 8 + Math.min(8, Number(state.transcendenceCount) || 0) * 2);
+      const progress = Math.min(100, Math.round((completedThisChapter / target) * 100));
+      return {
+        label: `Chapitre S${getWeekNumber(now)}`,
+        completed: completedThisChapter,
+        target,
+        progress,
+        detail: `${completedThisChapter}/${target} quetes terminees cette semaine`
+      };
+    }
+
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function getCampState() {
+      const completed = (state.quests || []).filter(q => q.completed && !q.isCommon).length;
+      const essence = Number(state.player.prestigeEssence) || 0;
+      const rest = Math.max(0, Number(state.player.restTimeAccumulated) || 0);
+      const level = Math.min(5, 1 + Math.floor(completed / 25) + Math.floor(essence / 2));
+      const names = ["Bivouac", "Camp calme", "Refuge stable", "Sanctuaire", "Base neuro"];
+      const nextNeed = level >= 5 ? "max" : `${25 - (completed % 25)} quetes ou essence`;
+      return {
+        level,
+        name: names[level - 1] || "Camp",
+        rest,
+        multiplier: 1 + (level - 1) * 0.05,
+        detail: level >= 5 ? "Campement au maximum" : `Prochaine amelioration: ${nextNeed}`
+      };
+    }
+
+    function getWorldLiveState(worldId) {
+      const active = (state.quests || []).filter(q => !q.completed && !q.isCommon && questMatchesWorld(q, worldId));
+      const completed = (state.quests || []).filter(q => q.completed && !q.isCommon && questMatchesWorld(q, worldId)).length;
+      const plannedToday = (state.questPlanner || []).filter(item => isPlannerDateToday(item.date)).filter(item => {
+        const quest = (state.quests || []).find(q => q.id === item.questId);
+        return quest && questMatchesWorld(quest, worldId);
+      });
+      const missed = plannedToday.filter(item => item.missed).length;
+      const urgent = active.filter(q => getQuestPressureRatio(q) >= 0.75).length;
+      const next = active
+        .map(quest => ({ quest, priority: getAdhdQuestPriority(quest) }))
+        .sort((a, b) => b.priority.score - a.priority.score)[0];
+      let status = "stable";
+      let label = "Stable";
+      if (active.length >= 8) {
+        status = "overload";
+        label = "Surcharge";
+      } else if (urgent > 0) {
+        status = "urgent";
+        label = "Urgent";
+      } else if (missed > 0) {
+        status = "missed";
+        label = "A replanifier";
+      } else if (active.length >= 4) {
+        status = "threat";
+        label = "Menace";
+      } else if (active.length === 0 && completed > 0) {
+        status = "cleared";
+        label = "Nettoye";
+      } else if (active.length === 0) {
+        status = "rest";
+        label = "Repos";
+      }
+      const nextTitle = next ? (next.quest.titleKey ? t(next.quest.titleKey) : next.quest.title) : "Repos au camp";
+      return {
+        status,
+        label,
+        active: active.length,
+        completed,
+        planned: plannedToday.length,
+        missed,
+        urgent,
+        nextTitle,
+        detail: `${active.length} active(s), ${plannedToday.length} planifiee(s), prochaine: ${nextTitle}`
+      };
+    }
+
     function renderQoLSummary() {
       const panel = document.getElementById('qol-summary-panel');
       if (!panel) return;
@@ -15824,15 +16015,16 @@
 
     function getGameplayMilestoneText() {
       const level = Math.max(1, Number(state.player.level) || 1);
+      const chapter = getChapterState();
       const activeRaid = (state.raids || []).find(raid => raid && !raid.completed && raid.id === state.activeRaidId)
         || (state.raids || []).find(raid => raid && !raid.completed);
-      if (level < 10) return `Niveau ${level}/10 avant la premiere transcendance douce.`;
+      if (level < 10) return `Niveau ${level}/10 - ${chapter.detail}.`;
       if (activeRaid) {
         const hpPercent = Math.max(0, Math.round(((activeRaid.currentHp || 0) / Math.max(1, activeRaid.maxHp || 1)) * 100));
         return `${activeRaid.name}: ${hpPercent}% PV restants.`;
       }
       const essence = Number(state.player.prestigeEssence) || 0;
-      return `Essences ${essence}. Lance un raid ou prepare un nouveau chapitre.`;
+      return `Essences ${essence}. ${chapter.detail}.`;
     }
 
     function getNeuroQuestCompassState() {
@@ -15891,7 +16083,9 @@
         detail,
         signal,
         mode: getDayModeMeta().label,
-        milestone: getGameplayMilestoneText()
+        milestone: getGameplayMilestoneText(),
+        camp: `${getCampState().name} niv. ${getCampState().level}`,
+        chapter: `${getChapterState().label}: ${getChapterState().progress}%`
       };
     }
 
@@ -15906,11 +16100,15 @@
       const detailEl = document.getElementById('neuro-compass-detail');
       const milestoneEl = document.getElementById('neuro-compass-milestone');
       const signalEl = document.getElementById('neuro-compass-signal');
+      const campEl = document.getElementById('neuro-compass-camp');
+      const chapterEl = document.getElementById('neuro-compass-chapter');
       if (modeEl) modeEl.textContent = stateCompass.mode;
       if (goalEl) goalEl.textContent = stateCompass.goal;
       if (detailEl) detailEl.textContent = stateCompass.detail;
       if (milestoneEl) milestoneEl.textContent = stateCompass.milestone;
       if (signalEl) signalEl.textContent = stateCompass.signal;
+      if (campEl) campEl.textContent = stateCompass.camp;
+      if (chapterEl) chapterEl.textContent = stateCompass.chapter;
     }
 
     function getNextAdhdQuest() {
@@ -15965,11 +16163,14 @@
     function renderTodayPanel() {
       const grid = document.getElementById('today-grid');
       const journal = document.getElementById('event-journal-list');
+      const review = document.getElementById('daily-review-panel');
       if (!grid) return;
       const next = getNextAdhdQuest();
       const hydration = getHydrationProgress();
       const plannedToday = (state.questPlanner || []).filter(item => isPlannerDateToday(item.date));
       const mentalEnergy = Math.max(0, Math.min(100, Number(state.player.mentalEnergy) || 0));
+      const chapter = getChapterState();
+      const camp = getCampState();
       const title = next && next.quest ? (next.quest.titleKey ? t(next.quest.titleKey) : next.quest.title) : "Aucune priorite";
       const micro = next && next.quest ? getQuestMicroAction(next.quest) : "Ajouter une micro-tache simple";
       const hp = `${state.player.hp || 0}/${state.player.maxHp || 100} PV`;
@@ -15981,7 +16182,26 @@
         <div class="today-tile"><span class="today-label">Etat</span><span class="today-value">${hp} - Eau ${water}</span></div>
         <div class="today-tile"><span class="today-label">Energie mentale</span><span class="today-value">${mentalEnergy}%</span></div>
         <div class="today-tile"><span class="today-label">Mode</span><span class="today-value">${getDayModeMeta().label}</span></div>
+        <div class="today-tile"><span class="today-label">Campement</span><span class="today-value" title="${escapeHTML(camp.detail)}">${escapeHTML(camp.name)} niv. ${camp.level}</span></div>
+        <div class="today-tile"><span class="today-label">Chapitre</span><span class="today-value" title="${escapeHTML(chapter.detail)}">${chapter.completed}/${chapter.target} - ${chapter.progress}%</span></div>
       `;
+      if (review) {
+        normalizeRecoveryJournal();
+        review.innerHTML = `
+          <div class="daily-review-head">
+            <span><i data-lucide="book-check" style="width:13px;height:13px;display:inline;vertical-align:text-bottom;"></i> Fin de journee</span>
+            <button class="btn btn-secondary btn-sm" id="prepare-tomorrow-btn" type="button" title="Cree une micro-quete pour preparer demain sans charger la liste." style="padding:0.3rem 0.55rem;"><i data-lucide="calendar-check"></i> Preparer demain</button>
+          </div>
+          <div class="daily-review-grid">
+            <div><strong>${state.recoveryJournal.completedQuests}</strong> quete(s) terminee(s)</div>
+            <div><strong>${state.recoveryJournal.missedQuests}</strong> a replanifier</div>
+            <div><strong>${state.recoveryJournal.hpLost}/${state.recoveryJournal.hpRecovered}</strong> PV perdus/recuperes</div>
+            <div><strong>${hydration.waterMl} ml</strong> eau aujourd'hui</div>
+          </div>
+        `;
+        const prepareBtn = document.getElementById('prepare-tomorrow-btn');
+        if (prepareBtn) prepareBtn.addEventListener('click', prepareTomorrow);
+      }
       if (journal) {
         const entries = (state.eventJournal || []).slice(0, 6);
         journal.innerHTML = entries.length
@@ -15989,6 +16209,23 @@
           : `<div><strong>Journal:</strong> les gains, pertes et actions importantes apparaitront ici.</div>`;
       }
       renderNeuroQuestCompass();
+      createIcons();
+    }
+
+    function prepareTomorrow() {
+      const worldId = getActiveWorldId() === 'all' ? 'world-general' : getActiveWorldId();
+      const exists = (state.quests || []).some(q => !q.completed && q.title === "Preparer demain en 3 priorites");
+      if (!exists) {
+        addQuest("Preparer demain en 3 priorites", "Noter seulement 3 priorites pour demain. Pas plus.", "side", "trivial", "WIS", ["Choisir 1 priorite importante", "Choisir 1 petite tache", "Choisir 1 moment de repos"], "none", 0, worldId);
+      }
+      state.dayMode = "rest";
+      addEventJournalEntry("real", "Fin de journee: preparation douce de demain");
+      saveState();
+      renderDayModeControls();
+      renderQuests();
+      renderQuestPlanner();
+      renderBattleArena();
+      spawnFloatingText("Demain prepare doucement", '#00f5d4', 'daily-review-panel');
     }
 
     function handleStuckHelp() {
@@ -16115,7 +16352,7 @@
       const quest = addQuest("Demarrage 2 minutes", "Faire seulement la premiere petite action pour lancer l'elan.", "side", "trivial", "WIS", [], "none", 2, worldId);
       currentQuestFilter = 'side';
       state.guidedQuestId = quest ? quest.id : null;
-      state.focusModeActive = true;
+      state.focusModeActive = false;
       saveState();
       renderQuests();
       renderQuestPlanner();
@@ -16157,6 +16394,9 @@
           future.setMinutes(future.getMinutes() + 90 + index * 45);
           quest.plannedTime = `${String(future.getHours()).padStart(2, '0')}:${String(future.getMinutes()).padStart(2, '0')}`;
         });
+      } else if (choice === 'two-minute') {
+        const micro = addQuest("Demarrage 2 minutes", "Faire seulement une petite action pour relancer la journee.", "side", "trivial", "WIS", [], "none", 2, worldId);
+        guidedId = micro ? micro.id : keep.id;
       } else if (choice === 'simplify') {
         const micro = addQuest("Mini-action sauvetage", getQuestMicroAction(keep), "side", "trivial", "WIS", [], "none", 2, worldId);
         guidedId = micro ? micro.id : keep.id;
@@ -16164,7 +16404,7 @@
 
       state.dayMode = 'low-energy';
       state.guidedQuestId = guidedId;
-      state.focusModeActive = true;
+      state.focusModeActive = choice === 'two-minute' ? false : true;
       currentQuestFilter = 'all';
       addRecoveryJournalValue('savedDayActions', 1);
       saveState();
@@ -16176,7 +16416,7 @@
       updateFocusModeButtonUI();
       const assistant = document.getElementById('save-day-assistant');
       if (assistant) assistant.style.display = 'none';
-      spawnFloatingText(choice === 'postpone' ? "Quetes reportees" : choice === 'keep' ? "Priorite gardee" : "Micro-action creee", '#00f5d4', 'adhd-next-action-panel');
+      spawnFloatingText(choice === 'postpone' ? "Quetes reportees" : choice === 'keep' ? "Priorite gardee" : choice === 'two-minute' ? "Demarrage 2 min cree" : "Micro-action creee", '#00f5d4', 'adhd-next-action-panel');
     }
 
     function updateQuestFilterTabs() {
@@ -16210,17 +16450,8 @@
         if (!world.theme) world.theme = state.theme || "medieval";
       });
       const activeWorldId = getActiveWorldId();
-      const activeQuestCount = worldId => (state.quests || []).filter(q => !q.completed && !q.isCommon && questMatchesWorld(q, worldId)).length;
-      const completedQuestCount = worldId => (state.quests || []).filter(q => q.completed && !q.isCommon && questMatchesWorld(q, worldId)).length;
-      const getWorldStatusLabel = worldId => {
-        const active = activeQuestCount(worldId);
-        const completed = completedQuestCount(worldId);
-        if (active >= 6) return "Surcharge";
-        if (active >= 3) return "Menace";
-        if (active === 0 && completed > 0) return "Nettoye";
-        if (active === 0) return "Repos";
-        return "Stable";
-      };
+      const activeQuestCount = worldId => getWorldLiveState(worldId).active;
+      const completedQuestCount = worldId => getWorldLiveState(worldId).completed;
       const allCount = activeQuestCount('all');
       const themeOptionsHtml = selectedTheme => WORLD_THEME_OPTIONS
         .map(option => `<option value="${option.id}" ${option.id === selectedTheme ? 'selected' : ''}>${option.label}</option>`)
@@ -16228,11 +16459,12 @@
       const worldButtons = [
         `<button class="filter-tab ${activeWorldId === 'all' ? 'active' : ''}" data-world="all"><span>Tous</span> <span class="filter-count">${allCount}</span></button>`,
         ...state.worlds.map(world => {
-          const count = activeQuestCount(world.id);
-          return `<button class="filter-tab ${activeWorldId === world.id ? 'active' : ''}" data-world="${world.id}" title="${getWorldStatusLabel(world.id)}"><span>${escapeHTML(world.name)}</span> <span class="filter-count">${count}</span><span style="font-size:0.62rem; color:var(--text-muted);">${getWorldStatusLabel(world.id)}</span><span class="world-settings-btn" role="button" tabindex="0" data-world-settings="${world.id}" title="Parametres du monde"><i data-lucide="settings"></i></span></button>`;
+          const live = getWorldLiveState(world.id);
+          return `<button class="filter-tab ${activeWorldId === world.id ? 'active' : ''} world-status-${live.status}" data-world="${world.id}" title="${escapeHTML(live.detail)}"><span>${escapeHTML(world.name)}</span> <span class="filter-count">${live.active}</span><span class="world-status-label">${escapeHTML(live.label)}</span><span class="world-settings-btn" role="button" tabindex="0" data-world-settings="${world.id}" title="Parametres du monde"><i data-lucide="settings"></i></span></button>`;
         })
       ].join('');
       const selectedWorld = activeWorldId !== 'all' ? (state.worlds || []).find(world => world.id === activeWorldId) : null;
+      const selectedWorldLive = selectedWorld ? getWorldLiveState(selectedWorld.id) : null;
       const selectedWorldTheme = selectedWorld ? getWorldTheme(selectedWorld.id) : state.theme || 'medieval';
       const selectedThemeLabel = (WORLD_THEME_OPTIONS.find(option => option.id === selectedWorldTheme) || { label: selectedWorldTheme }).label;
       const canDeleteSelectedWorld = selectedWorld && selectedWorld.id !== 'world-general' && (state.worlds || []).length > 1;
@@ -16244,10 +16476,12 @@
                 <span>${escapeHTML(selectedWorld.name)}</span>
               </div>
               <div class="world-settings-summary-meta">
-                <span class="world-settings-pill"><i data-lucide="swords" style="width:12px;height:12px;"></i>${activeQuestCount(selectedWorld.id)} actives</span>
-                <span class="world-settings-pill"><i data-lucide="check-circle" style="width:12px;height:12px;"></i>${completedQuestCount(selectedWorld.id)} terminees</span>
+                <span class="world-settings-pill"><i data-lucide="activity" style="width:12px;height:12px;"></i>${escapeHTML(selectedWorldLive.label)}</span>
+                <span class="world-settings-pill"><i data-lucide="swords" style="width:12px;height:12px;"></i>${selectedWorldLive.active} actives</span>
+                <span class="world-settings-pill"><i data-lucide="check-circle" style="width:12px;height:12px;"></i>${selectedWorldLive.completed} terminees</span>
                 <span class="world-settings-pill"><i data-lucide="palette" style="width:12px;height:12px;"></i>${escapeHTML(selectedThemeLabel)}</span>
               </div>
+              <div class="world-settings-live">${escapeHTML(selectedWorldLive.detail)}</div>
             </div>
             <div class="world-settings-field">
               <label for="world-settings-name">Nom du monde</label>
@@ -16348,6 +16582,7 @@
       elements.statWis.textContent = state.player.stats.WIS;
       elements.statCha.textContent = state.player.stats.CHA;
       elements.statCon.textContent = state.player.stats.CON;
+      renderStatMeaningHints();
       const playerMaxHp = Math.max(1, Number(state.player.maxHp) || 100);
       const playerHp = Math.max(0, Math.min(playerMaxHp, Number(state.player.hp) || 0));
       const playerHpPercent = Math.round((playerHp / playerMaxHp) * 100);
@@ -16387,6 +16622,21 @@
       renderEquippedSlot('armor', elements.slotArmor, "simpleClothes");
       renderEquippedSlot('accessory', elements.slotAccessory, "none");
       renderEquippedSlot('pet', elements.slotPet, "none");
+    }
+
+    function renderStatMeaningHints() {
+      document.querySelectorAll('.stat-row[data-stat]').forEach(row => {
+        const stat = row.dataset.stat;
+        const meta = getStatMeta(stat);
+        row.setAttribute('title', meta.meaning);
+        let hint = row.querySelector('.stat-meaning');
+        if (!hint) {
+          hint = document.createElement('div');
+          hint.className = 'stat-meaning';
+          row.appendChild(hint);
+        }
+        hint.textContent = meta.hint;
+      });
     }
 
     function renderEquippedSlot(type, domElement, defaultNameKey) {
@@ -16584,7 +16834,7 @@
             <div class="quest-rewards-row">
               <span class="reward-item reward-xp" title="Expérience gagnée">+${xpReward} XP</span>
               <span class="reward-item reward-gold" title="Or gagné"><i data-lucide="coins"></i>+${goldReward} ${t('goldUnit')}</span>
-              <span class="reward-item reward-stat-bonus" title="Statistique améliorée">
+              <span class="reward-item reward-stat-bonus" title="${escapeHTML(quest.statReason || getStatMeta(quest.associatedStat).meaning)}">
                 <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${difficultyData.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
@@ -16704,7 +16954,7 @@
             <div class="quest-rewards-row">
               <span class="reward-item reward-xp" title="Expérience gagnée">+${xpReward} XP</span>
               <span class="reward-item reward-gold" title="Or gagné"><i data-lucide="coins"></i>+${goldReward} ${t('goldUnit')}</span>
-              <span class="reward-item reward-stat-bonus" title="Statistique améliorée">
+              <span class="reward-item reward-stat-bonus" title="${escapeHTML(quest.statReason || getStatMeta(quest.associatedStat).meaning)}">
                 <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${difficultyData.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
