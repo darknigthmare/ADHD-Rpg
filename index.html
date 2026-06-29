@@ -164,6 +164,76 @@
       font-size: 0.85rem;
     }
 
+    button[data-tooltip],
+    [role="button"][data-tooltip] {
+      position: relative;
+    }
+    button[data-tooltip]:hover::after,
+    button[data-tooltip]:focus-visible::after,
+    [role="button"][data-tooltip]:hover::after,
+    [role="button"][data-tooltip]:focus-visible::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      z-index: 3000;
+      width: max-content;
+      max-width: min(260px, 78vw);
+      transform: translateX(-50%);
+      padding: 0.45rem 0.55rem;
+      border: 1px solid rgba(0, 245, 212, 0.28);
+      border-radius: 6px;
+      background: rgba(2, 6, 23, 0.96);
+      color: var(--text-primary);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.38);
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: 0;
+      text-transform: none;
+      white-space: normal;
+      pointer-events: none;
+    }
+    button[data-tooltip]:hover::before,
+    button[data-tooltip]:focus-visible::before,
+    [role="button"][data-tooltip]:hover::before,
+    [role="button"][data-tooltip]:focus-visible::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 3px);
+      z-index: 3001;
+      width: 9px;
+      height: 9px;
+      transform: translateX(-50%) rotate(45deg);
+      background: rgba(2, 6, 23, 0.96);
+      border-right: 1px solid rgba(0, 245, 212, 0.22);
+      border-bottom: 1px solid rgba(0, 245, 212, 0.22);
+      pointer-events: none;
+    }
+    .nav-bar button[data-tooltip]:hover::after,
+    .nav-bar button[data-tooltip]:focus-visible::after,
+    .sound-toggle-btn[data-tooltip]:hover::after,
+    .sound-toggle-btn[data-tooltip]:focus-visible::after,
+    .welcome-gate button[data-tooltip]:hover::after,
+    .welcome-gate button[data-tooltip]:focus-visible::after {
+      bottom: auto;
+      top: calc(100% + 8px);
+    }
+    .nav-bar button[data-tooltip]:hover::before,
+    .nav-bar button[data-tooltip]:focus-visible::before,
+    .sound-toggle-btn[data-tooltip]:hover::before,
+    .sound-toggle-btn[data-tooltip]:focus-visible::before,
+    .welcome-gate button[data-tooltip]:hover::before,
+    .welcome-gate button[data-tooltip]:focus-visible::before {
+      bottom: auto;
+      top: calc(100% + 3px);
+      border: 0;
+      border-left: 1px solid rgba(0, 245, 212, 0.22);
+      border-top: 1px solid rgba(0, 245, 212, 0.22);
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, #7209b7, #560bad);
       color: #fff;
@@ -19748,12 +19818,171 @@
         .replace(/'/g, "&#039;");
     }
 
+    const BUTTON_TOOLTIP_BY_ID = {
+      "welcome-start-btn": "Entre dans NeuroQuest. Si une sauvegarde existe, tu continues; sinon l'app lance la creation du heros.",
+      "welcome-cloud-login-btn": "Connecte ton compte pour retrouver ta sauvegarde cloud sur plusieurs appareils.",
+      "welcome-cloud-register-btn": "Cree un compte NeuroQuest. Une validation email peut etre demandee avant la sauvegarde cloud.",
+      "welcome-cloud-logout-btn": "Deconnecte le compte actuel. La sauvegarde locale reste disponible en secours.",
+      "open-cloud-account-btn": "Ouvre le compte, la sauvegarde cloud et les options d'import/export.",
+      "open-collections-btn": "Ouvre les collections: bestiaire, familiers, objets et hauts faits debloques.",
+      "open-settings-btn": "Ouvre les parametres generaux: theme, profil, sons, sauvegarde et preferences.",
+      "nav-dash-tab": "Vue Aujourd'hui: priorite, bataille, prochaine action et outils TDA(H).",
+      "nav-quests-tab": "Vue Quetes: journal complet, filtres, planner et quetes proposees.",
+      "nav-tools-tab": "Vue Outils: sons, bruit, focus, recuperation et controles d'aide.",
+      "nav-shop-tab": "Vue Boutique: acheter de l'equipement, des soins et des recompenses reelles.",
+      "nav-party-tab": "Vue Mon Equipe: inviter des amis, voir l'escouade et lancer les raids.",
+      "global-focus-toggle-btn": "Active ou coupe le Focus depuis n'importe quel onglet. Le Focus limite l'affichage a une quete.",
+      "pomo-play-btn": "Lance un Focus Raid de 25 minutes avec le bruit choisi. La musique se coupe sauf si tu choisis musique theme.",
+      "pomo-stop-btn": "Arrete le Focus Raid en cours. A utiliser si tu veux vraiment abandonner la session.",
+      "change-avatar-btn": "Change l'apparence du heros sans toucher aux stats ni a la progression.",
+      "open-add-quest-btn": "Ajoute une nouvelle quete complete avec type, difficulte, stat, timer et sous-taches.",
+      "today-refresh-btn": "Actualise les priorites, le planner et le bilan affiche dans Aujourd'hui.",
+      "today-guide-btn": "Choisit la quete la plus utile maintenant et t'aide a commencer par une micro-action.",
+      "stuck-help-btn": "Quand tu bloques, reduit la marche: mode faible energie, micro-action et choix simples.",
+      "today-low-energy-btn": "Passe en mode faible energie: une priorite visible, moins de bruit UI, pression reduite.",
+      "today-save-day-btn": "Ouvre l'assistant pour garder une priorite, reporter, simplifier ou faire 2 minutes.",
+      "quest-navigation-collapse-btn": "Replie ou affiche les filtres de mondes et de types sans modifier tes quetes.",
+      "persistent-focus-toggle-btn": "Bouton Focus toujours accessible: affiche une seule quete ou revient a la liste normale.",
+      "persistent-guide-next-btn": "Ramene vers la prochaine action conseillee sans supprimer tes autres quetes.",
+      "low-energy-mode-btn": "Mode jour difficile: garde une priorite, replie le bruit visuel et propose un demarrage doux.",
+      "calm-mode-btn": "Replie les panneaux secondaires pour une interface plus calme et moins fatigante.",
+      "adhd-tools-collapse-btn": "Cache ou affiche les outils TDA(H). La barre de prochaine action reste visible.",
+      "adhd-two-minute-btn": "Cree une petite quete timer de 2 minutes pour lancer l'elan sans activer le Focus automatiquement.",
+      "toggle-focus-mode-btn": "Limite l'affichage a une seule quete pour eviter la surcharge. Clique encore pour revenir.",
+      "btn-reroll-common-quests": "Propose une nouvelle selection de quetes solo/co-op sans toucher aux quetes deja ajoutees.",
+      "btn-toggle-solo-proposals": "Replie ou affiche les quetes solo proposees pour alleger l'ecran.",
+      "planner-collapse-btn": "Replie ou affiche le planner. Les quetes planifiees restent sauvegardees.",
+      "noise-collapse-btn": "Replie ou affiche le panneau bruit. Le son choisi continue d'etre gere par l'app.",
+      "noise-stop-btn": "Coupe le bruit actif et revient au silence ou a la musique selon le mode.",
+      "noise-play-btn": "Lance le bruit selectionne dans le mode Bruit et coupe la musique de fond.",
+      "btn-reroll-rewards": "Rafraichit les recompenses reelles proposees dans la boutique.",
+      "open-add-reward-btn": "Cree une recompense personnelle a acheter avec tes PO.",
+      "open-create-raid-btn": "Cree un boss de raid personnalise pour representer un gros objectif.",
+      "sound-toggle": "Active ou coupe les effets sonores de l'application.",
+      "music-toggle": "Active ou coupe la musique de fond hors mode bruit/focus.",
+      "close-inventory-btn": "Ferme l'inventaire et revient a l'ecran precedent.",
+      "claim-offline-btn": "Recupere les gains accumules pendant ton absence.",
+      "sync-live-team-btn": "Synchronise les amis live depuis le compte cloud.",
+      "open-export-profile-btn": "Genere un lien ou code pour inviter un ami dans ton equipe.",
+      "open-import-friend-btn": "Ajoute un ami avec une invitation recue.",
+      "close-level-up-splash-btn": "Ferme l'ecran de niveau gagne et reprend l'aventure."
+    };
+
+    function getContextualButtonTooltip(button) {
+      if (!button) return "";
+      if (button.id && BUTTON_TOOLTIP_BY_ID[button.id]) return BUTTON_TOOLTIP_BY_ID[button.id];
+      if (button.dataset.saveDayChoice) {
+        const choices = {
+          keep: "Garde seulement la meilleure priorite et active le Focus dessus.",
+          postpone: "Reporte deux quetes plus tard pour liberer de la place mentale.",
+          simplify: "Cree une mini-action de 2 minutes a partir de la priorite actuelle.",
+          "two-minute": "Cree un demarrage 2 minutes sans repenser toute la liste."
+        };
+        return choices[button.dataset.saveDayChoice] || "";
+      }
+      if (button.dataset.filter) {
+        const filters = {
+          all: "Affiche toutes les quetes du monde selectionne.",
+          main: "Affiche les quetes principales, souvent les objectifs les plus importants.",
+          side: "Affiche les quetes secondaires, utiles mais moins critiques.",
+          daily: "Affiche les quetes quotidiennes et routines recurrentes.",
+          completed: "Affiche les quetes terminees dans le cimetiere ou l'historique."
+        };
+        return filters[button.dataset.filter] || "";
+      }
+      if (button.dataset.world) return button.dataset.world === "all" ? "Affiche les quetes de tous les mondes/projets." : "Selectionne ce monde/projet et affiche ses quetes.";
+      if (button.dataset.category) {
+        const categories = {
+          all: "Affiche tous les objets disponibles dans la boutique.",
+          weapon: "Filtre les armes qui aident certaines stats de quetes.",
+          armor: "Filtre les armures et protections.",
+          accessory: "Filtre les accessoires et objets utilitaires.",
+          pet: "Filtre les familiers a collectionner ou equiper.",
+          healing: "Filtre les soins pour recuperer des PV ou soutenir le repos.",
+          consumable: "Filtre les consommables lies a des actions reelles."
+        };
+        return categories[button.dataset.category] || "";
+      }
+      if (button.dataset.teamDrawerToggle) return "Replie ou affiche cette section de Mon Equipe pour reduire le bruit visuel.";
+      if (button.dataset.emptyAction) {
+        const emptyActions = {
+          all: "Retire le filtre actuel pour revoir toutes les quetes.",
+          quick: "Place le curseur dans l'ajout rapide pour capturer une nouvelle quete.",
+          micro: "Cree une micro-quete de 2 minutes pour relancer l'elan."
+        };
+        return emptyActions[button.dataset.emptyAction] || "";
+      }
+      if (button.dataset.shopJump) return "Va directement vers la section de boutique recommandee.";
+      if (button.dataset.deleteWorld) return "Supprime ce monde et replace ses quetes dans General.";
+      if (button.dataset.closeWorldSettings !== undefined) return "Ferme les parametres du monde selectionne.";
+      if (button.dataset.worldSettings) return "Ouvre les parametres du monde: nom, theme et statut.";
+      if (button.classList.contains('accept-prop-btn')) return "Ajoute cette quete proposee a ton journal.";
+      if (button.classList.contains('refuse-prop-btn')) return "Ignore cette proposition et la retire de la liste.";
+      if (button.classList.contains('btn-toggle-timer')) return "Demarre ou met en pause le timer de cette quete.";
+      if (button.classList.contains('btn-complete-quest')) return "Valide la quete, donne les gains et blesse le monstre associe.";
+      if (button.classList.contains('btn-delete-quest')) return "Supprime cette quete. A utiliser seulement si elle n'est plus utile.";
+      if (button.classList.contains('btn-delete-planner-item')) return "Retire cette entree du planner sans supprimer la quete.";
+      if (button.classList.contains('btn-purchase-reward')) return "Achete cette recompense reelle avec tes PO apres avoir confirme l'action.";
+      if (button.classList.contains('btn-delete-reward')) return "Supprime cette recompense personnalisee.";
+      if (button.classList.contains('btn-purchase-gear')) return "Achete cet objet avec tes PO. Les consommables peuvent demander une action reelle.";
+      if (button.classList.contains('btn-equip-gear') || button.classList.contains('btn-equip-inv')) return "Equipe cet objet pour appliquer ses bonus.";
+      if (button.classList.contains('btn-unequip-inv')) return "Retire cet objet equipe et laisse l'emplacement vide.";
+      if (button.classList.contains('btn-remove-member')) return "Retire cet ami de ton equipe locale.";
+      if (button.classList.contains('btn-launch-suggested-raid')) return "Ajoute ce boss suggere aux raids actifs.";
+      if (button.classList.contains('boss-delete-btn')) return "Supprime ce boss de raid.";
+      if (button.classList.contains('modal-close')) return "Ferme cette fenetre sans valider d'action.";
+      if (button.classList.contains('setup-stat-btn')) return "Ajuste les points de depart de cette stat pendant la creation du heros.";
+      if (button.classList.contains('remove-subtask-input-btn')) return "Retire cette sous-tache du formulaire.";
+      const text = (button.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (text === "annuler") return "Annule et ferme cette fenetre sans enregistrer.";
+      if (text.includes("enregistrer")) return "Sauvegarde les changements de cette section.";
+      if (text.includes("créer") || text.includes("creer")) return "Cree un nouvel element avec les informations saisies.";
+      if (text.includes("invoquer")) return "Cree ce boss et l'ajoute aux raids.";
+      if (text.includes("continuer")) return "Ferme cet ecran et continue l'aventure.";
+      if (text.includes("connexion")) return "Connecte ton compte avec l'email et le mot de passe saisis.";
+      if (text.includes("deconnexion")) return "Deconnecte le compte actuel.";
+      return "";
+    }
+
+    function hydrateButtonTooltips(root = document) {
+      const targets = root.querySelectorAll ? root.querySelectorAll('button, [role="button"]') : [];
+      targets.forEach(button => {
+        const existing = (button.getAttribute('title') || button.getAttribute('aria-label') || '').trim();
+        const tooltip = getContextualButtonTooltip(button) || existing;
+        if (!tooltip) return;
+        button.setAttribute('title', tooltip);
+        button.setAttribute('data-tooltip', tooltip);
+        if (!button.getAttribute('aria-label')) {
+          const label = (button.textContent || '').replace(/\s+/g, ' ').trim();
+          button.setAttribute('aria-label', label ? `${label} - ${tooltip}` : tooltip);
+        }
+      });
+    }
+
+    function startTooltipObserver() {
+      if (window.neuroQuestTooltipObserver) return;
+      hydrateButtonTooltips(document);
+      window.neuroQuestTooltipObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType !== 1) return;
+            if (node.matches && (node.matches('button') || node.matches('[role="button"]'))) {
+              hydrateButtonTooltips({ querySelectorAll: selector => node.matches(selector) ? [node] : [] });
+            }
+            hydrateButtonTooltips(node);
+          });
+        });
+      });
+      window.neuroQuestTooltipObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
     function createIcons() {
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
       } else {
         console.warn('Lucide CDN is offline. Icons not rendered.');
       }
+      hydrateButtonTooltips(document);
     }
 
 
@@ -20559,6 +20788,7 @@
     // Run bootstrap when DOM is fully ready
     document.addEventListener('DOMContentLoaded', () => {
       initApp();
+      startTooltipObserver();
       initTimerLoop();
       setInterval(triggerPetInteraction, 30000);
       setTimeout(triggerHeroInteraction, 2000); // Trigger immediately after a short delay
