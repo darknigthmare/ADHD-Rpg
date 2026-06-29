@@ -10838,6 +10838,10 @@
       xpGained = Math.round(xpGained * tMult);
       goldGained = Math.round(goldGained * tMult);
 
+      const pacing = getQuestPacingModifier(quest);
+      xpGained = Math.max(1, Math.round(xpGained * pacing.multiplier));
+      goldGained = Math.max(1, Math.round(goldGained * pacing.multiplier));
+
       if (state.player.restedBuffActive) {
         xpGained = Math.round(xpGained * 1.15);
         goldGained = Math.round(goldGained * 1.15);
@@ -10857,7 +10861,7 @@
       delete questMonsterApproachCache[quest.id];
       addRecoveryJournalValue('completedQuests', 1);
       adjustMentalEnergy(-Math.max(1, Math.round((baseRewards.xp || 10) / 35)), "Effort de quete");
-      addEventJournalEntry("game", `${quest.titleKey ? t(quest.titleKey) : quest.title}: +${xpGained} XP, +${goldGained} PO`);
+      addEventJournalEntry("game", `${quest.titleKey ? t(quest.titleKey) : quest.title}: +${xpGained} XP, +${goldGained} PO${pacing.label ? ` (${pacing.label})` : ''}`);
 
       if (!quest.isCommon) {
         if (!state.bestiary) state.bestiary = {};
@@ -10898,7 +10902,8 @@
         leveledUp,
         level: state.player.level,
         damageDealt,
-        bossesDefeated
+        bossesDefeated,
+        pacingLabel: pacing.label
       };
     }
 
@@ -12724,6 +12729,10 @@
       totalXp = Math.round(totalXp * tMult);
       totalGold = Math.round(totalGold * tMult);
 
+      const pacing = getQuestPacingModifier(quest);
+      totalXp = Math.max(1, Math.round(totalXp * pacing.multiplier));
+      totalGold = Math.max(1, Math.round(totalGold * pacing.multiplier));
+
       let xpGained = Math.floor(totalXp / N);
       let goldGained = Math.floor(totalGold / N);
       
@@ -12794,7 +12803,8 @@
         damageDealt,
         bossesDefeated,
         isQuestFinal: isFinal,
-        quest
+        quest,
+        pacingLabel: pacing.label
       };
     }
 
@@ -15927,6 +15937,108 @@
       return { active: activeQuests.length, timers: timers.length, runningTimers, planned: plannedToday.length, missed, hydration, urgent, visualNoise };
     }
 
+    function isSameLocalDay(dateValue, reference = new Date()) {
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) return false;
+      return date.toDateString() === reference.toDateString();
+    }
+
+    function getCompletedQuestsToday() {
+      return (state.quests || []).filter(quest => quest && quest.completedAt && !quest.isCommon && isSameLocalDay(quest.completedAt));
+    }
+
+    function getGameplayLoopState() {
+      const summary = getTodayQoLSummary();
+      const completedToday = getCompletedQuestsToday();
+      const chapter = getChapterState();
+      const level = Math.max(1, Number(state.player.level) || 1);
+      const transcendence = Math.max(0, Number(state.transcendenceCount) || 0);
+      const trivialEasy = completedToday.filter(q => ['trivial', 'easy'].includes(q.difficulty)).length;
+      const hardWins = completedToday.filter(q => ['hard', 'epic'].includes(q.difficulty) || q.type === 'main').length;
+      const variedStats = new Set(completedToday.map(q => q.associatedStat).filter(Boolean)).size;
+      let phase = "Capture";
+      let advice = "Capture une quete claire, puis lance une micro-action.";
+      let duration = level < 5 ? "Debut: apprendre la boucle sans pression" : level < 10 ? "Chapitre 1: viser la transcendance" : "Long terme: raids, chapitres, mondes";
+      let fatigueRisk = "ok";
+
+      if (summary.urgent > 0 || summary.runningTimers > 0) {
+        phase = "Urgence";
+        advice = "Traite le timer ou la quete planifiee la plus proche avant le reste.";
+      } else if (completedToday.length >= 14) {
+        phase = "Recuperation";
+        advice = "Beaucoup de victoires aujourd'hui: recompense, eau, repos, puis seulement une action utile.";
+        fatigueRisk = "high";
+      } else if (trivialEasy >= 8 && state.dayMode !== 'low-energy') {
+        phase = "Entretien";
+        advice = "Les micro-quetes ont servi. Pour progresser mieux: varie une stat ou prends une vraie pause.";
+        fatigueRisk = "medium";
+      } else if (summary.active >= 8) {
+        phase = "Tri";
+        advice = "Trop d'ennemis actifs: garde 1 priorite, reporte ou simplifie le reste.";
+        fatigueRisk = "medium";
+      } else if (hardWins > 0 || chapter.progress >= 100) {
+        phase = "Boss/Cap";
+        advice = "Bon moment pour raid, recompense reelle ou preparation du prochain chapitre.";
+      } else if (completedToday.length > 0) {
+        phase = "Action";
+        advice = variedStats >= 3 ? "Belle variete de stats: continue doucement ou passe au repos." : "Boucle saine: une prochaine action, puis un vrai arret si l'energie baisse.";
+      }
+
+      if (transcendence > 0) {
+        duration = `Chapitre ${transcendence + 1}: consolider mondes, raids et campement`;
+      }
+
+      return {
+        phase,
+        advice,
+        duration,
+        fatigueRisk,
+        completedToday: completedToday.length,
+        trivialEasy,
+        variedStats,
+        chapter
+      };
+    }
+
+    function getQuestPacingModifier(quest) {
+      if (!quest) return { multiplier: 1, label: "" };
+      const completedToday = getCompletedQuestsToday();
+      const completedCount = completedToday.length;
+      const sameStatCount = completedToday.filter(q => q.associatedStat === quest.associatedStat).length;
+      const isMicro = ['trivial', 'easy'].includes(quest.difficulty);
+      const isProtected = quest.type === 'daily' || quest.type === 'main' || state.dayMode === 'low-energy' || state.dayMode === 'rest';
+      let multiplier = 1;
+      let label = "";
+
+      if (!isProtected && isMicro && completedCount >= 14) {
+        multiplier *= 0.7;
+        label = "rythme repos conseille";
+      } else if (!isProtected && isMicro && completedCount >= 8) {
+        multiplier *= 0.85;
+        label = "micro-quetes en entretien";
+      }
+
+      if (!isProtected && sameStatCount >= 4) {
+        multiplier *= 0.92;
+        label = label || "varier une stat aiderait";
+      }
+
+      if (completedCount >= 3 && sameStatCount === 0 && ['medium', 'hard', 'epic'].includes(quest.difficulty)) {
+        multiplier *= 1.08;
+        label = "bonus variete";
+      }
+
+      if (quest.plannedTime && isPlannerDateToday(quest.plannedDate) && !quest.timerFailed) {
+        multiplier *= 1.05;
+        label = label || "quete planifiee";
+      }
+
+      return {
+        multiplier: Math.max(0.65, Math.min(1.12, multiplier)),
+        label
+      };
+    }
+
     function getStatMeta(stat) {
       const meta = {
         STR: {
@@ -16106,6 +16218,7 @@
       const mentalEnergy = Math.max(0, Math.min(100, Number(state.player.mentalEnergy) || 0));
       const hydration = summary.hydration;
       const glassMl = Math.max(100, Number(state.player.hydrationGlassMl) || 250);
+      const loop = getGameplayLoopState();
       let severity = "normal";
       let goal = "Commencer une seule action utile";
       let detail = "Objectif de l'app: transformer le reel en petites rencontres jouables, sans punition lourde.";
@@ -16123,6 +16236,14 @@
         severity = "warning";
         goal = "Reduire le bruit visuel";
         detail = "Trop de panneaux ouverts: le mode calme aide a garder une seule piste de decision.";
+      } else if (loop.fatigueRisk === "high") {
+        severity = "warning";
+        goal = "Transformer les victoires en recuperation";
+        detail = loop.advice;
+      } else if (loop.fatigueRisk === "medium") {
+        severity = "warning";
+        goal = "Garder la boucle saine";
+        detail = loop.advice;
       } else if (mentalEnergy <= 35 || state.dayMode === "low-energy") {
         severity = "warning";
         goal = "Garder une micro-victoire";
@@ -16145,6 +16266,8 @@
         signal = `${summary.missed} quete(s) a replanifier`;
       } else if (summary.active >= 8) {
         signal = "Beaucoup de quetes actives";
+      } else if (loop.completedToday >= 8) {
+        signal = `${loop.completedToday} victoires: penser repos`;
       }
 
       return {
@@ -16241,6 +16364,7 @@
       const mentalEnergy = Math.max(0, Math.min(100, Number(state.player.mentalEnergy) || 0));
       const chapter = getChapterState();
       const camp = getCampState();
+      const loop = getGameplayLoopState();
       const title = next && next.quest ? (next.quest.titleKey ? t(next.quest.titleKey) : next.quest.title) : "Aucune priorite";
       const micro = next && next.quest ? getQuestMicroAction(next.quest) : "Ajouter une micro-tache simple";
       const hp = `${state.player.hp || 0}/${state.player.maxHp || 100} PV`;
@@ -16254,6 +16378,8 @@
         <div class="today-tile"><span class="today-label">Mode</span><span class="today-value">${getDayModeMeta().label}</span></div>
         <div class="today-tile"><span class="today-label">Campement</span><span class="today-value" title="${escapeHTML(camp.detail)}">${escapeHTML(camp.name)} niv. ${camp.level}</span></div>
         <div class="today-tile"><span class="today-label">Chapitre</span><span class="today-value" title="${escapeHTML(chapter.detail)}">${chapter.completed}/${chapter.target} - ${chapter.progress}%</span></div>
+        <div class="today-tile"><span class="today-label">Boucle</span><span class="today-value" title="${escapeHTML(loop.advice)}">${escapeHTML(loop.phase)} - ${loop.completedToday} victoire(s)</span></div>
+        <div class="today-tile"><span class="today-label">Duree</span><span class="today-value" title="${escapeHTML(loop.duration)}">${escapeHTML(loop.duration)}</span></div>
       `;
       if (review) {
         normalizeRecoveryJournal();
@@ -16267,6 +16393,7 @@
             <div><strong>${state.recoveryJournal.missedQuests}</strong> a replanifier</div>
             <div><strong>${state.recoveryJournal.hpLost}/${state.recoveryJournal.hpRecovered}</strong> PV perdus/recuperes</div>
             <div><strong>${hydration.waterMl} ml</strong> eau aujourd'hui</div>
+            <div><strong>${escapeHTML(loop.phase)}</strong> ${escapeHTML(loop.advice)}</div>
           </div>
         `;
         const prepareBtn = document.getElementById('prepare-tomorrow-btn');
@@ -18144,6 +18271,11 @@
         setTimeout(() => {
           spawnFloatingText(`+${result.statGained} ${statNames[result.statType]}`, 'var(--text-secondary)', { x, y: y - 44 });
         }, 300);
+      }
+      if (result.pacingLabel) {
+        setTimeout(() => {
+          spawnFloatingText(result.pacingLabel, '#94a3b8', { x, y: y - 66 });
+        }, 430);
       }
     }
 
