@@ -1938,6 +1938,65 @@
       border-color: rgba(239, 68, 68, 0.45);
       background: rgba(239, 68, 68, 0.08);
     }
+    .neuro-compass-panel {
+      display: grid;
+      gap: 0.5rem;
+      padding: 0.72rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 3px solid var(--color-xp);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .neuro-compass-panel.is-warning {
+      border-left-color: var(--color-gold);
+      background: rgba(245, 158, 11, 0.06);
+    }
+    .neuro-compass-panel.is-danger {
+      border-left-color: #ef4444;
+      background: rgba(239, 68, 68, 0.07);
+    }
+    .neuro-compass-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .neuro-compass-goal {
+      font-family: var(--font-game);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+    .neuro-compass-detail {
+      color: var(--text-secondary);
+      font-size: 0.74rem;
+      line-height: 1.45;
+    }
+    .neuro-compass-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.4rem;
+    }
+    .neuro-compass-chip {
+      min-width: 0;
+      padding: 0.42rem 0.48rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+    }
+    .neuro-compass-chip strong {
+      display: block;
+      color: var(--color-xp);
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      margin-bottom: 0.14rem;
+    }
     .qol-shortcuts-hint {
       display: flex;
       flex-wrap: wrap;
@@ -6857,6 +6916,18 @@
             <div class="qol-summary-item"><span class="qol-summary-label">Timers</span><span class="qol-summary-value">0</span></div>
             <div class="qol-summary-item"><span class="qol-summary-label">Planner</span><span class="qol-summary-value">0</span></div>
             <div class="qol-summary-item"><span class="qol-summary-label">Soif</span><span class="qol-summary-value">OK</span></div>
+          </div>
+          <div class="neuro-compass-panel" id="neuro-compass-panel">
+            <div class="neuro-compass-head">
+              <span><i data-lucide="compass" style="width:13px;height:13px;display:inline;vertical-align:text-bottom;"></i> Boussole NeuroQuest</span>
+              <span id="neuro-compass-mode">Mode</span>
+            </div>
+            <div class="neuro-compass-goal" id="neuro-compass-goal">Transformer la journee en une prochaine action claire.</div>
+            <div class="neuro-compass-detail" id="neuro-compass-detail">L'app sert a reduire la friction, pas a ajouter de la pression.</div>
+            <div class="neuro-compass-grid">
+              <div class="neuro-compass-chip"><strong>Jalon RPG</strong><span id="neuro-compass-milestone">Analyse...</span></div>
+              <div class="neuro-compass-chip"><strong>Signal QoL</strong><span id="neuro-compass-signal">Interface OK</span></div>
+            </div>
           </div>
           <div class="qol-shortcuts-hint" id="qol-shortcuts-hint">
             <span><kbd>/</kbd> ajout rapide</span>
@@ -15678,6 +15749,7 @@
       if (select) select.value = state.dayMode || 'normal';
       renderRecoveryJournal();
       renderQoLSummary();
+      renderNeuroQuestCompass();
       syncPersistentNextActionBar();
       applyQoLPreferences();
     }
@@ -15748,6 +15820,97 @@
           <span class="qol-summary-value">${summary.visualNoise >= 4 ? 'Trop' : summary.visualNoise >= 3 ? 'Moyen' : 'OK'}</span>
         </div>
       `;
+    }
+
+    function getGameplayMilestoneText() {
+      const level = Math.max(1, Number(state.player.level) || 1);
+      const activeRaid = (state.raids || []).find(raid => raid && !raid.completed && raid.id === state.activeRaidId)
+        || (state.raids || []).find(raid => raid && !raid.completed);
+      if (level < 10) return `Niveau ${level}/10 avant la premiere transcendance douce.`;
+      if (activeRaid) {
+        const hpPercent = Math.max(0, Math.round(((activeRaid.currentHp || 0) / Math.max(1, activeRaid.maxHp || 1)) * 100));
+        return `${activeRaid.name}: ${hpPercent}% PV restants.`;
+      }
+      const essence = Number(state.player.prestigeEssence) || 0;
+      return `Essences ${essence}. Lance un raid ou prepare un nouveau chapitre.`;
+    }
+
+    function getNeuroQuestCompassState() {
+      const summary = getTodayQoLSummary();
+      const next = getNextAdhdQuest();
+      const hp = Math.max(0, Number(state.player.hp) || 0);
+      const maxHp = Math.max(1, Number(state.player.maxHp) || 100);
+      const hpRatio = hp / maxHp;
+      const mentalEnergy = Math.max(0, Math.min(100, Number(state.player.mentalEnergy) || 0));
+      const hydration = summary.hydration;
+      const glassMl = Math.max(100, Number(state.player.hydrationGlassMl) || 250);
+      let severity = "normal";
+      let goal = "Commencer une seule action utile";
+      let detail = "Objectif de l'app: transformer le reel en petites rencontres jouables, sans punition lourde.";
+      let signal = "Interface OK";
+
+      if (hpRatio <= 0.35 || state.dayMode === "rest") {
+        severity = hpRatio <= 0.25 ? "danger" : "warning";
+        goal = "Recuperer avant de pousser";
+        detail = "Le gameplay doit soutenir l'energie: repos, eau, soin ou micro-action seulement.";
+      } else if (summary.urgent > 0 || summary.runningTimers > 0) {
+        severity = "warning";
+        goal = "Traiter l'urgence visible";
+        detail = "Un timer ou une quete proche doit passer devant le reste pour eviter la surcharge mentale.";
+      } else if (summary.visualNoise >= 4) {
+        severity = "warning";
+        goal = "Reduire le bruit visuel";
+        detail = "Trop de panneaux ouverts: le mode calme aide a garder une seule piste de decision.";
+      } else if (mentalEnergy <= 35 || state.dayMode === "low-energy") {
+        severity = "warning";
+        goal = "Garder une micro-victoire";
+        detail = "Jour faible energie: une quete facile suffit, le reste peut attendre.";
+      } else if (!next) {
+        goal = "Repos ou capture rapide";
+        detail = "Aucune quete active dans ce contexte: le monde peut rester au camp, ou recevoir une micro-tache.";
+      } else {
+        const title = next.quest.titleKey ? t(next.quest.titleKey) : next.quest.title;
+        goal = `Avancer: ${title}`;
+        detail = `Premiere marche: ${getQuestMicroAction(next.quest)}`;
+      }
+
+      if (hydration.missingMl >= glassMl * 2) {
+        severity = severity === "danger" ? "danger" : "warning";
+        signal = `Hydratation: ${Math.ceil(hydration.missingMl / glassMl)} verres manquants`;
+      } else if (summary.visualNoise >= 4) {
+        signal = "Trop de panneaux ouverts";
+      } else if (summary.missed > 0) {
+        signal = `${summary.missed} quete(s) a replanifier`;
+      } else if (summary.active >= 8) {
+        signal = "Beaucoup de quetes actives";
+      }
+
+      return {
+        severity,
+        goal,
+        detail,
+        signal,
+        mode: getDayModeMeta().label,
+        milestone: getGameplayMilestoneText()
+      };
+    }
+
+    function renderNeuroQuestCompass() {
+      const panel = document.getElementById('neuro-compass-panel');
+      if (!panel) return;
+      const stateCompass = getNeuroQuestCompassState();
+      panel.classList.toggle('is-warning', stateCompass.severity === 'warning');
+      panel.classList.toggle('is-danger', stateCompass.severity === 'danger');
+      const modeEl = document.getElementById('neuro-compass-mode');
+      const goalEl = document.getElementById('neuro-compass-goal');
+      const detailEl = document.getElementById('neuro-compass-detail');
+      const milestoneEl = document.getElementById('neuro-compass-milestone');
+      const signalEl = document.getElementById('neuro-compass-signal');
+      if (modeEl) modeEl.textContent = stateCompass.mode;
+      if (goalEl) goalEl.textContent = stateCompass.goal;
+      if (detailEl) detailEl.textContent = stateCompass.detail;
+      if (milestoneEl) milestoneEl.textContent = stateCompass.milestone;
+      if (signalEl) signalEl.textContent = stateCompass.signal;
     }
 
     function getNextAdhdQuest() {
@@ -15825,6 +15988,7 @@
           ? entries.map(entry => `<div><strong>${entry.type === 'real' ? 'Reel' : 'Jeu'}:</strong> ${escapeHTML(entry.text)}</div>`).join('')
           : `<div><strong>Journal:</strong> les gains, pertes et actions importantes apparaitront ici.</div>`;
       }
+      renderNeuroQuestCompass();
     }
 
     function handleStuckHelp() {
