@@ -5112,6 +5112,20 @@
       width: 100%;
       height: 100%;
     }
+    .pixel-monster-svg {
+      image-rendering: pixelated;
+      shape-rendering: crispEdges;
+      overflow: visible;
+    }
+    .pixel-monster-svg .px-shadow {
+      opacity: 0.36;
+    }
+    .pixel-monster-svg .px-light {
+      opacity: 0.85;
+    }
+    .pixel-monster-svg .px-glow {
+      filter: drop-shadow(0 0 2px currentColor);
+    }
     .monster-wrapper .monster-svg {
       filter:
         hue-rotate(var(--monster-hue, 0deg))
@@ -12090,6 +12104,182 @@
         </svg>
       `,
     };
+
+    const PIXEL_MONSTER_PALETTES = {
+      teal: { outline: '#083344', dark: '#0f766e', mid: '#14b8a6', light: '#5eead4', accent: '#f472b6', glow: '#67e8f9', eye: '#0f172a' },
+      green: { outline: '#052e16', dark: '#166534', mid: '#22c55e', light: '#86efac', accent: '#facc15', glow: '#a3e635', eye: '#111827' },
+      bone: { outline: '#292524', dark: '#78716c', mid: '#d6d3d1', light: '#fafaf9', accent: '#ef4444', glow: '#fef3c7', eye: '#991b1b' },
+      stone: { outline: '#1e293b', dark: '#475569', mid: '#64748b', light: '#cbd5e1', accent: '#38bdf8', glow: '#94a3b8', eye: '#22d3ee' },
+      fire: { outline: '#2b0505', dark: '#7f1d1d', mid: '#dc2626', light: '#fb923c', accent: '#facc15', glow: '#f97316', eye: '#fde047' },
+      ash: { outline: '#1c1917', dark: '#44403c', mid: '#78716c', light: '#d6d3d1', accent: '#f97316', glow: '#ef4444', eye: '#fb923c' },
+      purple: { outline: '#2e1065', dark: '#4c1d95', mid: '#7c3aed', light: '#c4b5fd', accent: '#facc15', glow: '#a78bfa', eye: '#22d3ee' },
+      gold: { outline: '#4a2607', dark: '#78350f', mid: '#b8862d', light: '#facc15', accent: '#22d3ee', glow: '#38bdf8', eye: '#67e8f9' },
+      blackGold: { outline: '#050505', dark: '#111827', mid: '#1f2937', light: '#facc15', accent: '#22d3ee', glow: '#38bdf8', eye: '#67e8f9' },
+      lab: { outline: '#0f172a', dark: '#0284c7', mid: '#38bdf8', light: '#e0f2fe', accent: '#10b981', glow: '#7dd3fc', eye: '#ef4444' },
+      horror: { outline: '#111827', dark: '#27272a', mid: '#52525b', light: '#d4d4d8', accent: '#ef4444', glow: '#f87171', eye: '#ef4444' },
+      cyber: { outline: '#0f172a', dark: '#1e293b', mid: '#475569', light: '#94a3b8', accent: '#f72585', glow: '#00f5d4', eye: '#00f5d4' },
+      scifi: { outline: '#082f49', dark: '#075985', mid: '#0ea5e9', light: '#bae6fd', accent: '#a78bfa', glow: '#67e8f9', eye: '#111827' },
+      noir: { outline: '#030712', dark: '#111827', mid: '#374151', light: '#d1d5db', accent: '#f97316', glow: '#9ca3af', eye: '#f9fafb' },
+      red: { outline: '#450a0a', dark: '#7f1d1d', mid: '#b91c1c', light: '#fca5a5', accent: '#fde047', glow: '#ef4444', eye: '#facc15' }
+    };
+
+    function createPixelMonsterSprite(def = {}) {
+      const palette = { ...PIXEL_MONSTER_PALETTES.teal, ...(def.palette || {}) };
+      const rects = [];
+      const add = (x, y, w, h, color = 'mid', cls = '') => rects.push([x, y, w, h, color, cls]);
+      const block = (rows, color = 'mid', cls = '') => {
+        rows.forEach((row, y) => [...row].forEach((cell, x) => {
+          if (cell !== '.') add(x, y, 1, 1, cell === '#' ? color : cell, cls);
+        }));
+      };
+      const commonEyes = (y = 8, glow = false) => {
+        add(6, y, 1, 1, 'eye', glow ? 'px-glow' : '');
+        add(9, y, 1, 1, 'eye', glow ? 'px-glow' : '');
+        add(6, y, 1, 1, 'light', 'px-light');
+      };
+      add(3, 14, 10, 1, '#000000', 'px-shadow');
+
+      switch (def.kind) {
+        case 'blob':
+          block(['................','................','................','.....######.....','....########....','...##########...','...##########...','..############..','..############..','..############..','...##########...','....########....','................','................','................','................'], 'outline');
+          block(['................','................','................','................','.....######.....','....########....','....########....','...##########...','...##########...','...##########...','....########....','.....######.....','................','................','................','................'], 'mid');
+          add(5, 5, 5, 2, 'light', 'px-light'); commonEyes(8); add(7, 10, 2, 1, 'eye'); add(3, 9, 1, 1, 'accent'); add(12, 9, 1, 1, 'accent');
+          break;
+        case 'tinyWing':
+          add(1, 5, 4, 2, 'outline'); add(11, 5, 4, 2, 'outline'); add(2, 6, 3, 2, 'dark'); add(11, 6, 3, 2, 'dark');
+          add(5, 4, 6, 7, 'outline'); add(6, 5, 4, 5, 'mid'); commonEyes(7, true); add(7, 10, 2, 1, 'accent');
+          break;
+        case 'humanoid':
+          add(5, 2, 6, 5, 'outline'); add(6, 3, 4, 3, 'mid'); commonEyes(4);
+          add(4, 7, 8, 6, 'outline'); add(5, 8, 6, 4, 'dark'); add(3, 8, 2, 4, 'outline'); add(11, 8, 2, 4, 'outline'); add(5, 13, 2, 2, 'outline'); add(9, 13, 2, 2, 'outline');
+          add(6, 7, 4, 1, 'accent'); if (def.weapon) { add(13, 4, 1, 8, 'light'); add(12, 4, 2, 1, 'accent'); }
+          break;
+        case 'skeleton':
+          add(5, 2, 6, 5, 'outline'); add(6, 3, 4, 3, 'light'); commonEyes(4, true); add(7, 6, 2, 1, 'outline');
+          add(6, 7, 4, 1, 'light'); add(5, 8, 6, 4, 'outline'); add(6, 8, 1, 4, 'mid'); add(9, 8, 1, 4, 'mid'); add(3, 8, 2, 1, 'light'); add(11, 8, 2, 1, 'light'); add(5, 13, 2, 2, 'light'); add(9, 13, 2, 2, 'light');
+          break;
+        case 'brute':
+          add(4, 1, 8, 6, 'outline'); add(2, 3, 3, 2, 'outline'); add(11, 3, 3, 2, 'outline'); add(5, 2, 6, 4, 'mid'); commonEyes(4);
+          add(3, 7, 10, 6, 'outline'); add(4, 8, 8, 4, 'dark'); add(1, 8, 3, 4, 'outline'); add(12, 8, 3, 4, 'outline'); add(5, 13, 2, 2, 'outline'); add(9, 13, 2, 2, 'outline'); add(6, 11, 4, 1, 'accent');
+          break;
+        case 'golem':
+          add(4, 1, 8, 4, 'outline'); add(5, 2, 6, 2, 'mid'); add(3, 5, 10, 8, 'outline'); add(4, 6, 8, 6, 'dark'); add(1, 6, 3, 5, 'outline'); add(12, 6, 3, 5, 'outline'); add(5, 13, 2, 2, 'outline'); add(9, 13, 2, 2, 'outline'); add(7, 8, 2, 2, 'accent', 'px-glow'); add(5, 6, 2, 1, 'light');
+          break;
+        case 'winged':
+          add(0, 3, 5, 7, 'outline'); add(11, 3, 5, 7, 'outline'); add(1, 4, 4, 4, 'dark'); add(11, 4, 4, 4, 'dark'); add(5, 2, 6, 5, 'outline'); add(6, 3, 4, 3, 'mid'); commonEyes(4, true);
+          add(4, 7, 8, 7, 'outline'); add(5, 8, 6, 5, 'mid'); add(6, 13, 1, 2, 'accent'); add(9, 13, 1, 2, 'accent');
+          break;
+        case 'specter':
+          add(4, 1, 8, 13, 'outline'); add(5, 2, 6, 10, 'light'); commonEyes(5, true); add(5, 12, 2, 2, 'light'); add(9, 12, 2, 2, 'light'); add(7, 13, 2, 1, 'outline'); add(4, 11, 1, 2, 'mid'); add(11, 11, 1, 2, 'mid');
+          break;
+        case 'beast':
+          add(3, 6, 10, 5, 'outline'); add(4, 7, 8, 3, 'mid'); add(10, 3, 4, 5, 'outline'); add(11, 4, 2, 3, 'mid'); add(10, 2, 1, 2, 'accent'); add(13, 2, 1, 2, 'accent'); add(12, 5, 1, 1, 'eye'); add(2, 8, 2, 1, 'dark'); add(4, 11, 2, 3, 'outline'); add(10, 11, 2, 3, 'outline'); add(1, 5, 3, 2, 'dark');
+          break;
+        case 'machine':
+          add(4, 3, 8, 8, 'outline'); add(5, 4, 6, 6, 'dark'); add(6, 6, 4, 2, 'accent', 'px-glow'); add(2, 5, 2, 4, 'outline'); add(12, 5, 2, 4, 'outline'); add(5, 11, 2, 3, 'outline'); add(9, 11, 2, 3, 'outline'); add(7, 2, 2, 1, 'light');
+          break;
+        case 'orb':
+          add(5, 3, 6, 2, 'outline'); add(4, 5, 8, 6, 'outline'); add(5, 6, 6, 4, 'glow', 'px-glow'); add(7, 7, 2, 2, 'light'); add(2, 7, 2, 1, 'accent'); add(12, 7, 2, 1, 'accent'); add(7, 1, 2, 2, 'accent', 'px-glow'); add(7, 11, 2, 2, 'accent', 'px-glow');
+          break;
+        case 'ship':
+          block(['................','.......##.......','......####......','.....######.....','....########....','...##########...','..############..','.##############.','....########....','...###.##.###...','..##........##..','................','................','................','................','................'], 'outline');
+          block(['................','................','.......##.......','......####......','.....######.....','....########....','...##########...','..############..','.....######.....','................','................','................','................','................','................','................'], 'dark');
+          add(7, 5, 2, 2, 'accent', 'px-glow'); add(5, 8, 2, 1, 'light'); add(9, 8, 2, 1, 'light');
+          break;
+        case 'scarab':
+          add(4, 4, 8, 7, 'outline'); add(5, 5, 6, 5, 'mid'); add(2, 6, 2, 1, 'accent'); add(12, 6, 2, 1, 'accent'); add(1, 8, 3, 1, 'accent'); add(12, 8, 3, 1, 'accent'); add(4, 3, 8, 1, 'light'); add(7, 5, 2, 5, 'dark'); commonEyes(7, true);
+          break;
+        case 'jaffa':
+          add(4, 1, 8, 7, 'outline'); add(5, 2, 6, 5, 'mid'); add(6, 0, 4, 2, 'accent'); commonEyes(5, true);
+          if (def.helm === 'serpent') { add(5, 0, 6, 2, 'outline'); add(6, 0, 4, 1, 'light'); add(7, 1, 2, 2, 'accent'); }
+          if (def.helm === 'horus') { add(3, 2, 2, 2, 'light'); add(11, 2, 2, 2, 'light'); add(7, 0, 2, 3, 'light'); }
+          if (def.helm === 'anubis') { add(4, 0, 2, 3, 'outline'); add(10, 0, 2, 3, 'outline'); add(7, 1, 2, 1, 'light'); }
+          add(3, 8, 10, 6, 'outline'); add(4, 8, 8, 5, 'dark'); add(6, 8, 4, 1, 'light'); add(13, 2, 1, 12, 'light'); add(12, 2, 2, 1, 'accent', 'px-glow'); add(4, 13, 2, 2, 'outline'); add(10, 13, 2, 2, 'outline');
+          break;
+        case 'object':
+          add(4, 3, 8, 10, 'outline'); add(5, 4, 6, 8, 'light'); add(5, 7, 6, 4, 'mid'); add(6, 6, 2, 1, 'accent', 'px-glow'); add(9, 9, 1, 1, 'accent'); add(3, 12, 10, 2, 'outline'); add(6, 2, 4, 1, 'dark');
+          break;
+        case 'noirHuman':
+          add(4, 2, 8, 2, 'outline'); add(5, 1, 6, 2, 'dark'); add(5, 4, 6, 4, 'light'); add(6, 5, 1, 1, 'eye'); add(9, 5, 1, 1, 'eye'); add(4, 8, 8, 6, 'outline'); add(5, 9, 6, 4, 'dark'); add(7, 9, 2, 4, 'light'); add(2, 9, 3, 2, 'outline'); add(11, 9, 3, 2, 'outline');
+          break;
+        default:
+          add(4, 3, 8, 10, 'outline'); add(5, 4, 6, 8, 'mid'); commonEyes(7); add(6, 10, 4, 1, 'accent');
+      }
+
+      const rectMarkup = rects.map(([x, y, w, h, color, cls]) => {
+        const fill = palette[color] || color;
+        return `<rect class="${cls || ''}" x="${x * 4}" y="${y * 4}" width="${w * 4}" height="${h * 4}" fill="${fill}"/>`;
+      }).join('');
+      return `<svg class="monster-svg pixel-monster-svg" viewBox="0 0 64 64" role="img" aria-label="${def.label || 'monstre pixel art'}">${rectMarkup}</svg>`;
+    }
+
+    const PIXEL_MONSTER_DEFS = {
+      distraction: { kind: 'machine', palette: { ...PIXEL_MONSTER_PALETTES.cyber, accent: '#ff4d6d' }, label: 'telephone parasite' },
+      slime: { kind: 'blob', palette: PIXEL_MONSTER_PALETTES.teal },
+      goblin: { kind: 'humanoid', palette: PIXEL_MONSTER_PALETTES.green, weapon: true },
+      skeleton: { kind: 'skeleton', palette: PIXEL_MONSTER_PALETTES.bone, weapon: true },
+      orc: { kind: 'brute', palette: { ...PIXEL_MONSTER_PALETTES.green, dark: '#365314', mid: '#65a30d' }, weapon: true },
+      golem: { kind: 'golem', palette: PIXEL_MONSTER_PALETTES.stone },
+      dragon: { kind: 'winged', palette: { ...PIXEL_MONSTER_PALETTES.green, dark: '#14532d', mid: '#16a34a', accent: '#f97316' } },
+      bat: { kind: 'tinyWing', palette: PIXEL_MONSTER_PALETTES.horror },
+      zombie: { kind: 'humanoid', palette: { ...PIXEL_MONSTER_PALETTES.horror, dark: '#3f6212', mid: '#606c38', light: '#a3a3a3' } },
+      ghost: { kind: 'specter', palette: { ...PIXEL_MONSTER_PALETTES.horror, mid: '#e5e7eb', light: '#ffffff' } },
+      vampire: { kind: 'noirHuman', palette: { ...PIXEL_MONSTER_PALETTES.red, light: '#f8fafc', dark: '#111827' } },
+      werewolf: { kind: 'beast', palette: { outline: '#1c0702', dark: '#451a03', mid: '#92400e', light: '#fed7aa', accent: '#ef4444', glow: '#f97316', eye: '#facc15' } },
+      demon: { kind: 'winged', palette: PIXEL_MONSTER_PALETTES.red },
+      drone: { kind: 'orb', palette: PIXEL_MONSTER_PALETTES.cyber },
+      cyborg: { kind: 'humanoid', palette: PIXEL_MONSTER_PALETTES.cyber },
+      ninja: { kind: 'humanoid', palette: { ...PIXEL_MONSTER_PALETTES.cyber, dark: '#020617', mid: '#111827', light: '#f72585' }, weapon: true },
+      mecha: { kind: 'machine', palette: PIXEL_MONSTER_PALETTES.cyber },
+      security_robot: { kind: 'machine', palette: { ...PIXEL_MONSTER_PALETTES.cyber, accent: '#00f5d4' } },
+      mainframe: { kind: 'golem', palette: { ...PIXEL_MONSTER_PALETTES.cyber, mid: '#0f172a', light: '#00f5d4' } },
+      jellyfish: { kind: 'specter', palette: { ...PIXEL_MONSTER_PALETTES.scifi, mid: '#a78bfa', light: '#e9d5ff' } },
+      alien: { kind: 'humanoid', palette: { ...PIXEL_MONSTER_PALETTES.scifi, dark: '#166534', mid: '#86efac', light: '#bbf7d0' } },
+      android: { kind: 'machine', palette: PIXEL_MONSTER_PALETTES.scifi },
+      plasma: { kind: 'orb', palette: PIXEL_MONSTER_PALETTES.scifi },
+      star_ship: { kind: 'ship', palette: PIXEL_MONSTER_PALETTES.scifi },
+      xenomorph: { kind: 'beast', palette: { ...PIXEL_MONSTER_PALETTES.scifi, outline: '#020617', dark: '#0f172a', mid: '#1e293b', light: '#38bdf8' } },
+      rat: { kind: 'beast', palette: { ...PIXEL_MONSTER_PALETTES.noir, mid: '#6b7280', light: '#9ca3af' } },
+      pickpocket: { kind: 'noirHuman', palette: PIXEL_MONSTER_PALETTES.noir },
+      corrupt_cop: { kind: 'noirHuman', palette: { ...PIXEL_MONSTER_PALETTES.noir, mid: '#1e293b', accent: '#38bdf8' } },
+      mafia_thug: { kind: 'noirHuman', palette: { ...PIXEL_MONSTER_PALETTES.noir, accent: '#ef4444' } },
+      crime_boss: { kind: 'brute', palette: { ...PIXEL_MONSTER_PALETTES.noir, dark: '#3f1a04', mid: '#1e1b4b', accent: '#ef4444' } },
+      mastermind: { kind: 'noirHuman', palette: { ...PIXEL_MONSTER_PALETTES.noir, accent: '#f97316' } },
+      ember_imp: { kind: 'tinyWing', palette: PIXEL_MONSTER_PALETTES.fire },
+      ash_zombie: { kind: 'humanoid', palette: PIXEL_MONSTER_PALETTES.ash },
+      hell_knight: { kind: 'brute', palette: PIXEL_MONSTER_PALETTES.fire, weapon: true },
+      inferno_mancubus: { kind: 'brute', palette: { ...PIXEL_MONSTER_PALETTES.fire, mid: '#9a3412' } },
+      lava_baron: { kind: 'brute', palette: { ...PIXEL_MONSTER_PALETTES.fire, light: '#fef08a' } },
+      arch_demon: { kind: 'winged', palette: PIXEL_MONSTER_PALETTES.fire },
+      spellbook_bat: { kind: 'tinyWing', palette: PIXEL_MONSTER_PALETTES.purple },
+      potion_slime: { kind: 'blob', palette: { ...PIXEL_MONSTER_PALETTES.purple, mid: '#a855f7' } },
+      rune_armor: { kind: 'golem', palette: { ...PIXEL_MONSTER_PALETTES.stone, accent: '#c084fc', glow: '#22d3ee' } },
+      basilisk: { kind: 'beast', palette: { ...PIXEL_MONSTER_PALETTES.green, accent: '#facc15' } },
+      astral_golem: { kind: 'golem', palette: PIXEL_MONSTER_PALETTES.purple },
+      arcane_dragon: { kind: 'winged', palette: PIXEL_MONSTER_PALETTES.purple },
+      scarab_probe: { kind: 'scarab', palette: PIXEL_MONSTER_PALETTES.gold },
+      symbiote_scarab: { kind: 'scarab', palette: { ...PIXEL_MONSTER_PALETTES.gold, dark: '#0f766e', mid: '#14b8a6' } },
+      jaffa_guard: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.gold, weapon: true },
+      jaffa_warrior: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.gold, weapon: true },
+      kull_warrior: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.blackGold, weapon: true },
+      jaffa_staff_guard: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.gold, weapon: true },
+      staff_drone: { kind: 'orb', palette: PIXEL_MONSTER_PALETTES.gold },
+      jaffa_serpent_guard: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.gold, helm: 'serpent', weapon: true },
+      ancient_ship: { kind: 'ship', palette: PIXEL_MONSTER_PALETTES.gold },
+      jaffa_horus_guard: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.gold, helm: 'horus', weapon: true },
+      serpent_lord: { kind: 'beast', palette: PIXEL_MONSTER_PALETTES.gold },
+      jaffa_anubis_lord: { kind: 'jaffa', palette: PIXEL_MONSTER_PALETTES.blackGold, helm: 'anubis', weapon: true },
+      petri: { kind: 'blob', palette: { ...PIXEL_MONSTER_PALETTES.lab, mid: '#a7f3d0', dark: '#059669' } },
+      pipette: { kind: 'object', palette: PIXEL_MONSTER_PALETTES.lab },
+      microscope: { kind: 'object', palette: { ...PIXEL_MONSTER_PALETTES.lab, mid: '#cbd5e1', dark: '#475569' } },
+      centrifuge: { kind: 'object', palette: PIXEL_MONSTER_PALETTES.lab },
+      bioreactor: { kind: 'object', palette: { ...PIXEL_MONSTER_PALETTES.lab, dark: '#0f172a', mid: '#0284c7' } },
+      quality_control: { kind: 'golem', palette: { ...PIXEL_MONSTER_PALETTES.lab, accent: '#ef4444' } }
+    };
+
+    Object.entries(PIXEL_MONSTER_DEFS).forEach(([monsterId, monsterDef]) => {
+      MONSTER_TEMPLATES[monsterId] = createPixelMonsterSprite(monsterDef);
+    });
 
     const WEAPON_TEMPLATES = {
       sword: `
