@@ -10534,6 +10534,12 @@
       return item.type === 'consumable' && ['healing_potion', 'warm_meal', 'calm_tea', 'short_rest', 'water_flask', 'focus_snack', 'campfire_kit'].includes(item.id);
     }
 
+    function getShopCatalogPriority(item) {
+      const order = { consumable: 0, weapon: 1, armor: 2, accessory: 3, pet: 4 };
+      const typeOrder = Number.isFinite(order[item?.type]) ? order[item.type] : 9;
+      return typeOrder * 100000 + (Number(item?.cost) || 0);
+    }
+
     function getShopRecommendedPurchase() {
       const gold = Math.max(0, Number(state.player.gold) || 0);
       const hp = Math.max(0, Number(state.player.hp) || 0);
@@ -10542,8 +10548,16 @@
       if (hp < maxHp * 0.55 && healingItems.length) {
         return healingItems.sort((a, b) => b.healPercent - a.healPercent)[0];
       }
-      if (gold >= 150) {
-        const upgrade = GEAR_CATALOG.find(item => item.type !== 'consumable' && !state.player.inventory.includes(item.id) && gold >= item.cost);
+      const activeQuest = getNextAdhdQuest()?.quest || (state.quests || []).find(q => q && !q.completed);
+      const wantedStat = activeQuest?.associatedStat || null;
+      if (gold >= 50) {
+        const upgrade = GEAR_CATALOG
+          .filter(item => item.type !== 'consumable' && !state.player.inventory.includes(item.id) && gold >= item.cost)
+          .sort((a, b) => {
+            const aStat = wantedStat && a.statBoost === wantedStat ? -1000000 : 0;
+            const bStat = wantedStat && b.statBoost === wantedStat ? -1000000 : 0;
+            return (aStat + getShopCatalogPriority(a)) - (bStat + getShopCatalogPriority(b));
+          })[0];
         if (upgrade) return upgrade;
       }
       const affordableReward = (state.rewards || []).filter(reward => gold >= reward.cost).sort((a, b) => a.cost - b.cost)[0];
@@ -17329,15 +17343,60 @@
       domElement.closest('.equipment-slot').setAttribute('title', type === 'pet' ? "Aucun familier équipé" : t('emptySlot'));
     }
 
-    function getQuestRewardPreview(quest) {
-      const difficultyData = DIFFICULTY_VALUES[quest.difficulty] || DIFFICULTY_VALUES.trivial;
+    function getQuestRewardEstimate(quest) {
+      const difficultyData = DIFFICULTY_VALUES[quest?.difficulty] || DIFFICULTY_VALUES.trivial;
       let xpReward = difficultyData.xp;
       let goldReward = difficultyData.gold;
-      if (quest.type === 'main') {
+      const statReward = getScaledStatGain(quest?.associatedStat, difficultyData.stat);
+
+      if (quest?.type === 'main') {
         xpReward = Math.round(xpReward * 1.5);
         goldReward = Math.round(goldReward * 1.5);
       }
-      return { xp: xpReward, gold: goldReward, stat: difficultyData.stat };
+
+      const stat = quest?.associatedStat;
+      const weaponItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.weapon);
+      if (weaponItem && weaponItem.statBoost === stat) {
+        xpReward = Math.round(xpReward * (1 + weaponItem.boostPercent));
+      }
+
+      const armorItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.armor);
+      if (armorItem && armorItem.statBoost === stat) {
+        xpReward = Math.round(xpReward * (1 + armorItem.boostPercent));
+      }
+
+      const petId = state.player.equipment.pet;
+      const petItem = GEAR_CATALOG.find(i => i.id === petId);
+      if (petItem && petItem.statBoost === stat) {
+        const petLevel = (state.player.petLevels && state.player.petLevels[petId]) ? state.player.petLevels[petId].level : 1;
+        const actualBoost = petItem.boostPercent + (petLevel - 1) * 0.02;
+        xpReward = Math.round(xpReward * (1 + actualBoost));
+      }
+
+      const accessoryItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.accessory);
+      if (accessoryItem && accessoryItem.id === "lucky_coin") {
+        goldReward = Math.round(goldReward * (1 + accessoryItem.boostPercent));
+      }
+
+      if (quest?.type === "daily") {
+        const streakBonus = Math.min(0.5, state.player.streak * 0.05);
+        xpReward = Math.round(xpReward * (1 + streakBonus));
+        goldReward = Math.round(goldReward * (1 + streakBonus));
+      }
+
+      const tMult = state.transcendenceMultiplier || 1.0;
+      xpReward = Math.round(xpReward * tMult);
+      goldReward = Math.round(goldReward * tMult);
+
+      const pacing = getQuestPacingModifier(quest);
+      xpReward = Math.max(1, Math.round(xpReward * pacing.multiplier));
+      goldReward = Math.max(1, Math.round(goldReward * pacing.multiplier));
+
+      return { xp: xpReward, gold: goldReward, stat: statReward, pacingLabel: pacing.label };
+    }
+
+    function getQuestRewardPreview(quest) {
+      return getQuestRewardEstimate(quest);
     }
 
     function renderQuests() {
@@ -17405,14 +17464,10 @@
         }
         
         const typeNames = { main: t('main'), side: t('side'), daily: t('daily') };
-        const difficultyData = DIFFICULTY_VALUES[quest.difficulty];
-        let xpReward = difficultyData.xp;
-        let goldReward = difficultyData.gold;
-        
-        if (quest.type === 'main') {
-          xpReward = Math.round(xpReward * 1.5);
-          goldReward = Math.round(goldReward * 1.5);
-        }
+        const difficultyData = DIFFICULTY_VALUES[quest.difficulty] || DIFFICULTY_VALUES.trivial;
+        const rewardPreview = getQuestRewardPreview(quest);
+        const xpReward = rewardPreview.xp;
+        const goldReward = rewardPreview.gold;
         
         const difficultyNames = { 
           trivial: t('trivial'), 
@@ -17494,7 +17549,7 @@
               <span class="reward-item reward-xp" title="Expérience gagnée">+${xpReward} XP</span>
               <span class="reward-item reward-gold" title="Or gagné"><i data-lucide="coins"></i>+${goldReward} ${t('goldUnit')}</span>
               <span class="reward-item reward-stat-bonus" title="${escapeHTML(quest.statReason || getStatMeta(quest.associatedStat).meaning)}">
-                <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${difficultyData.stat} ${statNameTranslated[quest.associatedStat]}
+                <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${rewardPreview.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
           </div>
@@ -17559,14 +17614,10 @@
         card.style.boxShadow = '0 0 8px rgba(0, 180, 216, 0.15)';
 
         const typeNames = { main: t('main'), side: t('side'), daily: t('daily') };
-        const difficultyData = DIFFICULTY_VALUES[quest.difficulty];
-        let xpReward = difficultyData.xp;
-        let goldReward = difficultyData.gold;
-        
-        if (quest.type === 'main') {
-          xpReward = Math.round(xpReward * 1.5);
-          goldReward = Math.round(goldReward * 1.5);
-        }
+        const difficultyData = DIFFICULTY_VALUES[quest.difficulty] || DIFFICULTY_VALUES.trivial;
+        const rewardPreview = getQuestRewardPreview(quest);
+        const xpReward = rewardPreview.xp;
+        const goldReward = rewardPreview.gold;
         
         const difficultyNames = { 
           trivial: t('trivial'), 
@@ -17614,7 +17665,7 @@
               <span class="reward-item reward-xp" title="Expérience gagnée">+${xpReward} XP</span>
               <span class="reward-item reward-gold" title="Or gagné"><i data-lucide="coins"></i>+${goldReward} ${t('goldUnit')}</span>
               <span class="reward-item reward-stat-bonus" title="${escapeHTML(quest.statReason || getStatMeta(quest.associatedStat).meaning)}">
-                <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${difficultyData.stat} ${statNameTranslated[quest.associatedStat]}
+                <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${rewardPreview.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
           </div>
@@ -17930,7 +17981,9 @@
       });
 
       elements.gearList.innerHTML = '';
-      GEAR_CATALOG.forEach(item => {
+      [...GEAR_CATALOG]
+        .sort((a, b) => getShopCatalogPriority(a) - getShopCatalogPriority(b) || String(a.name).localeCompare(String(b.name)))
+        .forEach(item => {
         if (state.shopCategory === 'healing') {
           if (!isHealingShopItem(item)) return;
         } else if (state.shopCategory !== 'all' && item.type !== state.shopCategory) return;
