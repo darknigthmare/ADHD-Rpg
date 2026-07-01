@@ -5143,6 +5143,15 @@
         drop-shadow(0 0 3px var(--monster-glow, rgba(0, 245, 212, 0.25)));
       transition: filter 0.25s ease;
     }
+    .monster-wrapper .premium-monster-img {
+      filter:
+        hue-rotate(var(--monster-hue, 0deg))
+        saturate(var(--monster-saturation, 1))
+        brightness(var(--monster-brightness, 1))
+        drop-shadow(0 8px 4px rgba(0, 0, 0, 0.34))
+        drop-shadow(0 0 3px var(--monster-glow, rgba(0, 245, 212, 0.25)));
+      transition: filter 0.25s ease, transform 0.25s ease;
+    }
     .monster-wrapper:hover .monster-svg,
     .monster-wrapper.is-focused .monster-svg,
     .monster-wrapper.is-selected-quest .monster-svg {
@@ -5151,6 +5160,17 @@
         saturate(calc(var(--monster-saturation, 1) + 0.2))
         brightness(calc(var(--monster-brightness, 1) + 0.08))
         drop-shadow(0 0 7px var(--monster-glow, rgba(0, 245, 212, 0.45)));
+    }
+    .monster-wrapper:hover .premium-monster-img,
+    .monster-wrapper.is-focused .premium-monster-img,
+    .monster-wrapper.is-selected-quest .premium-monster-img {
+      filter:
+        hue-rotate(var(--monster-hue, 0deg))
+        saturate(calc(var(--monster-saturation, 1) + 0.2))
+        brightness(calc(var(--monster-brightness, 1) + 0.08))
+        drop-shadow(0 8px 4px rgba(0, 0, 0, 0.34))
+        drop-shadow(0 0 9px var(--monster-glow, rgba(0, 245, 212, 0.55)));
+      transform: scale(1.035);
     }
     .monster-wrapper.is-selected-quest .sprite-container {
       animation: selectedMonsterGlow 1.2s ease-in-out infinite alternate;
