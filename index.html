@@ -5126,6 +5126,15 @@
     .pixel-monster-svg .px-glow {
       filter: drop-shadow(0 0 2px currentColor);
     }
+    .premium-monster-img {
+      width: 118%;
+      height: 118%;
+      object-fit: contain;
+      image-rendering: auto;
+      transform-origin: 50% 88%;
+      filter: drop-shadow(0 8px 4px rgba(0, 0, 0, 0.34));
+      pointer-events: none;
+    }
     .monster-wrapper .monster-svg {
       filter:
         hue-rotate(var(--monster-hue, 0deg))
@@ -12279,6 +12288,39 @@
 
     Object.entries(PIXEL_MONSTER_DEFS).forEach(([monsterId, monsterDef]) => {
       MONSTER_TEMPLATES[monsterId] = createPixelMonsterSprite(monsterDef);
+    });
+
+    const PREMIUM_MONSTER_ASSETS = {
+      slime: 'premium_slime',
+      potion_slime: 'premium_slime',
+      petri: 'premium_slime',
+      skeleton: 'premium_skeleton_knight',
+      zombie: 'premium_skeleton_knight',
+      rune_armor: 'premium_skeleton_knight',
+      hell_knight: 'premium_inferno_brute',
+      inferno_mancubus: 'premium_inferno_brute',
+      lava_baron: 'premium_inferno_brute',
+      arch_demon: 'premium_inferno_brute',
+      demon: 'premium_inferno_brute',
+      spellbook_bat: 'premium_arcane_book_bat',
+      basilisk: 'premium_arcane_book_bat',
+      arcane_dragon: 'premium_arcane_book_bat',
+      jaffa_guard: 'premium_jaffa_serpent_guard',
+      jaffa_warrior: 'premium_jaffa_serpent_guard',
+      jaffa_staff_guard: 'premium_jaffa_serpent_guard',
+      jaffa_serpent_guard: 'premium_jaffa_serpent_guard',
+      jaffa_horus_guard: 'premium_jaffa_serpent_guard',
+      jaffa_anubis_lord: 'premium_jaffa_serpent_guard',
+      serpent_lord: 'premium_jaffa_serpent_guard',
+      drone: 'premium_cyber_beast',
+      mecha: 'premium_cyber_beast',
+      security_robot: 'premium_cyber_beast',
+      mainframe: 'premium_cyber_beast',
+      android: 'premium_cyber_beast'
+    };
+
+    Object.entries(PREMIUM_MONSTER_ASSETS).forEach(([monsterId, assetName]) => {
+      MONSTER_TEMPLATES[monsterId] = `<img class="premium-monster-img" src="assets/monsters/premium/${assetName}.png" alt="" loading="lazy" decoding="async">`;
     });
 
     const WEAPON_TEMPLATES = {
