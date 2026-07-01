@@ -4021,6 +4021,25 @@
     .battle-bg.active {
       opacity: 1;
     }
+    .battle-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      image-rendering: auto;
+    }
+    .battle-bg.biome-camp::before { background-image: url("assets/backgrounds/premium/camp.webp"); }
+    .battle-bg.biome-sartorius::before { background-image: url("assets/backgrounds/premium/sartorius.webp"); }
+    .battle-bg.biome-all::before { background-image: url("assets/backgrounds/premium/all.webp"); }
+    .battle-bg.biome-forest::before { background-image: url("assets/backgrounds/premium/forest.webp"); }
+    .battle-bg.biome-dungeon::before { background-image: url("assets/backgrounds/premium/dungeon.webp"); }
+    .battle-bg.biome-ruins::before { background-image: url("assets/backgrounds/premium/ruins.webp"); }
+    .battle-bg.biome-volcano::before { background-image: url("assets/backgrounds/premium/volcano.webp"); }
+    .battle-bg.biome-cemetery::before { background-image: url("assets/backgrounds/premium/cemetery.webp"); }
     
     /* Scenery System */
     .battle-sky {
@@ -6649,6 +6668,38 @@
         transform: perspective(320px) rotateY(-12deg) rotateX(3deg) translateY(2px) scale(0.74);
       }
     }
+    .battle-bg.biome-camp .battle-sky,
+    .battle-bg.biome-sartorius .battle-sky,
+    .battle-bg.biome-all .battle-sky,
+    .battle-bg.biome-forest .battle-sky,
+    .battle-bg.biome-dungeon .battle-sky,
+    .battle-bg.biome-ruins .battle-sky,
+    .battle-bg.biome-volcano .battle-sky,
+    .battle-bg.biome-cemetery .battle-sky,
+    .battle-bg.biome-camp .battle-ground,
+    .battle-bg.biome-sartorius .battle-ground,
+    .battle-bg.biome-all .battle-ground,
+    .battle-bg.biome-forest .battle-ground,
+    .battle-bg.biome-dungeon .battle-ground,
+    .battle-bg.biome-ruins .battle-ground,
+    .battle-bg.biome-volcano .battle-ground,
+    .battle-bg.biome-cemetery .battle-ground {
+      background: transparent !important;
+      background-image: none !important;
+      border-top-color: transparent !important;
+      box-shadow: none !important;
+    }
+    .battle-bg.biome-camp .battle-objects,
+    .battle-bg.biome-sartorius .battle-objects,
+    .battle-bg.biome-all .battle-objects,
+    .battle-bg.biome-forest .battle-objects,
+    .battle-bg.biome-dungeon .battle-objects,
+    .battle-bg.biome-ruins .battle-objects,
+    .battle-bg.biome-volcano .battle-objects,
+    .battle-bg.biome-cemetery .battle-objects {
+      background-image: none !important;
+      opacity: 0 !important;
+    }
   </style>
 </head>
 <body>
@@ -6825,7 +6876,7 @@
         <div id="battle-particles-container" class="battle-particles-container"></div>
         
         <!-- Backgrounds -->
-        <div class="battle-bg active" id="bg-camp">
+        <div class="battle-bg biome-camp active" id="bg-camp">
           <div class="battle-sky">
             <div class="moon"></div>
           </div>
