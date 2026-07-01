@@ -6727,14 +6727,28 @@
       background: none !important;
     }
     .battle-bg .battle-objects {
-      height: 100%;
+      height: 42%;
+      top: auto;
+      bottom: 9%;
       z-index: 3;
       background-image: var(--battle-layer-props) !important;
       background-repeat: no-repeat !important;
       background-position: center bottom !important;
-      background-size: 100% auto !important;
-      opacity: 0.9 !important;
+      background-size: min(760px, 62%) auto !important;
+      opacity: 0.82 !important;
       filter: drop-shadow(0 8px 8px rgba(0,0,0,0.28));
+    }
+    .battle-arena-wrapper.compact-arena .battle-bg .battle-objects {
+      height: 38%;
+      bottom: 8%;
+      background-size: min(520px, 56%) auto !important;
+    }
+    @media (max-width: 760px) {
+      .battle-bg .battle-objects {
+        height: 36%;
+        bottom: 8%;
+        background-size: min(420px, 54%) auto !important;
+      }
     }
   </style>
 </head>
