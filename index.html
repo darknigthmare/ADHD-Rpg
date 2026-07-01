@@ -12310,6 +12310,10 @@
       MONSTER_TEMPLATES[monsterId] = createPixelMonsterSprite(monsterDef);
     });
 
+    function createMonsterImageTemplate(src, skinId) {
+      return `<img class="premium-monster-img" src="${src}" alt="" loading="lazy" decoding="async" data-skin-id="${skinId}">`;
+    }
+
     const PREMIUM_MONSTER_ASSETS = {
       slime: 'premium_slime',
       goblin: 'premium_skeleton_knight',
@@ -12374,8 +12378,78 @@
       mastermind: 'premium_arcane_book_bat'
     };
 
+    const UNIQUE_MONSTER_ASSETS = {
+      slime: 'slime',
+      goblin: 'goblin',
+      skeleton: 'skeleton',
+      orc: 'orc',
+      golem: 'golem',
+      dragon: 'dragon',
+      bat: 'bat',
+      zombie: 'zombie',
+      ghost: 'ghost',
+      vampire: 'vampire',
+      werewolf: 'werewolf',
+      demon: 'demon',
+      drone: 'drone',
+      cyborg: 'cyborg',
+      ninja: 'ninja',
+      mecha: 'mecha',
+      security_robot: 'security_robot',
+      mainframe: 'mainframe',
+      jellyfish: 'jellyfish',
+      alien: 'alien',
+      android: 'android',
+      plasma: 'plasma',
+      star_ship: 'star_ship',
+      xenomorph: 'xenomorph',
+      rat: 'rat',
+      pickpocket: 'pickpocket',
+      corrupt_cop: 'corrupt_cop',
+      mafia_thug: 'mafia_thug',
+      crime_boss: 'crime_boss',
+      mastermind: 'mastermind',
+      ember_imp: 'ember_imp',
+      ash_zombie: 'ash_zombie',
+      hell_knight: 'hell_knight',
+      inferno_mancubus: 'inferno_mancubus',
+      lava_baron: 'lava_baron',
+      arch_demon: 'arch_demon',
+      spellbook_bat: 'spellbook_bat',
+      potion_slime: 'potion_slime',
+      rune_armor: 'rune_armor',
+      basilisk: 'basilisk',
+      astral_golem: 'astral_golem',
+      arcane_dragon: 'arcane_dragon',
+      symbiote_scarab: 'symbiote_scarab',
+      jaffa_warrior: 'jaffa_warrior',
+      jaffa_staff_guard: 'jaffa_staff_guard',
+      jaffa_serpent_guard: 'jaffa_serpent_guard',
+      jaffa_horus_guard: 'jaffa_horus_guard',
+      jaffa_anubis_lord: 'jaffa_anubis_lord',
+      petri: 'petri',
+      pipette: 'pipette',
+      microscope: 'microscope',
+      centrifuge: 'centrifuge',
+      bioreactor: 'bioreactor',
+      quality_control: 'quality_control'
+    };
+
+    const MONSTER_SKIN_CHOICES = {};
+
     Object.entries(PREMIUM_MONSTER_ASSETS).forEach(([monsterId, assetName]) => {
-      MONSTER_TEMPLATES[monsterId] = `<img class="premium-monster-img" src="assets/monsters/premium/${assetName}.png" alt="" loading="lazy" decoding="async">`;
+      const src = `assets/monsters/premium/${assetName}.png`;
+      MONSTER_SKIN_CHOICES[monsterId] = [{ id: `premium-${assetName}`, src }];
+      MONSTER_TEMPLATES[monsterId] = createMonsterImageTemplate(src, `premium-${assetName}`);
+    });
+
+    Object.entries(UNIQUE_MONSTER_ASSETS).forEach(([monsterId, assetName]) => {
+      const src = `assets/monsters/unique/${assetName}.png`;
+      MONSTER_SKIN_CHOICES[monsterId] = [
+        { id: `unique-${assetName}`, src },
+        ...(MONSTER_SKIN_CHOICES[monsterId] || [])
+      ];
+      MONSTER_TEMPLATES[monsterId] = createMonsterImageTemplate(src, `unique-${assetName}`);
     });
 
     const WEAPON_TEMPLATES = {
