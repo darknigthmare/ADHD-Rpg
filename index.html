@@ -9989,21 +9989,21 @@
     ];
 
     const RAID_SUGGESTIONS = [
-      { id: "suggest-mental-fog", name: "Brume Mentale", hp: 180, rewardXp: 70, rewardGold: 40, tag: "Doux" },
-      { id: "suggest-notification-swarm", name: "Essaim de Notifications", hp: 260, rewardXp: 95, rewardGold: 65, tag: "Focus" },
-      { id: "suggest-paper-kraken", name: "Kraken Administratif", hp: 420, rewardXp: 160, rewardGold: 100, tag: "Organisation" },
-      { id: "suggest-deadline-reaper", name: "Faucheur des Deadlines", hp: 650, rewardXp: 260, rewardGold: 160, tag: "Urgence" },
-      { id: "suggest-chaos-titan", name: "Titan du Chaos Mental", hp: 950, rewardXp: 420, rewardGold: 250, tag: "Gros raid" },
-      { id: "suggest-restless-dragon", name: "Dragon de l'Agitation", hp: 1250, rewardXp: 620, rewardGold: 340, tag: "TDA(H)" },
-      { id: "suggest-inferno-cyberdemon", theme: "inferno", name: "Archidemon de la Surcharge", hp: 1500, rewardXp: 760, rewardGold: 420, tag: "Enfer brutal" },
-      { id: "suggest-inferno-ash-titan", theme: "inferno", name: "Titan des Cendres Mentales", hp: 2400, rewardXp: 1150, rewardGold: 680, tag: "Enfer brutal" },
-      { id: "suggest-inferno-doom-forge", theme: "inferno", name: "Coeur de la Forge Interdite", hp: 3600, rewardXp: 1700, rewardGold: 980, tag: "Enfer brutal" },
-      { id: "suggest-arcane-basilisk", theme: "arcane", name: "Basilic des Couloirs Interdits", hp: 1400, rewardXp: 720, rewardGold: 390, tag: "Ecole de magie" },
-      { id: "suggest-arcane-lich-professor", theme: "arcane", name: "Professeur-Liche des Examens", hp: 2300, rewardXp: 1100, rewardGold: 650, tag: "Ecole de magie" },
-      { id: "suggest-arcane-astral-dragon", theme: "arcane", name: "Dragon Astral des Runes", hp: 3500, rewardXp: 1680, rewardGold: 960, tag: "Ecole de magie" },
-      { id: "suggest-stargate-goauld", theme: "stargate", name: "Pharaon Serpent du Portail", hp: 1450, rewardXp: 740, rewardGold: 410, tag: "Portail egyptien" },
-      { id: "suggest-stargate-replicator", theme: "stargate", name: "Essaim Scarabee des Glyphes", hp: 2350, rewardXp: 1120, rewardGold: 670, tag: "Portail egyptien" },
-      { id: "suggest-stargate-mothership", theme: "stargate", name: "Pyramide Stellaire Ancienne", hp: 3700, rewardXp: 1760, rewardGold: 1020, tag: "Portail egyptien" }
+      { id: "suggest-mental-fog", name: "Brume Mentale", hp: 180, rewardXp: 70, rewardGold: 40, tag: "Doux", monsterType: "raid_mental_fog" },
+      { id: "suggest-notification-swarm", name: "Essaim de Notifications", hp: 260, rewardXp: 95, rewardGold: 65, tag: "Focus", monsterType: "raid_notification_swarm" },
+      { id: "suggest-paper-kraken", name: "Kraken Administratif", hp: 420, rewardXp: 160, rewardGold: 100, tag: "Organisation", monsterType: "raid_paper_kraken" },
+      { id: "suggest-deadline-reaper", name: "Faucheur des Deadlines", hp: 650, rewardXp: 260, rewardGold: 160, tag: "Urgence", monsterType: "raid_deadline_reaper" },
+      { id: "suggest-chaos-titan", name: "Titan du Chaos Mental", hp: 950, rewardXp: 420, rewardGold: 250, tag: "Gros raid", monsterType: "raid_chaos_titan" },
+      { id: "suggest-restless-dragon", name: "Dragon de l'Agitation", hp: 1250, rewardXp: 620, rewardGold: 340, tag: "TDA(H)", monsterType: "raid_restless_dragon" },
+      { id: "suggest-inferno-cyberdemon", theme: "inferno", name: "Archidemon de la Surcharge", hp: 1500, rewardXp: 760, rewardGold: 420, tag: "Enfer brutal", monsterType: "raid_overload_archdemon" },
+      { id: "suggest-inferno-ash-titan", theme: "inferno", name: "Titan des Cendres Mentales", hp: 2400, rewardXp: 1150, rewardGold: 680, tag: "Enfer brutal", monsterType: "raid_ash_titan" },
+      { id: "suggest-inferno-doom-forge", theme: "inferno", name: "Coeur de la Forge Interdite", hp: 3600, rewardXp: 1700, rewardGold: 980, tag: "Enfer brutal", monsterType: "raid_forbidden_forge_core" },
+      { id: "suggest-arcane-basilisk", theme: "arcane", name: "Basilic des Couloirs Interdits", hp: 1400, rewardXp: 720, rewardGold: 390, tag: "Ecole de magie", monsterType: "raid_corridor_basilisk" },
+      { id: "suggest-arcane-lich-professor", theme: "arcane", name: "Professeur-Liche des Examens", hp: 2300, rewardXp: 1100, rewardGold: 650, tag: "Ecole de magie", monsterType: "raid_lich_professor" },
+      { id: "suggest-arcane-astral-dragon", theme: "arcane", name: "Dragon Astral des Runes", hp: 3500, rewardXp: 1680, rewardGold: 960, tag: "Ecole de magie", monsterType: "raid_astral_dragon" },
+      { id: "suggest-stargate-goauld", theme: "stargate", name: "Pharaon Serpent du Portail", hp: 1450, rewardXp: 740, rewardGold: 410, tag: "Portail egyptien", monsterType: "raid_serpent_pharaoh" },
+      { id: "suggest-stargate-replicator", theme: "stargate", name: "Essaim Scarabee des Glyphes", hp: 2350, rewardXp: 1120, rewardGold: 670, tag: "Portail egyptien", monsterType: "raid_glyph_scarab_swarm" },
+      { id: "suggest-stargate-mothership", theme: "stargate", name: "Pyramide Stellaire Ancienne", hp: 3700, rewardXp: 1760, rewardGold: 1020, tag: "Portail egyptien", monsterType: "raid_ancient_star_pyramid" }
     ];
 
     let state = {
@@ -11949,7 +11949,15 @@
     function resolveRaidBossMonsterType(bossOrSuggestion, { persist = false } = {}) {
       const item = bossOrSuggestion || {};
       if (item.monsterType && MONSTER_TEMPLATES[item.monsterType]) return item.monsterType;
-      const theme = item.theme || (RAID_SUGGESTIONS.find(suggestion => suggestion.id === item.suggestionId)?.theme) || state.theme || 'medieval';
+      const suggestion = RAID_SUGGESTIONS.find(entry => entry.id === item.suggestionId || entry.id === item.id);
+      if (suggestion?.monsterType && MONSTER_TEMPLATES[suggestion.monsterType]) {
+        if (persist && bossOrSuggestion) {
+          bossOrSuggestion.theme = suggestion.theme || item.theme || state.theme || 'medieval';
+          bossOrSuggestion.monsterType = suggestion.monsterType;
+        }
+        return suggestion.monsterType;
+      }
+      const theme = item.theme || suggestion?.theme || state.theme || 'medieval';
       const themedSet = getThemeMonsterSet(theme);
       const monsterType = pickMonsterFromPool(themedSet.boss || themedSet.epic || 'dragon', `${item.id || item.name || theme}:boss`);
       if (persist && bossOrSuggestion) {
@@ -12804,7 +12812,22 @@
       serpent_jaffa_elite: 'premium_jaffa_serpent_guard',
       golden_scarab_swarm: 'premium_jaffa_serpent_guard',
       vial_gremlin: 'premium_cyber_beast',
-      rogue_incubator_beast: 'premium_cyber_beast'
+      rogue_incubator_beast: 'premium_cyber_beast',
+      raid_mental_fog: 'premium_arcane_book_bat',
+      raid_notification_swarm: 'premium_cyber_beast',
+      raid_paper_kraken: 'premium_arcane_book_bat',
+      raid_deadline_reaper: 'premium_skeleton_knight',
+      raid_chaos_titan: 'premium_cyber_beast',
+      raid_restless_dragon: 'premium_inferno_brute',
+      raid_overload_archdemon: 'premium_inferno_brute',
+      raid_ash_titan: 'premium_inferno_brute',
+      raid_forbidden_forge_core: 'premium_inferno_brute',
+      raid_corridor_basilisk: 'premium_arcane_book_bat',
+      raid_lich_professor: 'premium_arcane_book_bat',
+      raid_astral_dragon: 'premium_arcane_book_bat',
+      raid_serpent_pharaoh: 'premium_jaffa_serpent_guard',
+      raid_glyph_scarab_swarm: 'premium_jaffa_serpent_guard',
+      raid_ancient_star_pyramid: 'premium_jaffa_serpent_guard'
     };
 
     const UNIQUE_MONSTER_ASSETS = {
@@ -12879,7 +12902,22 @@
       serpent_jaffa_elite: 'serpent_jaffa_elite',
       golden_scarab_swarm: 'golden_scarab_swarm',
       vial_gremlin: 'vial_gremlin',
-      rogue_incubator_beast: 'rogue_incubator_beast'
+      rogue_incubator_beast: 'rogue_incubator_beast',
+      raid_mental_fog: 'raid_mental_fog',
+      raid_notification_swarm: 'raid_notification_swarm',
+      raid_paper_kraken: 'raid_paper_kraken',
+      raid_deadline_reaper: 'raid_deadline_reaper',
+      raid_chaos_titan: 'raid_chaos_titan',
+      raid_restless_dragon: 'raid_restless_dragon',
+      raid_overload_archdemon: 'raid_overload_archdemon',
+      raid_ash_titan: 'raid_ash_titan',
+      raid_forbidden_forge_core: 'raid_forbidden_forge_core',
+      raid_corridor_basilisk: 'raid_corridor_basilisk',
+      raid_lich_professor: 'raid_lich_professor',
+      raid_astral_dragon: 'raid_astral_dragon',
+      raid_serpent_pharaoh: 'raid_serpent_pharaoh',
+      raid_glyph_scarab_swarm: 'raid_glyph_scarab_swarm',
+      raid_ancient_star_pyramid: 'raid_ancient_star_pyramid'
     };
 
     const MONSTER_SKIN_CHOICES = {};
@@ -18687,7 +18725,22 @@
         serpent_jaffa_elite: "Elite jaffa casque serpent",
         golden_scarab_swarm: "Essaim de scarabees dores",
         vial_gremlin: "Gremlin a fioles",
-        rogue_incubator_beast: "Incubateur rebelle"
+        rogue_incubator_beast: "Incubateur rebelle",
+        raid_mental_fog: "Brume mentale",
+        raid_notification_swarm: "Essaim de notifications",
+        raid_paper_kraken: "Kraken administratif",
+        raid_deadline_reaper: "Faucheur des deadlines",
+        raid_chaos_titan: "Titan du chaos mental",
+        raid_restless_dragon: "Dragon de l'agitation",
+        raid_overload_archdemon: "Archidemon de surcharge",
+        raid_ash_titan: "Titan des cendres",
+        raid_forbidden_forge_core: "Coeur de forge interdite",
+        raid_corridor_basilisk: "Basilic des couloirs",
+        raid_lich_professor: "Professeur-liche",
+        raid_astral_dragon: "Dragon astral des runes",
+        raid_serpent_pharaoh: "Pharaon serpent",
+        raid_glyph_scarab_swarm: "Essaim scarabee des glyphes",
+        raid_ancient_star_pyramid: "Pyramide stellaire ancienne"
       };
       return names[id] || (id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "));
     }
