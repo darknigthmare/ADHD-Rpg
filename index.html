@@ -9436,6 +9436,7 @@
         isCommon: proposal.isCoop,
         dateCreated: Date.now()
       };
+      newQuest.monsterType = resolveQuestMonsterType(newQuest, { persist: true });
       
       state.quests.push(newQuest);
       state.commonQuestsProposals = state.commonQuestsProposals.filter(p => p.id !== proposalId);
@@ -10967,6 +10968,7 @@
           completed: false
         }))
       };
+      quest.monsterType = resolveQuestMonsterType(quest, { persist: true });
       state.quests.unshift(quest);
       saveState();
       return quest;
@@ -11044,11 +11046,16 @@
       delete quest.titleKey;
       delete quest.descKey;
       quest.type = values.type;
+      const previousDifficulty = quest.difficulty;
+      const previousWorldId = quest.worldId;
       quest.difficulty = values.difficulty;
       quest.associatedStat = values.stat;
       quest.statReason = getStatMeta(values.stat).meaning;
       quest.recurrence = values.recurrence;
       quest.worldId = values.worldId;
+      if (previousDifficulty !== quest.difficulty || previousWorldId !== quest.worldId || !quest.monsterType) {
+        quest.monsterType = getThemeMonsterType(getWorldTheme(quest.worldId || 'world-general'), quest.difficulty, `${quest.id || ''}:${quest.title || ''}`);
+      }
       const previousTimer = Number(quest.timerDuration) || 0;
       const nextTimer = parseInt(values.timerDuration, 10) || 0;
       quest.timerDuration = nextTimer;
@@ -11182,11 +11189,7 @@
 
       if (!quest.isCommon) {
         if (!state.bestiary) state.bestiary = {};
-        const currentTheme = state.theme || 'medieval';
-        // Fallback to medieval if theme not found
-        const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval || { trivial: 'slime' };
-        const difficultyKey = ['trivial', 'easy', 'medium', 'hard', 'epic'].includes(quest.difficulty) ? quest.difficulty : 'epic';
-        const monsterType = themedSet[difficultyKey] || themedSet.trivial || 'slime';
+        const monsterType = resolveQuestMonsterType(quest, { persist: true });
         state.bestiary[monsterType] = (state.bestiary[monsterType] || 0) + 1;
       }
 
@@ -11834,6 +11837,53 @@
       stargate: { trivial: 'symbiote_scarab', easy: 'jaffa_warrior', medium: 'jaffa_staff_guard', hard: 'jaffa_serpent_guard', epic: 'jaffa_horus_guard', boss: 'jaffa_anubis_lord' },
       sartorius: { trivial: 'petri', easy: 'pipette', medium: 'microscope', hard: 'centrifuge', epic: 'bioreactor', boss: 'quality_control' }
     };
+
+    const MONSTER_DIFFICULTIES = ['trivial', 'easy', 'medium', 'hard', 'epic'];
+
+    function normalizeQuestDifficulty(difficulty) {
+      return MONSTER_DIFFICULTIES.includes(difficulty) ? difficulty : 'epic';
+    }
+
+    function getThemeMonsterSet(theme) {
+      return THEMED_MONSTERS[theme] || THEMED_MONSTERS.medieval || { trivial: 'slime', boss: 'dragon' };
+    }
+
+    function pickMonsterFromPool(pool, seed = '') {
+      if (!Array.isArray(pool)) return pool;
+      if (pool.length === 0) return 'slime';
+      const text = String(seed || '');
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+      }
+      return pool[Math.abs(hash) % pool.length];
+    }
+
+    function getThemeMonsterType(theme, difficulty, seed = '') {
+      const themedSet = getThemeMonsterSet(theme);
+      const difficultyKey = normalizeQuestDifficulty(difficulty);
+      return pickMonsterFromPool(themedSet[difficultyKey] || themedSet.trivial || 'slime', seed);
+    }
+
+    function resolveQuestMonsterType(quest, { persist = false } = {}) {
+      if (!quest) return 'slime';
+      if (quest.monsterType && MONSTER_TEMPLATES[quest.monsterType]) return quest.monsterType;
+      const worldTheme = getWorldTheme(quest.worldId || 'world-general');
+      const monsterType = getThemeMonsterType(worldTheme, quest.difficulty, `${quest.id || ''}:${quest.title || ''}`);
+      if (persist) quest.monsterType = monsterType;
+      return monsterType;
+    }
+
+    function ensureQuestMonsterTypes() {
+      let changed = false;
+      (state.quests || []).forEach(quest => {
+        if (!quest.monsterType) {
+          resolveQuestMonsterType(quest, { persist: true });
+          changed = true;
+        }
+      });
+      return changed;
+    }
 
     const MONSTER_TEMPLATES = {
       ember_imp: `<svg class="monster-svg" viewBox="0 0 64 64"><defs><filter id="ember-imp-glow"><feGaussianBlur stdDeviation="2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M13 50 Q18 25 32 18 Q46 25 51 50 Z" fill="#7f1d1d" stroke="#2b0505" stroke-width="3" filter="url(#ember-imp-glow)"/><path d="M20 23 L14 8 L29 18 M44 23 L50 8 L35 18" fill="#dc2626" stroke="#2b0505" stroke-width="3"/><circle cx="25" cy="37" r="4" fill="#facc15"/><circle cx="39" cy="37" r="4" fill="#facc15"/><path d="M24 47 Q32 52 40 47" stroke="#f97316" stroke-width="3" fill="none"/><path d="M32 19 Q28 9 35 4 Q34 14 42 18" fill="#fb923c"/></svg>`,
@@ -13397,10 +13447,7 @@
 
         if (!quest.isCommon) {
           if (!state.bestiary) state.bestiary = {};
-          const currentTheme = state.theme || 'medieval';
-          const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval || { trivial: 'slime' };
-          const difficultyKey = ['trivial', 'easy', 'medium', 'hard', 'epic'].includes(quest.difficulty) ? quest.difficulty : 'epic';
-          const monsterType = themedSet[difficultyKey] || themedSet.trivial || 'slime';
+          const monsterType = resolveQuestMonsterType(quest, { persist: true });
           state.bestiary[monsterType] = (state.bestiary[monsterType] || 0) + 1;
         }
 
@@ -14319,10 +14366,7 @@
             }
 
             activeQuests.forEach((quest, index) => {
-              const currentTheme = state.theme || 'medieval';
-              const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval;
-              const difficultyKey = ['trivial', 'easy', 'medium', 'hard', 'epic'].includes(quest.difficulty) ? quest.difficulty : 'epic';
-              const monsterType = themedSet[difficultyKey] || themedSet.trivial;
+              const monsterType = resolveQuestMonsterType(quest, { persist: true });
               const monsterSvg = getBattleMonsterTemplate(monsterType);
               const rewardPreview = getQuestRewardPreview(quest);
               
@@ -14404,8 +14448,8 @@
           
           const boss = activeRaids[0];
           const currentTheme = state.theme || 'medieval';
-          const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval;
-          const bossType = themedSet.boss || 'dragon';
+          const themedSet = getThemeMonsterSet(currentTheme);
+          const bossType = pickMonsterFromPool(themedSet.boss || 'dragon', `${boss.id || ''}:${boss.name || ''}`);
           const bossSvg = getBattleMonsterTemplate(bossType) || getBattleMonsterTemplate('dragon');
           
           const hpPercent = (boss.currentHp / boss.maxHp) * 100;
@@ -20983,7 +21027,8 @@
       updateDeviceLayoutFlags();
       loadState();
       const equipmentMigrated = normalizePlayerEquipmentIds();
-      if (equipmentMigrated) saveState();
+      const monsterTypeMigrated = ensureQuestMonsterTypes();
+      if (equipmentMigrated || monsterTypeMigrated) saveState();
       
       if (typeof state.musicEnabledDefault === "undefined") state.musicEnabledDefault = false;
       if (typeof state.soundEnabledDefault === "undefined") state.soundEnabledDefault = true;
