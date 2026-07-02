@@ -6706,48 +6706,48 @@
       --battle-layer-floor: url("assets/backgrounds/layers/sartorius/floor.webp");
       --battle-layer-props: url("assets/backgrounds/layers/sartorius/props.png");
     }
-    .battle-bg::before {
+    body:not(.qol-calm-visuals) .battle-bg::before {
       background-image: none !important;
     }
-    .battle-bg .battle-sky {
+    body:not(.qol-calm-visuals) .battle-bg .battle-sky {
       height: 68%;
       z-index: 1;
       background: var(--battle-layer-back) center center / cover no-repeat !important;
       filter: saturate(1.02) contrast(1.04);
     }
-    .battle-bg .battle-ground {
+    body:not(.qol-calm-visuals) .battle-bg .battle-ground {
       height: 38%;
       z-index: 2;
       background: var(--battle-layer-floor) center bottom / cover no-repeat !important;
       border-top-color: rgba(255, 255, 255, 0.08) !important;
       box-shadow: inset 0 18px 26px rgba(0,0,0,0.18) !important;
     }
-    .battle-bg .battle-ground::before,
-    .battle-bg .battle-ground::after {
+    body:not(.qol-calm-visuals) .battle-bg .battle-ground::before,
+    body:not(.qol-calm-visuals) .battle-bg .battle-ground::after {
       background: none !important;
     }
-    .battle-bg .battle-objects {
-      height: 42%;
+    body:not(.qol-calm-visuals) .battle-bg .battle-objects {
+      height: 34%;
       top: auto;
-      bottom: 9%;
+      bottom: 6%;
       z-index: 3;
       background-image: var(--battle-layer-props) !important;
       background-repeat: no-repeat !important;
       background-position: center bottom !important;
-      background-size: min(760px, 62%) auto !important;
-      opacity: 0.82 !important;
+      background-size: min(900px, 70%) auto !important;
+      opacity: 0.58 !important;
       filter: drop-shadow(0 8px 8px rgba(0,0,0,0.28));
     }
-    .battle-arena-wrapper.compact-arena .battle-bg .battle-objects {
-      height: 38%;
-      bottom: 8%;
-      background-size: min(520px, 56%) auto !important;
+    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg .battle-objects {
+      height: 31%;
+      bottom: 6%;
+      background-size: min(600px, 62%) auto !important;
     }
     @media (max-width: 760px) {
-      .battle-bg .battle-objects {
-        height: 36%;
-        bottom: 8%;
-        background-size: min(420px, 54%) auto !important;
+      body:not(.qol-calm-visuals) .battle-bg .battle-objects {
+        height: 30%;
+        bottom: 6%;
+        background-size: min(460px, 60%) auto !important;
       }
     }
   </style>
@@ -10401,6 +10401,7 @@
       if (typeof state.qol.reduceMotion === "undefined") state.qol.reduceMotion = false;
       if (typeof state.qol.collapseProposals === "undefined") state.qol.collapseProposals = false;
       if (typeof state.qol.openCalmDefault === "undefined") state.qol.openCalmDefault = false;
+      if (typeof state.qol.calmVisuals === "undefined") state.qol.calmVisuals = false;
       if (typeof state.qol.keyboardShortcuts === "undefined") state.qol.keyboardShortcuts = true;
       if (!state.qol.teamDrawers || typeof state.qol.teamDrawers !== "object") {
         state.qol.teamDrawers = {
@@ -10416,6 +10417,7 @@
     function applyQoLPreferences() {
       normalizeQoLSettings();
       document.body.classList.toggle('qol-reduced-motion', !!state.qol.reduceMotion);
+      document.body.classList.toggle('qol-calm-visuals', !!state.qol.calmVisuals);
       const hint = document.getElementById('qol-shortcuts-hint');
       if (hint) hint.style.display = state.qol.keyboardShortcuts ? 'flex' : 'none';
     }
@@ -10747,6 +10749,7 @@
         reduceMotion: false,
         collapseProposals: false,
         openCalmDefault: false,
+        calmVisuals: false,
         keyboardShortcuts: true,
         teamDrawers: {
           social: false,
@@ -12421,6 +12424,8 @@
       quality_control: { kind: 'golem', palette: { ...PIXEL_MONSTER_PALETTES.lab, accent: '#ef4444' } }
     };
 
+    const CALM_MONSTER_TEMPLATES = { ...MONSTER_TEMPLATES };
+
     Object.entries(PIXEL_MONSTER_DEFS).forEach(([monsterId, monsterDef]) => {
       MONSTER_TEMPLATES[monsterId] = createPixelMonsterSprite(monsterDef);
     });
@@ -12566,6 +12571,14 @@
       ];
       MONSTER_TEMPLATES[monsterId] = createMonsterImageTemplate(src, `unique-${assetName}`);
     });
+
+    function getBattleMonsterTemplate(monsterId) {
+      normalizeQoLSettings();
+      if (state.qol.calmVisuals && CALM_MONSTER_TEMPLATES[monsterId]) {
+        return CALM_MONSTER_TEMPLATES[monsterId];
+      }
+      return MONSTER_TEMPLATES[monsterId] || MONSTER_TEMPLATES.slime;
+    }
 
     const WEAPON_TEMPLATES = {
       sword: `
@@ -14007,7 +14020,7 @@
         if (bgDungeon) bgDungeon.classList.add('active');
         titleTag.textContent = "RAID FOCUS POMODORO";
 
-        const monsterSvg = MONSTER_TEMPLATES.distraction || MONSTER_TEMPLATES.slime;
+        const monsterSvg = getBattleMonsterTemplate('distraction');
         const hpPercent = (state.pomoTimeRemaining / 1500) * 100;
 
         const monsterWrapper = document.createElement('div');
@@ -14140,7 +14153,7 @@
               const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval;
               const difficultyKey = ['trivial', 'easy', 'medium', 'hard', 'epic'].includes(quest.difficulty) ? quest.difficulty : 'epic';
               const monsterType = themedSet[difficultyKey] || themedSet.trivial;
-              const monsterSvg = MONSTER_TEMPLATES[monsterType] || MONSTER_TEMPLATES.slime;
+              const monsterSvg = getBattleMonsterTemplate(monsterType);
               const rewardPreview = getQuestRewardPreview(quest);
               
               let currentHp = 1;
@@ -14220,7 +14233,7 @@
           const currentTheme = state.theme || 'medieval';
           const themedSet = THEMED_MONSTERS[currentTheme] || THEMED_MONSTERS.medieval;
           const bossType = themedSet.boss || 'dragon';
-          const bossSvg = MONSTER_TEMPLATES[bossType] || MONSTER_TEMPLATES.dragon;
+          const bossSvg = getBattleMonsterTemplate(bossType) || getBattleMonsterTemplate('dragon');
           
           const hpPercent = (boss.currentHp / boss.maxHp) * 100;
           
@@ -15524,28 +15537,43 @@
     function renderAdhdToolsControls() {
       const toolsPanel = document.getElementById('adhd-tools-panel');
       const collapseBtn = document.getElementById('adhd-tools-collapse-btn');
+      const calmModeBtn = document.getElementById('calm-mode-btn');
       if (toolsPanel) toolsPanel.classList.toggle('is-collapsed', !!state.adhdToolsCollapsed);
       if (collapseBtn) {
         collapseBtn.setAttribute('title', state.adhdToolsCollapsed ? 'Afficher les outils TDA(H).' : 'Cacher les outils TDA(H), la prochaine action reste visible.');
         collapseBtn.innerHTML = `<i data-lucide="${state.adhdToolsCollapsed ? 'chevron-down' : 'chevron-up'}"></i>`;
       }
+      if (calmModeBtn) {
+        normalizeQoLSettings();
+        const active = !!state.qol.calmVisuals;
+        calmModeBtn.classList.toggle('btn-primary', active);
+        calmModeBtn.classList.toggle('btn-secondary', !active);
+        calmModeBtn.setAttribute('aria-pressed', String(active));
+        calmModeBtn.setAttribute('title', active
+          ? "Mode calme actif: decors et monstres simplifies. Cliquer pour revenir aux visuels premium."
+          : "Mode calme: replie l'interface et simplifie la battle scene pour reduire la surcharge.");
+        calmModeBtn.innerHTML = `<i data-lucide="${active ? 'eye-off' : 'panel-top-close'}"></i> ${active ? 'Calme actif' : 'Mode calme'}`;
+      }
     }
 
     function activateCalmMode() {
+      normalizeQoLSettings();
+      state.qol.calmVisuals = !state.qol.calmVisuals;
       state.questNavigationCollapsed = true;
       state.questPlannerCollapsed = true;
       state.noisePanelCollapsed = true;
       state.adhdToolsCollapsed = false;
       state.soloProposalsCollapsed = true;
-      if (!state.qol) state.qol = {};
       state.qol.collapseProposals = true;
       saveState();
+      applyQoLPreferences();
       renderQuestNavigationControls();
       renderPlannerPanelControls();
       renderNoiseControls();
       renderAdhdToolsControls();
       renderCommonQuestsProposals();
-      spawnFloatingText("Mode calme active", '#00f5d4', 'adhd-tools-panel');
+      renderBattleArena();
+      spawnFloatingText(state.qol.calmVisuals ? "Mode calme active" : "Mode premium active", '#00f5d4', 'adhd-tools-panel');
       createIcons();
     }
 
@@ -20756,6 +20784,7 @@
         state.noisePanelCollapsed = true;
         state.soloProposalsCollapsed = true;
         state.qol.collapseProposals = true;
+        state.qol.calmVisuals = true;
         state.qol.teamDrawers = {
           social: false,
           coopProposals: true,
@@ -20764,6 +20793,7 @@
           raids: true
         };
       }
+      applyQoLPreferences();
 
       renderHUD();
       renderCharacterSheet();
@@ -21143,7 +21173,10 @@
           state.soloProposalsCollapsed = collapseProposalsCb.checked;
         }
         const calmDefaultCb = document.getElementById('profile-qol-calm-default');
-        if (calmDefaultCb) state.qol.openCalmDefault = calmDefaultCb.checked;
+        if (calmDefaultCb) {
+          state.qol.openCalmDefault = calmDefaultCb.checked;
+          if (calmDefaultCb.checked) state.qol.calmVisuals = true;
+        }
       const keyboardCb = document.getElementById('profile-qol-keyboard');
       if (keyboardCb) state.qol.keyboardShortcuts = keyboardCb.checked;
       applyQoLPreferences();
