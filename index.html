@@ -11827,15 +11827,15 @@
     // ==========================================================================
 
     const THEMED_MONSTERS = {
-      medieval: { trivial: 'slime', easy: 'goblin', medium: 'skeleton', hard: 'orc', epic: 'golem', boss: 'dragon' },
-      horror: { trivial: 'bat', easy: 'zombie', medium: 'ghost', hard: 'vampire', epic: 'werewolf', boss: 'demon' },
-      cyberpunk: { trivial: 'drone', easy: 'cyborg', medium: 'ninja', hard: 'mecha', epic: 'security_robot', boss: 'mainframe' },
-      scifi: { trivial: 'jellyfish', easy: 'alien', medium: 'android', hard: 'plasma', epic: 'star_ship', boss: 'xenomorph' },
-      noir: { trivial: 'rat', easy: 'pickpocket', medium: 'corrupt_cop', hard: 'mafia_thug', epic: 'crime_boss', boss: 'mastermind' },
-      inferno: { trivial: 'ember_imp', easy: 'ash_zombie', medium: 'hell_knight', hard: 'inferno_mancubus', epic: 'lava_baron', boss: 'arch_demon' },
-      arcane: { trivial: 'spellbook_bat', easy: 'potion_slime', medium: 'rune_armor', hard: 'basilisk', epic: 'astral_golem', boss: 'arcane_dragon' },
-      stargate: { trivial: 'symbiote_scarab', easy: 'jaffa_warrior', medium: 'jaffa_staff_guard', hard: 'jaffa_serpent_guard', epic: 'jaffa_horus_guard', boss: 'jaffa_anubis_lord' },
-      sartorius: { trivial: 'petri', easy: 'pipette', medium: 'microscope', hard: 'centrifuge', epic: 'bioreactor', boss: 'quality_control' }
+      medieval: { trivial: 'slime', easy: ['goblin', 'mushroom_brigand'], medium: 'skeleton', hard: ['orc', 'crystal_wyvern'], epic: 'golem', boss: 'dragon' },
+      horror: { trivial: 'bat', easy: ['zombie', 'bloated_walker'], medium: 'ghost', hard: ['vampire', 'roadside_stalker'], epic: 'werewolf', boss: 'demon' },
+      cyberpunk: { trivial: ['drone', 'neon_spider_drone'], easy: 'cyborg', medium: ['ninja', 'data_wraith'], hard: 'mecha', epic: 'security_robot', boss: 'mainframe' },
+      scifi: { trivial: ['jellyfish', 'xeno_larva'], easy: 'alien', medium: ['android', 'void_trooper_mutant'], hard: 'plasma', epic: 'star_ship', boss: 'xenomorph' },
+      noir: { trivial: 'rat', easy: 'pickpocket', medium: ['corrupt_cop', 'private_eye_shade'], hard: ['mafia_thug', 'tommy_gun_mobster'], epic: 'crime_boss', boss: 'mastermind' },
+      inferno: { trivial: 'ember_imp', easy: ['ash_zombie', 'chainsaw_imp'], medium: ['hell_knight', 'ash_revenant'], hard: 'inferno_mancubus', epic: 'lava_baron', boss: 'arch_demon' },
+      arcane: { trivial: 'spellbook_bat', easy: ['potion_slime', 'cursed_cauldron'], medium: ['rune_armor', 'robe_mimic'], hard: 'basilisk', epic: 'astral_golem', boss: 'arcane_dragon' },
+      stargate: { trivial: ['symbiote_scarab', 'golden_scarab_swarm'], easy: 'jaffa_warrior', medium: 'jaffa_staff_guard', hard: ['jaffa_serpent_guard', 'serpent_jaffa_elite'], epic: 'jaffa_horus_guard', boss: 'jaffa_anubis_lord' },
+      sartorius: { trivial: 'petri', easy: ['pipette', 'vial_gremlin'], medium: 'microscope', hard: ['centrifuge', 'rogue_incubator_beast'], epic: 'bioreactor', boss: 'quality_control' }
     };
 
     const MONSTER_DIFFICULTIES = ['trivial', 'easy', 'medium', 'hard', 'epic'];
@@ -12701,7 +12701,25 @@
       corrupt_cop: 'premium_skeleton_knight',
       mafia_thug: 'premium_skeleton_knight',
       crime_boss: 'premium_inferno_brute',
-      mastermind: 'premium_arcane_book_bat'
+      mastermind: 'premium_arcane_book_bat',
+      mushroom_brigand: 'premium_skeleton_knight',
+      crystal_wyvern: 'premium_inferno_brute',
+      bloated_walker: 'premium_skeleton_knight',
+      roadside_stalker: 'premium_inferno_brute',
+      neon_spider_drone: 'premium_cyber_beast',
+      data_wraith: 'premium_cyber_beast',
+      xeno_larva: 'premium_slime',
+      void_trooper_mutant: 'premium_inferno_brute',
+      tommy_gun_mobster: 'premium_skeleton_knight',
+      private_eye_shade: 'premium_skeleton_knight',
+      chainsaw_imp: 'premium_inferno_brute',
+      ash_revenant: 'premium_inferno_brute',
+      cursed_cauldron: 'premium_arcane_book_bat',
+      robe_mimic: 'premium_arcane_book_bat',
+      serpent_jaffa_elite: 'premium_jaffa_serpent_guard',
+      golden_scarab_swarm: 'premium_jaffa_serpent_guard',
+      vial_gremlin: 'premium_cyber_beast',
+      rogue_incubator_beast: 'premium_cyber_beast'
     };
 
     const UNIQUE_MONSTER_ASSETS = {
@@ -12758,7 +12776,25 @@
       microscope: 'microscope',
       centrifuge: 'centrifuge',
       bioreactor: 'bioreactor',
-      quality_control: 'quality_control'
+      quality_control: 'quality_control',
+      mushroom_brigand: 'mushroom_brigand',
+      crystal_wyvern: 'crystal_wyvern',
+      bloated_walker: 'bloated_walker',
+      roadside_stalker: 'roadside_stalker',
+      neon_spider_drone: 'neon_spider_drone',
+      data_wraith: 'data_wraith',
+      xeno_larva: 'xeno_larva',
+      void_trooper_mutant: 'void_trooper_mutant',
+      tommy_gun_mobster: 'tommy_gun_mobster',
+      private_eye_shade: 'private_eye_shade',
+      chainsaw_imp: 'chainsaw_imp',
+      ash_revenant: 'ash_revenant',
+      cursed_cauldron: 'cursed_cauldron',
+      robe_mimic: 'robe_mimic',
+      serpent_jaffa_elite: 'serpent_jaffa_elite',
+      golden_scarab_swarm: 'golden_scarab_swarm',
+      vial_gremlin: 'vial_gremlin',
+      rogue_incubator_beast: 'rogue_incubator_beast'
     };
 
     const MONSTER_SKIN_CHOICES = {};
@@ -18446,10 +18482,10 @@
       { id: "ach-world-themed-3", name: "Multivers Organise", desc: "Avoir 3 mondes avec des themes differents", condition: () => new Set((state.worlds || []).map(w => w.theme || 'medieval')).size >= 3, icon: "boxes" },
       { id: "ach-world-themed-5", name: "Architecte de Mondes", desc: "Avoir 5 mondes thematiques", condition: () => (state.worlds || []).filter(w => !!w.theme).length >= 5, icon: "landmark" },
 
-      { id: "ach-inferno-bestiary", name: "Chasseur des Cendres", desc: "Vaincre un monstre du theme Enfer brutal", condition: () => ['ember_imp', 'ash_zombie', 'hell_knight', 'inferno_mancubus', 'lava_baron', 'arch_demon'].some(id => (state.bestiary || {})[id] > 0), icon: "flame-kindling" },
-      { id: "ach-arcane-bestiary", name: "Bestiaire Ensorcele", desc: "Vaincre un monstre du theme Ecole de magie", condition: () => ['spellbook_bat', 'potion_slime', 'rune_armor', 'basilisk', 'astral_golem', 'arcane_dragon'].some(id => (state.bestiary || {})[id] > 0), icon: "wand-sparkles" },
-      { id: "ach-stargate-bestiary", name: "Explorateur du Portail", desc: "Vaincre un monstre du theme Portail egyptien", condition: () => ['scarab_probe', 'jaffa_guard', 'kull_warrior', 'staff_drone', 'ancient_ship', 'serpent_lord', 'symbiote_scarab', 'jaffa_warrior', 'jaffa_staff_guard', 'jaffa_serpent_guard', 'jaffa_horus_guard', 'jaffa_anubis_lord'].some(id => (state.bestiary || {})[id] > 0), icon: "satellite" },
-      { id: "ach-new-bestiary-master", name: "Archiviste des Nouveaux Mondes", desc: "Decouvrir 12 monstres des nouveaux themes", condition: () => ['ember_imp', 'ash_zombie', 'hell_knight', 'inferno_mancubus', 'lava_baron', 'arch_demon', 'spellbook_bat', 'potion_slime', 'rune_armor', 'basilisk', 'astral_golem', 'arcane_dragon', 'symbiote_scarab', 'jaffa_warrior', 'jaffa_staff_guard', 'jaffa_serpent_guard', 'jaffa_horus_guard', 'jaffa_anubis_lord'].filter(id => (state.bestiary || {})[id] > 0).length >= 12, icon: "book-marked" },
+      { id: "ach-inferno-bestiary", name: "Chasseur des Cendres", desc: "Vaincre un monstre du theme Enfer brutal", condition: () => ['ember_imp', 'ash_zombie', 'chainsaw_imp', 'hell_knight', 'ash_revenant', 'inferno_mancubus', 'lava_baron', 'arch_demon'].some(id => (state.bestiary || {})[id] > 0), icon: "flame-kindling" },
+      { id: "ach-arcane-bestiary", name: "Bestiaire Ensorcele", desc: "Vaincre un monstre du theme Ecole de magie", condition: () => ['spellbook_bat', 'potion_slime', 'cursed_cauldron', 'rune_armor', 'robe_mimic', 'basilisk', 'astral_golem', 'arcane_dragon'].some(id => (state.bestiary || {})[id] > 0), icon: "wand-sparkles" },
+      { id: "ach-stargate-bestiary", name: "Explorateur du Portail", desc: "Vaincre un monstre du theme Portail egyptien", condition: () => ['scarab_probe', 'jaffa_guard', 'kull_warrior', 'staff_drone', 'ancient_ship', 'serpent_lord', 'symbiote_scarab', 'golden_scarab_swarm', 'jaffa_warrior', 'jaffa_staff_guard', 'jaffa_serpent_guard', 'serpent_jaffa_elite', 'jaffa_horus_guard', 'jaffa_anubis_lord'].some(id => (state.bestiary || {})[id] > 0), icon: "satellite" },
+      { id: "ach-new-bestiary-master", name: "Archiviste des Nouveaux Mondes", desc: "Decouvrir 12 monstres des nouveaux themes", condition: () => ['ember_imp', 'ash_zombie', 'chainsaw_imp', 'hell_knight', 'ash_revenant', 'inferno_mancubus', 'lava_baron', 'arch_demon', 'spellbook_bat', 'potion_slime', 'cursed_cauldron', 'rune_armor', 'robe_mimic', 'basilisk', 'astral_golem', 'arcane_dragon', 'symbiote_scarab', 'golden_scarab_swarm', 'jaffa_warrior', 'jaffa_staff_guard', 'jaffa_serpent_guard', 'serpent_jaffa_elite', 'jaffa_horus_guard', 'jaffa_anubis_lord'].filter(id => (state.bestiary || {})[id] > 0).length >= 12, icon: "book-marked" },
 
       { id: "ach-themed-raid-inferno", name: "La Forge Refroidit", desc: "Vaincre un boss suggere Enfer brutal", condition: () => (state.raids || []).some(r => r.completed && /^suggest-inferno-/.test(r.suggestionId || '')), icon: "flame" },
       { id: "ach-themed-raid-arcane", name: "Examen Reussi", desc: "Vaincre un boss suggere Ecole de magie", condition: () => (state.raids || []).some(r => r.completed && /^suggest-arcane-/.test(r.suggestionId || '')), icon: "graduation-cap" },
@@ -18548,7 +18584,25 @@
         kull_warrior: "Guerrier en armure lourde",
         staff_drone: "Baton de garde",
         ancient_ship: "Vaisseau pyramide",
-        serpent_lord: "Seigneur serpent"
+        serpent_lord: "Seigneur serpent",
+        mushroom_brigand: "Brigand champignon",
+        crystal_wyvern: "Jeune wyverne de cristal",
+        bloated_walker: "Marcheur gonfle",
+        roadside_stalker: "Traqueur de route",
+        neon_spider_drone: "Drone araignee neon",
+        data_wraith: "Spectre de donnees",
+        xeno_larva: "Larve xeno",
+        void_trooper_mutant: "Mutant soldat du vide",
+        tommy_gun_mobster: "Mafieux au tommy gun",
+        private_eye_shade: "Ombre de detective",
+        chainsaw_imp: "Diablotin tronconneur",
+        ash_revenant: "Revenant de cendres",
+        cursed_cauldron: "Chaudron maudit",
+        robe_mimic: "Robe mimique",
+        serpent_jaffa_elite: "Elite jaffa casque serpent",
+        golden_scarab_swarm: "Essaim de scarabees dores",
+        vial_gremlin: "Gremlin a fioles",
+        rogue_incubator_beast: "Incubateur rebelle"
       };
       return names[id] || (id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "));
     }
