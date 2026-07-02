@@ -11922,6 +11922,7 @@
       medieval: { trivial: 'slime', easy: ['goblin', 'mushroom_brigand'], medium: 'skeleton', hard: ['orc', 'crystal_wyvern'], epic: 'golem', boss: 'dragon' },
       horror: { trivial: 'bat', easy: ['zombie', 'bloated_walker'], medium: 'ghost', hard: ['vampire', 'roadside_stalker'], epic: 'werewolf', boss: 'demon' },
       cyberpunk: { trivial: ['drone', 'neon_spider_drone'], easy: 'cyborg', medium: ['ninja', 'data_wraith'], hard: 'mecha', epic: 'security_robot', boss: 'mainframe' },
+      zombie: { trivial: 'zombie', easy: ['bloated_walker', 'roadside_stalker'], medium: ['zombie', 'bloated_walker'], hard: 'roadside_stalker', epic: 'werewolf', boss: 'demon' },
       scifi: { trivial: ['jellyfish', 'xeno_larva'], easy: 'alien', medium: ['android', 'void_trooper_mutant'], hard: 'plasma', epic: 'star_ship', boss: 'xenomorph' },
       noir: { trivial: 'rat', easy: 'pickpocket', medium: ['corrupt_cop', 'private_eye_shade'], hard: ['mafia_thug', 'tommy_gun_mobster'], epic: 'crime_boss', boss: 'mastermind' },
       inferno: { trivial: 'ember_imp', easy: ['ash_zombie', 'chainsaw_imp'], medium: ['hell_knight', 'ash_revenant'], hard: 'inferno_mancubus', epic: 'lava_baron', boss: 'arch_demon' },
@@ -11931,6 +11932,37 @@
     };
 
     const MONSTER_DIFFICULTIES = ['trivial', 'easy', 'medium', 'hard', 'epic'];
+    const THEME_PREMIUM_ASSET_THEMES = ['medieval', 'horror', 'cyberpunk', 'zombie', 'scifi', 'noir', 'inferno', 'arcane', 'stargate', 'sartorius'];
+
+    const THEME_PREMIUM_MONSTER_POOLS = Object.fromEntries(
+      THEME_PREMIUM_ASSET_THEMES.map(theme => {
+        const ids = Array.from({ length: 16 }, (_, index) => `${theme}_monster_${String(index + 1).padStart(2, '0')}`);
+        return [theme, {
+          trivial: ids.slice(0, 3),
+          easy: ids.slice(3, 6),
+          medium: ids.slice(6, 10),
+          hard: ids.slice(10, 13),
+          epic: ids.slice(13, 16)
+        }];
+      })
+    );
+
+    const THEME_PREMIUM_BOSS_POOLS = Object.fromEntries(
+      THEME_PREMIUM_ASSET_THEMES.map(theme => [
+        theme,
+        Array.from({ length: 16 }, (_, index) => `${theme}_boss_${String(index + 1).padStart(2, '0')}`)
+      ])
+    );
+
+    function getThemePremiumMonsterPool(theme, difficultyKey) {
+      const themePool = THEME_PREMIUM_MONSTER_POOLS[theme];
+      if (!themePool) return [];
+      return themePool[difficultyKey] || themePool.epic || [];
+    }
+
+    function getThemePremiumBossPool(theme) {
+      return THEME_PREMIUM_BOSS_POOLS[theme] || [];
+    }
 
     function normalizeQuestDifficulty(difficulty) {
       return MONSTER_DIFFICULTIES.includes(difficulty) ? difficulty : 'epic';
@@ -11954,6 +11986,10 @@
     function getThemeMonsterType(theme, difficulty, seed = '') {
       const themedSet = getThemeMonsterSet(theme);
       const difficultyKey = normalizeQuestDifficulty(difficulty);
+      const premiumPool = getThemePremiumMonsterPool(theme, difficultyKey);
+      if (premiumPool.length) {
+        return pickMonsterFromPool(premiumPool, seed);
+      }
       return pickMonsterFromPool(themedSet[difficultyKey] || themedSet.trivial || 'slime', seed);
     }
 
@@ -11979,7 +12015,10 @@
       }
       const theme = item.theme || suggestion?.theme || state.theme || 'medieval';
       const themedSet = getThemeMonsterSet(theme);
-      const monsterType = pickMonsterFromPool(themedSet.boss || themedSet.epic || 'dragon', `${item.id || item.name || theme}:boss`);
+      const premiumBossPool = getThemePremiumBossPool(theme);
+      const monsterType = premiumBossPool.length
+        ? pickMonsterFromPool(premiumBossPool, `${item.id || item.name || theme}:boss`)
+        : pickMonsterFromPool(themedSet.boss || themedSet.epic || 'dragon', `${item.id || item.name || theme}:boss`);
       if (persist && bossOrSuggestion) {
         bossOrSuggestion.theme = theme;
         bossOrSuggestion.monsterType = monsterType;
@@ -12989,10 +13028,32 @@
       MONSTER_TEMPLATES[monsterId] = createMonsterImageTemplate(src, `unique-${assetName}`);
     });
 
+    THEME_PREMIUM_ASSET_THEMES.forEach(theme => {
+      ['monster', 'boss'].forEach(kind => {
+        for (let index = 1; index <= 16; index++) {
+          const suffix = String(index).padStart(2, '0');
+          const monsterId = `${theme}_${kind}_${suffix}`;
+          const src = `assets/monsters/unique/${monsterId}.png`;
+          MONSTER_SKIN_CHOICES[monsterId] = [{ id: `unique-${monsterId}`, src }];
+          MONSTER_TEMPLATES[monsterId] = createMonsterImageTemplate(src, `unique-${monsterId}`);
+        }
+      });
+    });
+
     function getBattleMonsterTemplate(monsterId) {
       normalizeQoLSettings();
       if (state.qol.calmVisuals && CALM_MONSTER_TEMPLATES[monsterId]) {
         return CALM_MONSTER_TEMPLATES[monsterId];
+      }
+      if (state.qol.calmVisuals) {
+        const premiumMatch = String(monsterId || '').match(/^([a-z]+)_(monster|boss)_\d{2}$/);
+        if (premiumMatch) {
+          const themeSet = getThemeMonsterSet(premiumMatch[1]);
+          const calmId = premiumMatch[2] === 'boss'
+            ? pickMonsterFromPool(themeSet.boss || themeSet.epic || 'dragon', monsterId)
+            : pickMonsterFromPool(themeSet.trivial || 'slime', monsterId);
+          return CALM_MONSTER_TEMPLATES[calmId] || CALM_MONSTER_TEMPLATES.slime || MONSTER_TEMPLATES.slime;
+        }
       }
       return MONSTER_TEMPLATES[monsterId] || MONSTER_TEMPLATES.slime;
     }
@@ -18810,6 +18871,23 @@
         raid_xeno_hive_matriarch: "Matriarche de la ruche xeno",
         raid_incubator_prime: "Incubateur Prime"
       };
+      const generatedMatch = String(id || "").match(/^([a-z]+)_(monster|boss)_(\d{2})$/);
+      if (generatedMatch) {
+        const themeLabels = {
+          medieval: "medieval",
+          horror: "horreur",
+          cyberpunk: "cyberpunk",
+          zombie: "zombie",
+          scifi: "science-fiction",
+          noir: "noir",
+          inferno: "enfer",
+          arcane: "arcane",
+          stargate: "portail egyptien",
+          sartorius: "laboratoire"
+        };
+        const kindLabel = generatedMatch[2] === "boss" ? "Boss" : "Monstre";
+        return `${kindLabel} ${themeLabels[generatedMatch[1]] || generatedMatch[1]} ${generatedMatch[3]}`;
+      }
       return names[id] || (id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "));
     }
 
