@@ -3411,6 +3411,55 @@
       letter-spacing: 0.02em;
     }
 
+    .boss-card-main {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 0.85rem;
+      align-items: center;
+    }
+    .boss-portrait {
+      width: 88px;
+      height: 88px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 77, 109, 0.22);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 77, 109, 0.16), transparent 62%),
+        rgba(2, 6, 23, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 18px rgba(0,0,0,0.45), 0 0 10px rgba(255, 77, 109, 0.08);
+    }
+    .boss-portrait .premium-monster-img,
+    .boss-portrait .monster-svg {
+      width: 78px;
+      height: 78px;
+      object-fit: contain;
+      image-rendering: auto;
+      filter: drop-shadow(0 8px 8px rgba(0,0,0,0.45));
+    }
+    .raid-suggestion-card .boss-portrait {
+      width: 64px;
+      height: 64px;
+      border-color: rgba(255, 77, 109, 0.18);
+    }
+    .raid-suggestion-card .boss-portrait .premium-monster-img,
+    .raid-suggestion-card .boss-portrait .monster-svg {
+      width: 58px;
+      height: 58px;
+    }
+    .raid-suggestion-main {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: center;
+    }
+    .raid-suggestion-main h4 {
+      margin: 0 0 0.35rem;
+    }
+
     /* Boss Health Bar */
     .boss-hp-section {
       display: flex;
@@ -11785,6 +11834,8 @@
         scaledForTier: Math.max(1, Math.floor(getProgressionTier() / 5) * 5),
         completed: false
       };
+      boss.theme = state.theme || 'medieval';
+      boss.monsterType = resolveRaidBossMonsterType(boss, { persist: true });
       state.raids.unshift(boss);
       state.activeRaidId = boss.id;
       saveState();
@@ -11816,6 +11867,8 @@
         scaledForTier: Math.max(1, Math.floor(getProgressionTier() / 5) * 5),
         completed: false
       };
+      boss.theme = suggestion.theme || state.theme || 'medieval';
+      boss.monsterType = resolveRaidBossMonsterType(boss, { persist: true });
       state.raids.unshift(boss);
       state.activeRaidId = boss.id;
       saveState();
@@ -11871,6 +11924,19 @@
       const worldTheme = getWorldTheme(quest.worldId || 'world-general');
       const monsterType = getThemeMonsterType(worldTheme, quest.difficulty, `${quest.id || ''}:${quest.title || ''}`);
       if (persist) quest.monsterType = monsterType;
+      return monsterType;
+    }
+
+    function resolveRaidBossMonsterType(bossOrSuggestion, { persist = false } = {}) {
+      const item = bossOrSuggestion || {};
+      if (item.monsterType && MONSTER_TEMPLATES[item.monsterType]) return item.monsterType;
+      const theme = item.theme || (RAID_SUGGESTIONS.find(suggestion => suggestion.id === item.suggestionId)?.theme) || state.theme || 'medieval';
+      const themedSet = getThemeMonsterSet(theme);
+      const monsterType = pickMonsterFromPool(themedSet.boss || themedSet.epic || 'dragon', `${item.id || item.name || theme}:boss`);
+      if (persist && bossOrSuggestion) {
+        bossOrSuggestion.theme = theme;
+        bossOrSuggestion.monsterType = monsterType;
+      }
       return monsterType;
     }
 
@@ -18960,15 +19026,22 @@
       visibleSuggestions.forEach(suggestion => {
         const alreadyActive = (state.raids || []).some(raid => !raid.completed && raid.suggestionId === suggestion.id);
         const scaled = scaleRaidValues(suggestion.hp, suggestion.rewardXp, suggestion.rewardGold);
+        const monsterType = resolveRaidBossMonsterType(suggestion);
+        const bossSprite = getBattleMonsterTemplate(monsterType);
         const card = document.createElement('div');
         card.className = 'raid-suggestion-card';
         card.innerHTML = `
-          <h4>${escapeHTML(suggestion.name)}</h4>
-          <div class="raid-suggestion-meta">
-            <span>${escapeHTML(suggestion.tag)}</span>
-            <span>${scaled.hp} HP</span>
-            <span>+${scaled.rewardXp} XP</span>
-            <span>+${scaled.rewardGold} PO</span>
+          <div class="raid-suggestion-main">
+            <div class="boss-portrait" aria-hidden="true">${bossSprite}</div>
+            <div>
+              <h4>${escapeHTML(suggestion.name)}</h4>
+              <div class="raid-suggestion-meta">
+                <span>${escapeHTML(suggestion.tag)}</span>
+                <span>${scaled.hp} HP</span>
+                <span>+${scaled.rewardXp} XP</span>
+                <span>+${scaled.rewardGold} PO</span>
+              </div>
+            </div>
           </div>
           <button class="btn btn-primary btn-sm btn-launch-suggested-raid" data-id="${suggestion.id}" ${alreadyActive ? 'disabled' : ''} style="justify-self:start;">
             <i data-lucide="${alreadyActive ? 'check' : 'swords'}"></i> ${alreadyActive ? 'Actif' : 'Lancer'}
@@ -19008,6 +19081,8 @@
         if (!boss.completed) card.title = "Cliquer pour choisir comme cible principale";
 
         const hpPercent = Math.max(0, Math.round((boss.currentHp / boss.maxHp) * 100));
+        const monsterType = resolveRaidBossMonsterType(boss, { persist: true });
+        const bossSprite = getBattleMonsterTemplate(monsterType);
 
         card.innerHTML = `
           <div class="boss-meta">
@@ -19016,7 +19091,13 @@
             </span>
             <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">HP Max : ${boss.maxHp}</span>
           </div>
-          <h3 class="boss-title">${escapeHTML(boss.name)}</h3>
+          <div class="boss-card-main">
+            <div class="boss-portrait" aria-hidden="true">${bossSprite}</div>
+            <div>
+              <h3 class="boss-title">${escapeHTML(boss.name)}</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem;">${escapeHTML(getBestiaryMonsterName(monsterType))}</div>
+            </div>
+          </div>
           
           <div class="boss-hp-section">
             <div class="boss-hp-labels">
