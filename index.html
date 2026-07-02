@@ -3875,6 +3875,7 @@
       .battle-arena-wrapper.compact-arena .battle-arena {
         height: 110px;
         padding: 0.5rem 1rem var(--compact-ground-line) 1rem;
+        --battle-ground-line: var(--compact-ground-line);
       }
       .battle-arena-wrapper.compact-arena .battle-header {
         top: 5px;
@@ -3908,11 +3909,11 @@
         transform-origin: bottom center;
       }
       .battle-arena-wrapper.compact-arena .monsters-battle-side .monster-wrapper {
-        transform: perspective(400px) rotateY(-20deg) rotateX(4deg) translateY(2px) scale(0.7);
+        transform: perspective(400px) rotateY(-14deg) rotateX(3deg) translateY(0) scale(0.72);
         transform-origin: bottom center;
       }
       .battle-arena-wrapper.compact-arena .monsters-battle-side .boss-wrapper {
-        transform: perspective(400px) rotateY(-20deg) rotateX(4deg) translateY(2px) scale(0.55) !important;
+        transform: perspective(400px) rotateY(-14deg) rotateX(3deg) translateY(0) scale(0.58) !important;
         transform-origin: bottom right;
       }
       .battle-arena-wrapper.compact-arena .sprite-container {
@@ -4085,6 +4086,8 @@
       overflow: hidden;
       background: #020617;
       user-select: none;
+      isolation: isolate;
+      --battle-ground-line: 2.5rem;
     }
     
     .battle-bg {
@@ -4093,7 +4096,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 1;
+      z-index: 0;
       transition: opacity 0.6s ease-in-out;
       opacity: 0;
     }
@@ -4119,7 +4122,7 @@
       left: 0;
       width: 100%;
       height: 65%;
-      z-index: 1;
+      z-index: 0;
       overflow: hidden;
     }
     .moon {
@@ -4131,7 +4134,7 @@
       background: #fdf6e3;
       border-radius: 50%;
       box-shadow: 0 0 15px #fdf6e3, inset -6px -6px 12px rgba(0,0,0,0.1);
-      z-index: 2;
+      z-index: 1;
     }
     body.theme-horror .moon { background: #ef4444; box-shadow: 0 0 15px #ef4444, inset -6px -6px 12px rgba(0,0,0,0.4); }
     body.theme-cyberpunk .moon { background: #00f5d4; box-shadow: 0 0 15px #00f5d4, inset -6px -6px 12px rgba(0,0,0,0.4); }
@@ -4159,7 +4162,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 1;
+      z-index: 2;
       pointer-events: none;
       overflow: hidden;
     }
@@ -4408,7 +4411,7 @@
       justify-content: flex-end;
       width: 52px;
       height: 48px;
-      z-index: 10;
+      z-index: 11;
       image-rendering: pixelated;
     }
     .campfire-wood {
@@ -4459,12 +4462,12 @@
     .camp-scene-props {
       position: absolute;
       left: 50%;
-      bottom: 13%;
-      width: min(460px, 58vw);
-      height: clamp(92px, 12vw, 126px);
+      bottom: 11%;
+      width: min(760px, 88vw);
+      height: clamp(98px, 13vw, 138px);
       transform: translateX(-50%);
       transform-origin: bottom center;
-      z-index: 6;
+      z-index: 5;
       pointer-events: none;
       image-rendering: pixelated;
     }
@@ -4727,7 +4730,7 @@
     
     .battle-side {
       position: relative;
-      z-index: 3;
+      z-index: 20;
       display: flex;
       align-items: flex-end;
       gap: 1rem;
@@ -4735,8 +4738,8 @@
     }
     .party-battle-side {
       justify-content: flex-start;
-      width: 40%;
-      padding-left: 1.35rem;
+      width: 34%;
+      padding-left: clamp(1rem, 3vw, 2.6rem);
       position: relative;
       transition: all 0.5s ease-in-out;
     }
@@ -4746,13 +4749,14 @@
     }
     .monsters-battle-side {
       justify-content: flex-end;
-      width: 55%;
+      width: 62%;
       overflow: visible;
       direction: rtl;
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
       position: relative;
-      z-index: 6;
+      z-index: 21;
+      padding-right: clamp(0.5rem, 2.2vw, 2rem);
     }
     
     .quest-focus-active .battle-bg {
@@ -4760,11 +4764,11 @@
       transition: filter 0.5s ease;
     }
     .quest-focus-active .party-battle-side {
-      z-index: 10;
+      z-index: 30;
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
     }
     .quest-focus-active .monsters-battle-side {
-      z-index: 10;
+      z-index: 31;
     }
     .quest-focus-active .monsters-battle-side .combatant-wrapper {
       opacity: 0.2;
@@ -4775,7 +4779,7 @@
       opacity: 1;
       filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.8));
       transform: scale(1.2) translateY(-10px);
-      z-index: 20;
+      z-index: 35;
     }
     .battle-arena-wrapper.compact-arena .quest-focus-active .monsters-battle-side .combatant-wrapper.is-focused {
       transform: perspective(400px) rotateY(-20deg) rotateX(4deg) translateY(0) scale(0.82);
@@ -4787,7 +4791,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
       pointer-events: none;
-      z-index: 8;
+      z-index: 12;
       animation: fogPulse 4s infinite alternate;
     }
     @keyframes fogPulse {
@@ -4804,10 +4808,10 @@
     }
     .monsters-battle-side.horde {
       position: absolute;
-      right: 0.75rem;
+      right: clamp(0.65rem, 2vw, 2.25rem);
       left: auto;
-      bottom: 2.5rem;
-      height: calc(100% - 3.5rem);
+      bottom: var(--battle-ground-line);
+      height: calc(100% - 3.85rem);
       overflow: visible;
       align-items: flex-end;
       justify-content: flex-end;
@@ -4815,11 +4819,11 @@
       direction: ltr;
       gap: 0;
       padding-left: 0;
-      padding-right: 0.25rem;
+      padding-right: 0;
       min-width: 0;
-      width: 58%;
+      width: min(78%, calc(100% - 8.5rem));
       margin-left: 0;
-      z-index: 12;
+      z-index: 23;
     }
     .battle-arena-wrapper.compact-arena .monsters-battle-side.horde {
       bottom: var(--compact-ground-line, 1.05rem);
@@ -4832,17 +4836,17 @@
       min-width: var(--horde-slot-width, 48px);
       margin-left: var(--horde-overlap, -10px) !important;
       margin-right: -2px !important;
-      transform: perspective(400px) rotateY(-20deg) rotateX(5deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
+      transform: perspective(400px) rotateY(-14deg) rotateX(3deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
       transform-origin: bottom center;
     }
     .monsters-battle-side.horde.dense .combatant-wrapper {
       margin-left: var(--horde-overlap, -10px) !important;
       margin-right: -2px !important;
-      transform: perspective(400px) rotateY(-20deg) rotateX(5deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
+      transform: perspective(400px) rotateY(-14deg) rotateX(3deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
     }
     .battle-arena-wrapper.compact-arena .monsters-battle-side.horde .combatant-wrapper,
     .battle-arena-wrapper.compact-arena .monsters-battle-side.horde.dense .combatant-wrapper {
-      transform: perspective(400px) rotateY(-20deg) rotateX(4deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
+      transform: perspective(400px) rotateY(-14deg) rotateX(3deg) translateY(var(--horde-y, 0px)) scale(var(--horde-scale, 0.72));
       transform-origin: bottom center;
     }
     .monsters-battle-side.horde .combatant-tag {
@@ -4887,6 +4891,7 @@
       position: relative;
       bottom: 0;
       transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 22;
     }
     
     .sprite-container {
@@ -4976,12 +4981,12 @@
     /* Camp Layout for resting around the campfire */
     .battle-arena.in-camp .party-battle-side {
       position: absolute;
-      left: 2rem;
-      bottom: 2.5rem;
-      width: 250px;
+      left: clamp(1rem, 6vw, 5rem);
+      bottom: 2.15rem;
+      width: clamp(230px, 28vw, 340px);
       height: 120px;
       display: block; /* Disable flex */
-      z-index: 3;
+      z-index: 22;
     }
     
     .battle-arena.in-camp .party-battle-side .combatant-wrapper {
@@ -5184,7 +5189,7 @@
       top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 10;
+      z-index: 40;
       font-family: var(--font-game);
       font-size: 0.75rem;
       font-weight: 900;
@@ -6517,6 +6522,7 @@
         height: 145px;
         min-height: 145px;
         padding: 0.45rem 0.65rem 1.05rem 0.65rem;
+        --battle-ground-line: 1.05rem;
       }
 
       .battle-header {
@@ -6554,14 +6560,15 @@
       }
 
       .party-battle-side {
-        left: 0.35rem;
+        width: 34%;
+        padding-left: 0.35rem;
       }
 
       .monsters-battle-side {
-        right: 0.35rem;
-        max-width: 72%;
-        overflow-x: auto;
-        overflow-y: hidden;
+        width: 64%;
+        max-width: none;
+        padding-right: 0.25rem;
+        overflow: visible;
         scrollbar-width: none;
       }
 
@@ -6580,17 +6587,20 @@
       }
 
       .monsters-battle-side.horde {
-        justify-content: flex-start;
-        gap: clamp(0.2rem, 1.2vw, 0.45rem);
+        right: 0.45rem;
+        width: min(78%, calc(100% - 5.25rem));
+        justify-content: flex-end;
+        gap: 0;
       }
 
       .monsters-battle-side.horde .combatant-wrapper {
-        margin-left: -0.25rem;
-        margin-right: -0.05rem;
+        margin-left: var(--horde-overlap, -6px) !important;
+        margin-right: -0.05rem !important;
       }
 
       .camp-scene-props {
-        transform: translateX(-50%) scale(0.64);
+        width: min(92vw, 620px);
+        transform: translateX(-50%) scale(0.68);
         transform-origin: bottom center;
       }
 
@@ -6721,6 +6731,7 @@
       .battle-arena {
         height: 132px;
         min-height: 132px;
+        --battle-ground-line: 0.95rem;
       }
 
       .pomo-widget {
@@ -6790,13 +6801,13 @@
     }
     body:not(.qol-calm-visuals) .battle-bg .battle-sky {
       height: 68%;
-      z-index: 1;
+      z-index: 0;
       background: var(--battle-layer-back) center center / cover no-repeat !important;
       filter: saturate(1.02) contrast(1.04);
     }
     body:not(.qol-calm-visuals) .battle-bg .battle-ground {
       height: 38%;
-      z-index: 2;
+      z-index: 1;
       background: var(--battle-layer-floor) center bottom / cover no-repeat !important;
       border-top-color: rgba(255, 255, 255, 0.08) !important;
       box-shadow: inset 0 18px 26px rgba(0,0,0,0.18) !important;
@@ -6806,27 +6817,35 @@
       background: none !important;
     }
     body:not(.qol-calm-visuals) .battle-bg .battle-objects {
-      height: 34%;
+      height: 42%;
       top: auto;
-      bottom: 6%;
-      z-index: 3;
+      bottom: 3%;
+      z-index: 2;
       background-image: var(--battle-layer-props) !important;
-      background-repeat: no-repeat !important;
+      background-repeat: repeat-x !important;
       background-position: center bottom !important;
-      background-size: min(900px, 70%) auto !important;
-      opacity: 0.58 !important;
+      background-size: max(100%, 980px) auto !important;
+      opacity: 0.46 !important;
       filter: drop-shadow(0 8px 8px rgba(0,0,0,0.28));
     }
+    body:not(.qol-calm-visuals) .battle-bg.active .battle-objects {
+      background-repeat: repeat-x !important;
+      background-position: center bottom !important;
+      background-size: max(100%, 980px) auto !important;
+    }
+    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg.active .battle-objects {
+      background-size: max(100%, 720px) auto !important;
+    }
     body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg .battle-objects {
-      height: 31%;
-      bottom: 6%;
-      background-size: min(600px, 62%) auto !important;
+      height: 38%;
+      bottom: 3%;
+      background-size: max(100%, 720px) auto !important;
     }
     @media (max-width: 760px) {
       body:not(.qol-calm-visuals) .battle-bg .battle-objects {
-        height: 30%;
-        bottom: 6%;
-        background-size: min(460px, 60%) auto !important;
+        height: 36%;
+        bottom: 2%;
+        background-size: max(100%, 560px) auto !important;
       }
     }
   </style>
@@ -14489,7 +14508,7 @@
               applyMonsterColorVariant(monsterWrapper, `${monsterType}:${quest.id}:${quest.title || ''}`);
               monsterWrapper.style.setProperty('--approach-x', `${getCachedQuestMonsterApproachX(quest)}px`);
               if (hordeMode) {
-                const hordeYOffset = ((index % 3) - 1) * 3;
+                const hordeYOffset = ((index % 3) - 1) * 1.25;
                 monsterWrapper.style.setProperty('--horde-y', `${hordeYOffset}px`);
               }
               monsterWrapper.innerHTML = `
@@ -14511,12 +14530,12 @@
             });
             monstersSide.classList.toggle('horde', hordeMode);
             if (hordeMode) {
-              const scale = Math.max(0.72, Math.min(0.9, 0.98 - (activeQuests.length * 0.008)));
-              const slotWidth = activeQuests.length >= 18 ? 52 : activeQuests.length >= 12 ? 56 : 62;
-              const overlap = Math.max(-16, -6 - activeQuests.length * 0.45);
+              const scale = Math.max(0.78, Math.min(0.94, 1 - (activeQuests.length * 0.006)));
+              const slotWidth = activeQuests.length >= 18 ? 58 : activeQuests.length >= 12 ? 64 : 70;
+              const overlap = Math.max(-10, -2 - activeQuests.length * 0.18);
               monstersSide.style.setProperty('--horde-scale', scale.toFixed(2));
               monstersSide.style.setProperty('--horde-slot-width', `${slotWidth}px`);
-              monstersSide.style.setProperty('--horde-tag-width', activeQuests.length >= 18 ? '3.3rem' : '3.8rem');
+              monstersSide.style.setProperty('--horde-tag-width', activeQuests.length >= 18 ? '3.6rem' : '4.2rem');
               monstersSide.style.setProperty('--horde-overlap', `${overlap.toFixed(0)}px`);
             } else {
               monstersSide.style.removeProperty('--horde-scale');
