@@ -10003,7 +10003,23 @@
       { id: "suggest-arcane-astral-dragon", theme: "arcane", name: "Dragon Astral des Runes", hp: 3500, rewardXp: 1680, rewardGold: 960, tag: "Ecole de magie", monsterType: "raid_astral_dragon" },
       { id: "suggest-stargate-goauld", theme: "stargate", name: "Pharaon Serpent du Portail", hp: 1450, rewardXp: 740, rewardGold: 410, tag: "Portail egyptien", monsterType: "raid_serpent_pharaoh" },
       { id: "suggest-stargate-replicator", theme: "stargate", name: "Essaim Scarabee des Glyphes", hp: 2350, rewardXp: 1120, rewardGold: 670, tag: "Portail egyptien", monsterType: "raid_glyph_scarab_swarm" },
-      { id: "suggest-stargate-mothership", theme: "stargate", name: "Pyramide Stellaire Ancienne", hp: 3700, rewardXp: 1760, rewardGold: 1020, tag: "Portail egyptien", monsterType: "raid_ancient_star_pyramid" }
+      { id: "suggest-stargate-mothership", theme: "stargate", name: "Pyramide Stellaire Ancienne", hp: 3700, rewardXp: 1760, rewardGold: 1020, tag: "Portail egyptien", monsterType: "raid_ancient_star_pyramid" },
+      { id: "suggest-mirror-hydra", name: "Hydre du Doute", hp: 520, rewardXp: 210, rewardGold: 130, tag: "Confiance", monsterType: "raid_mirror_hydra" },
+      { id: "suggest-chronowyrm", name: "Chronowyrm Mange-Temps", hp: 780, rewardXp: 330, rewardGold: 210, tag: "Temps", monsterType: "raid_chronowyrm" },
+      { id: "suggest-inbox-leviathan", name: "Leviathan de l'Inbox", hp: 980, rewardXp: 430, rewardGold: 260, tag: "Messages", monsterType: "raid_inbox_leviathan" },
+      { id: "suggest-tax-golem", name: "Golem des Papiers", hp: 1280, rewardXp: 610, rewardGold: 360, tag: "Administratif", monsterType: "raid_tax_golem" },
+      { id: "suggest-bad-habit-chef", name: "Chef des Mauvaises Habitudes", hp: 1680, rewardXp: 820, rewardGold: 480, tag: "Habitudes", monsterType: "raid_bad_habit_chef" },
+      { id: "suggest-sleep-debt-banshee", name: "Banshee de la Dette de Sommeil", hp: 2100, rewardXp: 1030, rewardGold: 620, tag: "Repos", monsterType: "raid_sleep_debt_banshee" },
+      { id: "suggest-inferno-djent-warlord", theme: "inferno", name: "Seigneur Djent des Braises", hp: 2850, rewardXp: 1380, rewardGold: 820, tag: "Enfer brutal", monsterType: "raid_djent_warlord" },
+      { id: "suggest-inferno-magma-cathedral", theme: "inferno", name: "Behemoth de la Cathedrale Magma", hp: 4300, rewardXp: 2050, rewardGold: 1250, tag: "Enfer brutal", monsterType: "raid_magma_cathedral_behemoth" },
+      { id: "suggest-arcane-quidditch-wraith", theme: "arcane", name: "Spectre du Balai Astral", hp: 2200, rewardXp: 1080, rewardGold: 640, tag: "Ecole de magie", monsterType: "raid_quidditch_wraith" },
+      { id: "suggest-arcane-potion-hydra", theme: "arcane", name: "Hydre des Potions Ratees", hp: 3900, rewardXp: 1880, rewardGold: 1120, tag: "Ecole de magie", monsterType: "raid_potion_hydra" },
+      { id: "suggest-stargate-solar-ra", theme: "stargate", name: "Ra Solaire du Portail", hp: 2550, rewardXp: 1240, rewardGold: 730, tag: "Portail egyptien", monsterType: "raid_solar_ra" },
+      { id: "suggest-stargate-horus-colossus", theme: "stargate", name: "Colosse Horus du Chevrons", hp: 4550, rewardXp: 2180, rewardGold: 1320, tag: "Portail egyptien", monsterType: "raid_horus_gate_colossus" },
+      { id: "suggest-noir-don-umbra", theme: "noir", name: "Don Umbra", hp: 2400, rewardXp: 1160, rewardGold: 760, tag: "Noir", monsterType: "raid_don_umbra" },
+      { id: "suggest-zombie-patriarch", theme: "zombie", name: "Patriarche de la Horde", hp: 3300, rewardXp: 1580, rewardGold: 930, tag: "Zombie", monsterType: "raid_zombie_patriarch" },
+      { id: "suggest-scifi-xeno-matriarch", theme: "scifi", name: "Matriarche de la Ruche Xeno", hp: 4200, rewardXp: 2020, rewardGold: 1220, tag: "Sci-fi", monsterType: "raid_xeno_hive_matriarch" },
+      { id: "suggest-sartorius-incubator-prime", theme: "sartorius", name: "Incubateur Prime", hp: 4600, rewardXp: 2200, rewardGold: 1380, tag: "Laboratoire", monsterType: "raid_incubator_prime" }
     ];
 
     let state = {
@@ -11863,6 +11879,10 @@
 
     function deleteRaidBoss(id) {
       state.raids = state.raids.filter(r => r.id !== id);
+      if (state.activeRaidId === id) {
+        const nextActiveRaid = (state.raids || []).find(raid => raid && !raid.completed);
+        state.activeRaidId = nextActiveRaid ? nextActiveRaid.id : null;
+      }
       saveState();
     }
 
@@ -12827,7 +12847,23 @@
       raid_astral_dragon: 'premium_arcane_book_bat',
       raid_serpent_pharaoh: 'premium_jaffa_serpent_guard',
       raid_glyph_scarab_swarm: 'premium_jaffa_serpent_guard',
-      raid_ancient_star_pyramid: 'premium_jaffa_serpent_guard'
+      raid_ancient_star_pyramid: 'premium_jaffa_serpent_guard',
+      raid_mirror_hydra: 'premium_arcane_book_bat',
+      raid_chronowyrm: 'premium_cyber_beast',
+      raid_inbox_leviathan: 'premium_cyber_beast',
+      raid_tax_golem: 'premium_skeleton_knight',
+      raid_bad_habit_chef: 'premium_inferno_brute',
+      raid_sleep_debt_banshee: 'premium_skeleton_knight',
+      raid_djent_warlord: 'premium_inferno_brute',
+      raid_magma_cathedral_behemoth: 'premium_inferno_brute',
+      raid_quidditch_wraith: 'premium_arcane_book_bat',
+      raid_potion_hydra: 'premium_arcane_book_bat',
+      raid_solar_ra: 'premium_jaffa_serpent_guard',
+      raid_horus_gate_colossus: 'premium_jaffa_serpent_guard',
+      raid_don_umbra: 'premium_skeleton_knight',
+      raid_zombie_patriarch: 'premium_skeleton_knight',
+      raid_xeno_hive_matriarch: 'premium_cyber_beast',
+      raid_incubator_prime: 'premium_cyber_beast'
     };
 
     const UNIQUE_MONSTER_ASSETS = {
@@ -12917,7 +12953,23 @@
       raid_astral_dragon: 'raid_astral_dragon',
       raid_serpent_pharaoh: 'raid_serpent_pharaoh',
       raid_glyph_scarab_swarm: 'raid_glyph_scarab_swarm',
-      raid_ancient_star_pyramid: 'raid_ancient_star_pyramid'
+      raid_ancient_star_pyramid: 'raid_ancient_star_pyramid',
+      raid_mirror_hydra: 'raid_mirror_hydra',
+      raid_chronowyrm: 'raid_chronowyrm',
+      raid_inbox_leviathan: 'raid_inbox_leviathan',
+      raid_tax_golem: 'raid_tax_golem',
+      raid_bad_habit_chef: 'raid_bad_habit_chef',
+      raid_sleep_debt_banshee: 'raid_sleep_debt_banshee',
+      raid_djent_warlord: 'raid_djent_warlord',
+      raid_magma_cathedral_behemoth: 'raid_magma_cathedral_behemoth',
+      raid_quidditch_wraith: 'raid_quidditch_wraith',
+      raid_potion_hydra: 'raid_potion_hydra',
+      raid_solar_ra: 'raid_solar_ra',
+      raid_horus_gate_colossus: 'raid_horus_gate_colossus',
+      raid_don_umbra: 'raid_don_umbra',
+      raid_zombie_patriarch: 'raid_zombie_patriarch',
+      raid_xeno_hive_matriarch: 'raid_xeno_hive_matriarch',
+      raid_incubator_prime: 'raid_incubator_prime'
     };
 
     const MONSTER_SKIN_CHOICES = {};
@@ -18740,7 +18792,23 @@
         raid_astral_dragon: "Dragon astral des runes",
         raid_serpent_pharaoh: "Pharaon serpent",
         raid_glyph_scarab_swarm: "Essaim scarabee des glyphes",
-        raid_ancient_star_pyramid: "Pyramide stellaire ancienne"
+        raid_ancient_star_pyramid: "Pyramide stellaire ancienne",
+        raid_mirror_hydra: "Hydre du doute",
+        raid_chronowyrm: "Chronowyrm mange-temps",
+        raid_inbox_leviathan: "Leviathan de l'inbox",
+        raid_tax_golem: "Golem des papiers",
+        raid_bad_habit_chef: "Chef des mauvaises habitudes",
+        raid_sleep_debt_banshee: "Banshee de la dette de sommeil",
+        raid_djent_warlord: "Seigneur djent des braises",
+        raid_magma_cathedral_behemoth: "Behemoth de la cathedrale magma",
+        raid_quidditch_wraith: "Spectre du balai astral",
+        raid_potion_hydra: "Hydre des potions ratees",
+        raid_solar_ra: "Ra solaire du portail",
+        raid_horus_gate_colossus: "Colosse Horus du portail",
+        raid_don_umbra: "Don Umbra",
+        raid_zombie_patriarch: "Patriarche de la horde",
+        raid_xeno_hive_matriarch: "Matriarche de la ruche xeno",
+        raid_incubator_prime: "Incubateur Prime"
       };
       return names[id] || (id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "));
     }
@@ -19079,7 +19147,9 @@
             <span style="font-size:0.7rem; color:var(--text-muted);">Inviter un ami donne +25% degats boss</span>
           `;
           emptySlot.addEventListener('click', () => {
-            openModal(elements.importFriendModal);
+            const inviteButton = document.getElementById('open-export-profile-btn');
+            if (inviteButton) inviteButton.click();
+            else openModal(elements.importFriendModal);
           });
           grid.appendChild(emptySlot);
         }
