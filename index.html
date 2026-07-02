@@ -1381,6 +1381,10 @@
       font-size: 0.68rem;
       white-space: nowrap;
     }
+    .btn-water-add.is-cooling {
+      opacity: 0.55;
+      cursor: wait;
+    }
 
     .stat-val-group {
       display: flex;
@@ -2328,6 +2332,10 @@
       align-items: center;
       gap: 0.25rem;
       font-weight: 600;
+      background: rgba(2, 6, 23, 0.72);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      padding: 0.12rem 0.42rem;
     }
     .reward-xp { color: var(--color-xp); }
     .reward-gold { color: var(--color-gold); }
@@ -2378,6 +2386,22 @@
     .btn-delete-quest:hover {
       color: #ff4d6d;
       background: rgba(255, 77, 109, 0.15);
+    }
+    .btn-edit-quest {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.35rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .btn-edit-quest:hover {
+      color: var(--color-xp);
+      background: rgba(0, 245, 212, 0.12);
     }
 
     /* Fade out animation on deletion/completion */
@@ -2991,12 +3015,18 @@
       position: absolute;
       pointer-events: none;
       font-family: var(--font-pixel);
-      font-size: 0.65rem;
+      font-size: 0.78rem;
       font-weight: bold;
       color: #fff;
-      text-shadow: 0 0 6px rgba(0,0,0,0.8), 0 0 3px rgba(0,0,0,0.9);
-      z-index: 1000;
-      animation: floatUpAndAway 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,1);
+      background: rgba(2, 6, 23, 0.82);
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 0.16rem 0.48rem;
+      z-index: 5000;
+      animation: floatUpAndAway 1.55s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
     }
 
     /* Dynamic particles */
@@ -7036,17 +7066,17 @@
           </div>
           <div class="stat-row stat-row-thirst" id="stat-thirst-row">
             <div class="stat-row-main">
-              <span class="stat-label" title="Rappel hydratation"><i data-lucide="droplets" class="stat-icon-thirst"></i> Soif</span>
+              <span class="stat-label" title="Rappel hydratation reel: bois vraiment un verre avant de valider."><i data-lucide="droplets" class="stat-icon-thirst"></i> Eau reelle</span>
               <div class="stat-val-group">
                 <span id="stat-thirst" class="stat-val">0 / 2000 ml</span>
-                <button type="button" class="btn btn-secondary btn-sm btn-water-add" id="drink-water-btn" title="Ajouter un verre d'eau">+250 ml</button>
+                <button type="button" class="btn btn-secondary btn-sm btn-water-add" id="drink-water-btn" title="A faire en vrai: bois un verre d'eau, puis valide.">+250 ml</button>
               </div>
             </div>
             <div class="sheet-thirst-bar" title="Hydratation du jour">
               <div id="stat-thirst-fill" class="sheet-thirst-fill"></div>
             </div>
             <div class="sheet-thirst-meta">
-              <span id="stat-thirst-status">Objectif progressif selon la journee</span>
+              <span id="stat-thirst-status">Rappel joueur reel, pas seulement le heros</span>
               <span id="stat-thirst-expected">0 ml attendu</span>
             </div>
           </div>
@@ -7115,9 +7145,17 @@
       <section class="game-card quest-log-card" aria-label="Journal de quêtes">
         <div class="quest-log-header">
           <h2 class="section-title" data-i18n="questLog"><i data-lucide="book-open"></i> JOURNAL DE QUÊTES</h2>
-          <button class="btn btn-primary" id="open-add-quest-btn">
-            <i data-lucide="plus"></i> Nouvelle Quête
-          </button>
+          <div style="display:flex; gap:0.45rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+            <button class="btn btn-secondary btn-sm" id="noob-mode-btn" type="button" title="Explique les termes RPG et les mecanismes de l'application.">
+              <i data-lucide="book-open-check"></i> Mode noob
+            </button>
+            <button class="btn btn-secondary btn-sm" id="quick-quest-jump-btn" type="button" title="Place le curseur dans l'ajout rapide.">
+              <i data-lucide="zap"></i> Quete rapide
+            </button>
+            <button class="btn btn-primary" id="open-add-quest-btn">
+              <i data-lucide="plus"></i> Nouvelle Quête
+            </button>
+          </div>
         </div>
 
         <div class="today-panel" id="today-panel">
@@ -7678,6 +7716,27 @@
           <button type="submit" class="btn btn-primary">Créer la quête</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="noob-help-modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i data-lucide="book-open-check"></i> MODE NOOB</h2>
+        <button class="modal-close" id="close-noob-help-btn">&times;</button>
+      </div>
+      <div style="display:grid; gap:0.75rem; color:var(--text-secondary); font-size:0.9rem; line-height:1.45;">
+        <p><strong style="color:var(--color-xp);">Quete</strong> = une vraie tache a faire dans ta vie.</p>
+        <p><strong style="color:var(--color-gold);">Monstre</strong> = la representation visuelle d'une tache. Le tuer veut dire terminer la tache.</p>
+        <p><strong>XP</strong> = progression de ton heros. <strong>PO</strong> = monnaie pour acheter soins, equipements ou recompenses reelles.</p>
+        <p><strong>FOR / INT / SAG / CHA / CON</strong> = types d'effort : physique, mental, organisation, social, sante.</p>
+        <p><strong>Planner</strong> = agenda de taches. Quand l'heure approche, le monstre approche aussi.</p>
+        <p><strong>Soif</strong> = rappel pour toi, joueur reel. Quand tu appuies, fais vraiment l'action: boire un verre d'eau.</p>
+        <p><strong>Mode calme</strong> = scene plus simple et moins chargee pour eviter la fatigue visuelle.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="ok-noob-help-btn" type="button">Compris</button>
+      </div>
     </div>
   </div>
 
@@ -9962,6 +10021,8 @@
       dashboardTab: "today"
     };
 
+    let editingQuestId = null;
+
     const STORAGE_KEY = "questlog_rpg_state";
     let SUPABASE_URL = "";
     let SUPABASE_ANON_KEY = "";
@@ -10907,6 +10968,101 @@
         }))
       };
       state.quests.unshift(quest);
+      saveState();
+      return quest;
+    }
+
+    function setQuestModalMode(mode = 'create', quest = null) {
+      editingQuestId = mode === 'edit' && quest ? quest.id : null;
+      const modalTitle = document.querySelector('#add-quest-modal .modal-header h2');
+      const submitBtn = document.querySelector('#add-quest-form button[type="submit"]');
+      if (modalTitle) modalTitle.innerHTML = mode === 'edit'
+        ? '<i data-lucide="edit-3"></i> EDITER LA QUETE'
+        : '<i data-lucide="scroll"></i> NOUVELLE QUETE';
+      if (submitBtn) submitBtn.textContent = mode === 'edit' ? 'Enregistrer' : 'Creer la quete';
+    }
+
+    function clearQuestForm() {
+      document.getElementById('quest-title').value = '';
+      document.getElementById('quest-desc').value = '';
+      document.getElementById('quest-type').value = 'side';
+      document.getElementById('quest-difficulty').value = 'easy';
+      document.getElementById('quest-stat').value = 'INT';
+      document.getElementById('quest-recurrence').value = 'none';
+      const timer = document.getElementById('quest-timer');
+      if (timer) timer.value = '0';
+      clearSubtaskInputs();
+    }
+
+    function addSubtaskInputRow(value = '', completed = false) {
+      const container = document.getElementById('subtasks-input-container');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = 'subtask-input-row';
+      div.style.display = 'flex';
+      div.style.gap = '0.5rem';
+      div.innerHTML = `
+        <input type="text" class="subtask-input" data-completed="${completed ? 'true' : 'false'}" value="${escapeHTML(value)}" placeholder="Nom de la sous-tache..." style="flex:1; background:rgba(0,0,0,0.5);" maxlength="50">
+        <button type="button" class="btn btn-danger btn-sm remove-subtask-input-btn" style="padding:0.5rem; display:flex; align-items:center; justify-content:center;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
+      `;
+      container.appendChild(div);
+      createIcons();
+    }
+
+    function openQuestCreateModal() {
+      renderWorldSelects();
+      clearQuestForm();
+      setQuestModalMode('create');
+      openModal(appModals.addQuestModal);
+      createIcons();
+    }
+
+    function openQuestEditModal(questId) {
+      const quest = (state.quests || []).find(q => q.id === questId);
+      if (!quest) return;
+      renderWorldSelects();
+      setQuestModalMode('edit', quest);
+      document.getElementById('quest-title').value = quest.titleKey ? t(quest.titleKey) : (quest.title || '');
+      document.getElementById('quest-desc').value = quest.descKey ? t(quest.descKey) : (quest.description || '');
+      document.getElementById('quest-type').value = quest.type || 'side';
+      document.getElementById('quest-difficulty').value = quest.difficulty || 'easy';
+      document.getElementById('quest-stat').value = quest.associatedStat || 'INT';
+      document.getElementById('quest-recurrence').value = quest.recurrence || 'none';
+      const timer = document.getElementById('quest-timer');
+      if (timer) timer.value = String(quest.timerDuration || 0);
+      const worldSelect = document.getElementById('quest-world');
+      if (worldSelect) worldSelect.value = quest.worldId || 'world-general';
+      clearSubtaskInputs();
+      (quest.subtasks || []).forEach(sub => addSubtaskInputRow(sub.title || '', !!sub.completed));
+      openModal(appModals.addQuestModal);
+      createIcons();
+    }
+
+    function updateQuestFromForm(quest, values, subtaskTitles) {
+      quest.title = values.title.trim();
+      quest.description = values.desc.trim();
+      delete quest.titleKey;
+      delete quest.descKey;
+      quest.type = values.type;
+      quest.difficulty = values.difficulty;
+      quest.associatedStat = values.stat;
+      quest.statReason = getStatMeta(values.stat).meaning;
+      quest.recurrence = values.recurrence;
+      quest.worldId = values.worldId;
+      const previousTimer = Number(quest.timerDuration) || 0;
+      const nextTimer = parseInt(values.timerDuration, 10) || 0;
+      quest.timerDuration = nextTimer;
+      if (nextTimer !== previousTimer) {
+        quest.timeRemaining = nextTimer * 60;
+        quest.timerRunning = false;
+        quest.timerFailed = false;
+      }
+      const previousSubtasks = quest.subtasks || [];
+      quest.subtasks = subtaskTitles.map((title, idx) => ({
+        id: previousSubtasks[idx]?.id || `sub-${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`,
+        title,
+        completed: previousSubtasks[idx]?.title === title ? !!previousSubtasks[idx].completed : false
+      }));
       saveState();
       return quest;
     }
@@ -13775,7 +13931,7 @@
       });
     }
 
-    function selectQuestMonster(questId) {
+    function selectQuestMonster(questId, options = {}) {
       if (!questId) return;
       const quest = (state.quests || []).find(q => q.id === questId);
       if (!quest || quest.completed) return;
@@ -13784,6 +13940,12 @@
         card.classList.remove('quest-selected');
       });
       const questCard = document.getElementById(questId);
+      if (options.scrollToQuest && !questCard && currentQuestFilter !== 'all') {
+        currentQuestFilter = 'all';
+        renderQuests();
+        requestAnimationFrame(() => selectQuestMonster(questId, { scrollToQuest: true }));
+        return;
+      }
       if (questCard && questCard.classList.contains('quest-card')) {
         questCard.classList.add('quest-selected');
       }
@@ -13793,6 +13955,14 @@
       const monster = document.getElementById(`arena-monster-${questId}`);
       if (monster) {
         monster.classList.add('is-selected-quest');
+      }
+      if (options.scrollToQuest && questCard) {
+        questCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        questCard.animate([
+          { boxShadow: '0 0 0 rgba(0,245,212,0)' },
+          { boxShadow: '0 0 18px rgba(0,245,212,0.55)' },
+          { boxShadow: '0 0 0 rgba(0,245,212,0)' }
+        ], { duration: 900, easing: 'ease-out' });
       }
     }
 
@@ -14185,6 +14355,9 @@
                 </div>
               `;
               monstersSide.appendChild(monsterWrapper);
+              monsterWrapper.addEventListener('click', () => {
+                selectQuestMonster(quest.id, { scrollToQuest: true });
+              });
               if (!quest.completed) {
                 const hasCachedApproach = typeof questMonsterApproachCache[quest.id] === 'number';
                 setQuestMonsterApproachX(quest, monsterWrapper, getQuestMonsterApproachX(quest, monsterWrapper), hasCachedApproach);
@@ -16384,14 +16557,21 @@
       const panel = document.getElementById('recovery-journal-panel');
       if (!panel) return;
       const hydration = getHydrationProgress();
+      const hp = Math.max(0, Number(state.player.hp) || 0);
+      const maxHp = Math.max(1, Number(state.player.maxHp) || 100);
+      const hpPercent = Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100)));
       panel.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.25rem;">
           <strong style="color:var(--color-xp); font-size:0.72rem;">Bilan du jour</strong>
           <span>${getDayModeMeta().label}</span>
         </div>
-        <div>PV -${state.recoveryJournal.hpLost} / +${state.recoveryJournal.hpRecovered}</div>
-        <div>Eau ${hydration.waterMl}/${hydration.goal} ml</div>
-        <div>OK ${state.recoveryJournal.completedQuests} · Rates ${state.recoveryJournal.missedQuests}</div>
+        <div style="display:grid; gap:0.25rem;">
+          <div style="display:flex; justify-content:space-between;"><span>PV heros</span><strong>${hp}/${maxHp}</strong></div>
+          <div class="sheet-hp-bar" style="height:7px;"><div class="sheet-hp-fill" style="width:${hpPercent}%;"></div></div>
+          <div>PV perdus/recuperes aujourd'hui : -${state.recoveryJournal.hpLost} / +${state.recoveryJournal.hpRecovered}</div>
+          <div>Eau joueur reel : ${hydration.waterMl}/${hydration.goal} ml</div>
+          <div>OK ${state.recoveryJournal.completedQuests} · A replanifier ${state.recoveryJournal.missedQuests}</div>
+        </div>
       `;
     }
 
@@ -16873,11 +17053,13 @@
       const micro = next && next.quest ? getQuestMicroAction(next.quest) : "Ajouter une micro-tache simple";
       const hp = `${state.player.hp || 0}/${state.player.maxHp || 100} PV`;
       const water = `${hydration.waterMl}/${hydration.goal} ml`;
+      const hpPercent = Math.max(0, Math.min(100, Math.round(((Number(state.player.hp) || 0) / Math.max(1, Number(state.player.maxHp) || 100)) * 100)));
       grid.innerHTML = `
         <div class="today-tile"><span class="today-label">Priorite</span><span class="today-value" title="${escapeHTML(title)}">${escapeHTML(title)}</span></div>
         <div class="today-tile"><span class="today-label">Micro-action</span><span class="today-value" title="${escapeHTML(micro)}">${escapeHTML(micro)}</span></div>
         <div class="today-tile"><span class="today-label">Planner</span><span class="today-value">${plannedToday.length} prevue(s)</span></div>
-        <div class="today-tile"><span class="today-label">Etat</span><span class="today-value">${hp} - Eau ${water}</span></div>
+        <div class="today-tile"><span class="today-label">Etat</span><span class="today-value">${hp}</span><div class="sheet-hp-bar" style="height:7px;margin-top:0.25rem;"><div class="sheet-hp-fill" style="width:${hpPercent}%;"></div></div></div>
+        <div class="today-tile"><span class="today-label">Eau reelle</span><span class="today-value">${water}</span><span style="font-size:0.68rem;color:var(--text-muted);">Action a faire en vrai</span></div>
         <div class="today-tile"><span class="today-label">Energie mentale</span><span class="today-value">${mentalEnergy}%</span></div>
         <div class="today-tile"><span class="today-label">Mode</span><span class="today-value">${getDayModeMeta().label}</span></div>
         <div class="today-tile"><span class="today-label">Campement</span><span class="today-value" title="${escapeHTML(camp.detail)}">${escapeHTML(camp.name)} niv. ${camp.level}</span></div>
@@ -16906,8 +17088,13 @@
       if (journal) {
         const entries = (state.eventJournal || []).slice(0, 6);
         journal.innerHTML = entries.length
-          ? entries.map(entry => `<div><strong>${entry.type === 'real' ? 'Reel' : 'Jeu'}:</strong> ${escapeHTML(entry.text)}</div>`).join('')
-          : `<div><strong>Journal:</strong> les gains, pertes et actions importantes apparaitront ici.</div>`;
+          ? entries.map(entry => {
+              const icon = entry.type === 'real' ? 'droplets' : 'swords';
+              const label = entry.type === 'real' ? 'Action reelle' : 'Jeu';
+              const time = entry.at ? new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+              return `<div style="display:flex; gap:0.45rem; align-items:flex-start; padding:0.32rem 0; border-bottom:1px solid rgba(255,255,255,0.06);"><i data-lucide="${icon}" style="width:14px;height:14px;flex:0 0 auto;color:${entry.type === 'real' ? '#38bdf8' : 'var(--color-gold)'};"></i><div><strong>${label} · ${time}</strong><br><span>${escapeHTML(entry.text)}</span></div></div>`;
+            }).join('')
+          : `<div><strong>Journal:</strong> les gains, pertes, eau reelle et actions importantes apparaitront ici.</div>`;
       }
       renderNeuroQuestCompass();
       createIcons();
@@ -17205,7 +17392,19 @@
           ${worldButtons}
         </div>
         <form id="world-create-form" class="world-create-form">
-          <input id="world-create-input" type="text" placeholder="Nouveau monde..." maxlength="28">
+          <input id="world-create-input" type="text" list="world-create-suggestions" placeholder="Nouveau monde..." maxlength="28" title="Exemples: Travail, Maison, Santé, Administratif, Projet perso">
+          <datalist id="world-create-suggestions">
+            <option value="Travail"></option>
+            <option value="Maison"></option>
+            <option value="Sante"></option>
+            <option value="Administratif"></option>
+            <option value="Projet perso"></option>
+            <option value="Etudes"></option>
+            <option value="Sport"></option>
+            <option value="Routine matin"></option>
+            <option value="Creation"></option>
+            <option value="Urgences"></option>
+          </datalist>
           <button class="btn btn-secondary btn-sm" type="submit" style="padding:0.35rem 0.55rem;"><i data-lucide="plus"></i></button>
         </form>
         ${settingsPanel}
@@ -17297,13 +17496,13 @@
       if (elements.statThirstFill) elements.statThirstFill.style.width = `${hydration.dailyPercent}%`;
       if (elements.statThirstStatus) {
         if (hydration.dailyPercent >= 100) {
-          elements.statThirstStatus.textContent = "Objectif atteint - bonus stable";
+          elements.statThirstStatus.textContent = "Objectif reel atteint - bonus stable";
         } else if (hydration.waterMl <= 0 && hydration.expectedMl >= 750) {
-          elements.statThirstStatus.textContent = "Deshydrate: repos ralenti, risque PV";
+          elements.statThirstStatus.textContent = "Action reelle: bois un verre, repos ralenti sinon";
         } else if (isHydrationLow) {
-          elements.statThirstStatus.textContent = `Repos ralenti - boire ${Math.ceil(hydration.missingMl / state.player.hydrationGlassMl)} verre(s)`;
+          elements.statThirstStatus.textContent = `Action reelle: boire ${Math.ceil(hydration.missingMl / state.player.hydrationGlassMl)} verre(s)`;
         } else {
-          elements.statThirstStatus.textContent = "Hydratation dans le rythme";
+          elements.statThirstStatus.textContent = "Eau reelle dans le rythme";
         }
       }
       if (elements.statThirstExpected) elements.statThirstExpected.textContent = `${hydration.expectedMl} ml attendu`;
@@ -17588,6 +17787,9 @@
                 <i data-lucide="check"></i>
               </button>
             ` : ''}
+            <button class="btn-edit-quest" data-id="${quest.id}" title="Editer la quete">
+              <i data-lucide="edit-3"></i>
+            </button>
             <button class="btn-delete-quest" data-id="${quest.id}" title="Supprimer la quête">
               <i data-lucide="trash-2"></i>
             </button>
@@ -17703,6 +17905,9 @@
                 <i data-lucide="check"></i>
               </button>
             ` : ''}
+            <button class="btn-edit-quest" data-id="${quest.id}" title="Editer la quete">
+              <i data-lucide="edit-3"></i>
+            </button>
             <button class="btn-delete-quest" data-id="${quest.id}" title="Supprimer la quête">
               <i data-lucide="trash-2"></i>
             </button>
@@ -17810,13 +18015,23 @@
         const quest = state.quests.find(q => q.id === item.questId);
         const row = document.createElement('div');
         row.className = 'planner-day-item';
+        const completed = !!(quest && quest.completed);
         if (item.missed) {
           row.style.borderColor = 'rgba(239,68,68,0.55)';
           row.style.background = 'rgba(239,68,68,0.08)';
+        } else if (completed) {
+          row.style.borderColor = 'rgba(16,185,129,0.55)';
+          row.style.background = 'rgba(16,185,129,0.08)';
         }
+        const statusIcon = completed
+          ? '<i data-lucide="check-circle" style="width:14px;height:14px;color:#10b981;"></i>'
+          : item.missed
+            ? '<i data-lucide="alert-triangle" style="width:14px;height:14px;color:#ef4444;"></i>'
+            : '<i data-lucide="clock" style="width:14px;height:14px;color:var(--color-gold);"></i>';
+        const statusLabel = completed ? 'Terminee' : item.missed ? 'A replanifier' : 'A terminer avant';
         row.innerHTML = `
-          <span class="planner-day-time">${escapeHTML(item.time)}</span>
-          <span class="planner-day-title" title="${escapeHTML(item.title)}">${quest && quest.completed ? 'OK - ' : item.missed ? 'RATE - ' : ''}${escapeHTML(item.title)}</span>
+          <span class="planner-day-time">${statusIcon} ${escapeHTML(item.time)}</span>
+          <span class="planner-day-title" title="${escapeHTML(item.title)}">${statusLabel} : ${escapeHTML(item.title)}</span>
           <button class="btn-delete-planner-item" data-id="${item.id}" title="Retirer du planner" style="background:none; border:none; color:var(--text-muted); cursor:pointer; display:flex; align-items:center;">
             <i data-lucide="x"></i>
           </button>
@@ -19289,7 +19504,21 @@
 
       const drinkWaterBtn = document.getElementById('drink-water-btn');
       if (drinkWaterBtn) {
-        drinkWaterBtn.addEventListener('click', addWaterGlass);
+        drinkWaterBtn.addEventListener('click', () => {
+          const now = Date.now();
+          if (drinkWaterBtn.dataset.coolUntil && now < Number(drinkWaterBtn.dataset.coolUntil)) {
+            spawnHeroFloatingText("Attends un instant", '#38bdf8', 'stat-thirst-row');
+            return;
+          }
+          drinkWaterBtn.dataset.coolUntil = String(now + 12000);
+          drinkWaterBtn.disabled = true;
+          drinkWaterBtn.classList.add('is-cooling');
+          addWaterGlass();
+          setTimeout(() => {
+            drinkWaterBtn.disabled = false;
+            drinkWaterBtn.classList.remove('is-cooling');
+          }, 12000);
+        });
       }
 
       const welcomeStartBtn = document.getElementById('welcome-start-btn');
@@ -19636,8 +19865,14 @@
 
         const completeBtn = e.target.closest('.btn-complete-quest');
         const deleteBtn = e.target.closest('.btn-delete-quest');
+        const editBtn = e.target.closest('.btn-edit-quest');
         const subtaskCheckbox = e.target.closest('.subtask-checkbox');
         const toggleTimerBtn = e.target.closest('.btn-toggle-timer');
+
+        if (editBtn) {
+          openQuestEditModal(editBtn.dataset.id);
+          return;
+        }
 
         if (toggleTimerBtn) {
           const questId = toggleTimerBtn.dataset.id;
@@ -20595,6 +20830,7 @@
       if (button.classList.contains('refuse-prop-btn')) return "Ignore cette proposition et la retire de la liste.";
       if (button.classList.contains('btn-toggle-timer')) return "Demarre ou met en pause le timer de cette quete.";
       if (button.classList.contains('btn-complete-quest')) return "Valide la quete, donne les gains et blesse le monstre associe.";
+      if (button.classList.contains('btn-edit-quest')) return "Ouvre cette quete pour modifier le nom, monde, difficulte, stat, timer et sous-taches.";
       if (button.classList.contains('btn-delete-quest')) return "Supprime cette quete. A utiliser seulement si elle n'est plus utile.";
       if (button.classList.contains('btn-delete-planner-item')) return "Retire cette entree du planner sans supprimer la quete.";
       if (button.classList.contains('btn-purchase-reward')) return "Achete cette recompense reelle avec tes PO apres avoir confirme l'action.";
@@ -20672,6 +20908,9 @@
       cancelAddQuestBtn: document.getElementById('cancel-add-quest-btn'),
       addQuestModal: document.getElementById('add-quest-modal'),
       addQuestForm: document.getElementById('add-quest-form'),
+      noobHelpModal: document.getElementById('noob-help-modal'),
+      closeNoobHelpBtn: document.getElementById('close-noob-help-btn'),
+      okNoobHelpBtn: document.getElementById('ok-noob-help-btn'),
 
       // Add Reward Modal
       openAddRewardBtn: document.getElementById('open-add-reward-btn'),
@@ -20987,12 +21226,33 @@
           }
           return;
         }
-        renderWorldSelects();
-        openModal(appModals.addQuestModal);
+        openQuestCreateModal();
       }, 'openAddQuestBtn');
+
+      const quickQuestJumpBtn = document.getElementById('quick-quest-jump-btn');
+      if (quickQuestJumpBtn) {
+        quickQuestJumpBtn.addEventListener('click', () => {
+          const toolsPanel = document.getElementById('adhd-tools-panel');
+          const quickInput = document.getElementById('quick-quest-title');
+          if (state.adhdToolsCollapsed) {
+            state.adhdToolsCollapsed = false;
+            saveState();
+            renderAdhdToolsControls();
+          }
+          if (toolsPanel) toolsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (quickInput) setTimeout(() => quickInput.focus(), 180);
+        });
+      }
+
+      const noobModeBtn = document.getElementById('noob-mode-btn');
+      if (noobModeBtn) noobModeBtn.addEventListener('click', () => openModal(appModals.noobHelpModal));
+      bindSafeListener(appModals.closeNoobHelpBtn, 'click', () => closeModal(appModals.noobHelpModal), 'closeNoobHelpBtn');
+      bindSafeListener(appModals.okNoobHelpBtn, 'click', () => closeModal(appModals.noobHelpModal), 'okNoobHelpBtn');
       
       const closeQuestModal = () => {
         closeModal(appModals.addQuestModal);
+        editingQuestId = null;
+        setQuestModalMode('create');
         clearSubtaskInputs();
       };
       bindSafeListener(appModals.closeAddQuestBtn, 'click', closeQuestModal, 'closeAddQuestBtn');
@@ -21019,31 +21279,30 @@
           }
         });
 
-        addQuest(title, desc, type, difficulty, stat, subtaskTitles, recurrence, timerDuration, worldId);
+        if (editingQuestId) {
+          const quest = state.quests.find(q => q.id === editingQuestId);
+          if (quest) {
+            updateQuestFromForm(quest, { title, desc, type, difficulty, stat, recurrence, timerDuration, worldId }, subtaskTitles);
+          }
+        } else {
+          addQuest(title, desc, type, difficulty, stat, subtaskTitles, recurrence, timerDuration, worldId);
+        }
         closeQuestModal();
         renderQuests();
         renderBattleArena();
       }, 'addQuestForm');
 
+      appModals.addQuestForm?.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-subtask-input-btn');
+        if (!removeBtn) return;
+        removeBtn.closest('.subtask-input-row')?.remove();
+      });
+
       // Add Subtask input row trigger
       const addSubtaskBtn = document.getElementById('add-subtask-input-btn');
       if (addSubtaskBtn) {
         addSubtaskBtn.addEventListener('click', () => {
-          const container = document.getElementById('subtasks-input-container');
-          const div = document.createElement('div');
-          div.className = 'subtask-input-row';
-          div.style.display = 'flex';
-          div.style.gap = '0.5rem';
-          div.innerHTML = `
-            <input type="text" class="subtask-input" placeholder="Nom de la sous-tâche..." style="flex:1; background:rgba(0,0,0,0.5);" required maxlength="50">
-            <button type="button" class="btn btn-danger btn-sm remove-subtask-input-btn" style="padding:0.5rem; display:flex; align-items:center; justify-content:center;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
-          `;
-          container.appendChild(div);
-          if (typeof lucide !== 'undefined') lucide.createIcons();
-          
-          div.querySelector('.remove-subtask-input-btn').addEventListener('click', () => {
-            div.remove();
-          });
+          addSubtaskInputRow();
         });
       }
 
