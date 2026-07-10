@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuestLog RPG - Vos Tâches, Vos Quêtes</title>
+  <title>NeuroQuest - Organiser sa journée comme une aventure</title>
   <!-- SEO & Meta -->
   <meta name="description" content="Transformez votre vie en RPG. Complétez vos tâches quotidiennes et quêtes principales pour gagner de l'XP, de l'or, et augmenter vos statistiques de personnage.">
   <!-- Fonts -->
@@ -305,6 +305,17 @@
     </div>
   </div>
 
+  <div class="persistent-next-action-bar global-next-action-bar" id="persistent-next-action-bar" aria-live="polite">
+    <i data-lucide="target" aria-hidden="true"></i>
+    <div>
+      <div class="persistent-next-title" id="persistent-next-title">Prochaine action</div>
+      <div class="persistent-next-meta">
+        <span class="persistent-next-reason" id="persistent-next-reason">Analyse...</span>
+        <span id="persistent-next-detail">Micro-action proposee ici.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- VIEW A: Dashboard (Main Tasks & Character Stats) -->
   <main class="game-container tab-view active dashboard-mode-today" id="view-dashboard" style="margin-top: 1rem;">
     <div class="game-grid">
@@ -477,25 +488,10 @@
         </div>
 
         <!-- ADHD Tools Panel (Quick Add & Focus Mode) -->
-        <div class="persistent-next-action-bar" id="persistent-next-action-bar">
-          <div>
-            <div class="persistent-next-title" id="persistent-next-title">Prochaine action</div>
-            <div class="persistent-next-meta">
-              <span class="persistent-next-reason" id="persistent-next-reason">Analyse...</span>
-              <span id="persistent-next-detail">Micro-action proposee ici.</span>
-            </div>
-          </div>
-          <div class="persistent-next-actions">
-            <button class="btn btn-secondary btn-sm" id="persistent-focus-toggle-btn" type="button" title="Active ou coupe le focus sans chercher dans les panneaux. Quand il est actif, une seule quete est affichee." style="padding:0.42rem 0.7rem;"><i data-lucide="eye"></i> Focus</button>
-            <button class="btn btn-primary btn-sm" id="persistent-guide-next-btn" type="button" title="Te ramene vers la prochaine action conseillee, sans supprimer tes autres quetes." style="padding:0.42rem 0.7rem;"><i data-lucide="target"></i> Me guider</button>
-          </div>
-        </div>
-
         <div class="adhd-tools-panel" id="adhd-tools-panel">
           <div class="adhd-tools-header">
             <h3 class="adhd-tools-title"><i data-lucide="sparkles"></i> OUTILS TDA(H)</h3>
             <div class="adhd-tools-actions">
-              <button class="btn btn-secondary btn-sm" id="low-energy-mode-btn" type="button" title="Garde une priorite, active le focus, replie le bruit visuel et propose une micro-action." style="padding:0.35rem 0.55rem;"><i data-lucide="battery-low"></i> Faible energie</button>
               <button class="btn btn-secondary btn-sm" id="calm-mode-btn" type="button" title="Replie navigation, planner, bruit et propositions pour garder une interface plus calme." style="padding:0.35rem 0.55rem;"><i data-lucide="panel-top-close"></i> Mode calme</button>
               <button class="btn btn-secondary btn-sm" id="adhd-tools-collapse-btn" type="button" title="Cache ou affiche les outils TDA(H). La barre prochaine action reste visible." style="padding:0.35rem 0.5rem;"><i data-lucide="chevron-up"></i></button>
             </div>
@@ -566,13 +562,6 @@
             </div>
           </div>
 
-          <!-- Focus Mode Toggler -->
-          <div class="local-focus-mode-row" style="display:flex; justify-content:space-between; align-items:center; gap: 0.5rem;">
-            <span style="font-size:0.75rem; color:var(--text-secondary);"><i data-lucide="info" style="width:12px; height:12px; display:inline; vertical-align:middle; margin-right:2px;"></i> <span data-i18n="focusDesc">Limiter la surcharge cognitive :</span></span>
-            <button class="btn btn-secondary btn-sm" id="toggle-focus-mode-btn" title="Limite l'affichage a une seule quete pour eviter la surcharge. Tu peux le couper a tout moment." style="padding:0.25rem 0.6rem; font-size:0.75rem; text-transform:none; display:flex; align-items:center; gap:0.25rem;">
-              <i data-lucide="eye" style="width:12px; height:12px;"></i> Mode Focus : Désactivé
-            </button>
-          </div>
           </div>
         </div>
 
@@ -664,6 +653,14 @@
               <option value="0.30">Soutenu</option>
             </select>
             <button class="btn btn-primary btn-sm" id="noise-play-btn" type="button" style="padding:0.42rem 0.65rem;"><i data-lucide="play"></i></button>
+          </div>
+          <div class="audio-master-controls" aria-label="Controles audio generaux">
+            <button class="btn btn-secondary btn-sm audio-master-btn" id="sound-toggle" type="button" title="Activer ou desactiver les effets sonores">
+              <i data-lucide="volume-2" id="sound-icon"></i> Sons
+            </button>
+            <button class="btn btn-secondary btn-sm audio-master-btn muted" id="music-toggle" type="button" title="Activer ou desactiver la musique de fond">
+              <i data-lucide="music" id="music-icon"></i> Musique
+            </button>
           </div>
         </section>
 
@@ -835,16 +832,6 @@
 
     </div>
   </main>
-
-  <!-- Sound Toggle Control -->
-  <button class="sound-toggle-btn" id="sound-toggle" title="Activer / Désactiver le son">
-    <i data-lucide="volume-2" id="sound-icon"></i>
-  </button>
-
-  <!-- Music Toggle Control -->
-  <button class="sound-toggle-btn muted" id="music-toggle" title="Activer / Désactiver la musique de fond" style="right: 5.2rem;">
-    <i data-lucide="music" id="music-icon"></i>
-  </button>
 
   <!-- MODALS SECTION -->
 
@@ -1305,30 +1292,6 @@
     </div>
   </div>
 
-  <!-- OFFLINE REWARDS MODAL -->
-  <div class="modal-overlay" id="offline-rewards-modal" role="dialog" aria-modal="true">
-    <div class="modal-card" style="text-align: center; max-width: 420px; border: 2px solid var(--color-gold);">
-      <div class="modal-header" style="justify-content: center; border-bottom: 1px solid var(--border-color);">
-        <h2><i data-lucide="sparkles" style="color:var(--color-gold);"></i> RÉCOMPENSES IDLE</h2>
-      </div>
-      <div style="padding: 2rem 1.5rem;">
-        <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">
-          Pendant votre absence de <strong id="offline-time" style="color:#fff;"></strong>, votre équipe a combattu avec bravoure !
-        </p>
-        <div style="display:flex; justify-content:center; gap:1.5rem; margin: 1.5rem 0;">
-          <div class="hud-stat" style="font-size:0.9rem; padding:0.6rem 1.2rem; border-color:var(--color-xp);">
-            <span style="color:var(--color-xp);">+<span id="offline-xp">0</span></span> XP
-          </div>
-          <div class="hud-stat" style="font-size:0.9rem; padding:0.6rem 1.2rem; border-color:var(--color-gold);">
-            <i data-lucide="coins" class="coin-icon" style="color:var(--color-gold);"></i>
-            <span style="color:var(--color-gold);">+<span id="offline-gold">0</span></span> PO
-          </div>
-        </div>
-        <button class="btn btn-primary" id="claim-offline-btn" style="width: 100%;">Récupérer le butin</button>
-      </div>
-    </div>
-  </div>
-
   <!-- SETUP WIZARD OVERLAY (First-time launch) -->
   <div class="setup-overlay hidden" id="setup-wizard-overlay">
     <div class="setup-card">
@@ -1478,7 +1441,7 @@
   <!-- Consolidated JS Scripts -->
   <script>
     /* ==========================================================================
-       QuestLog RPG Consolidated JavaScript Script
+       NeuroQuest Consolidated JavaScript Script
        Sections: 1. State, 2. Audio, 3. UI, 4. App Coordination
        ========================================================================== */
 
@@ -1544,9 +1507,6 @@
         refuse: "Refuser",
         bossDefeated: "BOSS VAINCU : ",
         levelUp: "NIVEAU SUPÉRIEUR !",
-        offlineTitle: "RÉCOMPENSES IDLE",
-        offlineDesc: "Pendant votre absence de {time}, votre équipe a combattu avec bravoure !",
-        claimLoot: "Récupérer le butin",
         campTitle: "CAMP DE BASE",
         campDesc: "Pas de combat actif. Repos au camp...",
         bossRaidTitle: "RAID DE BOSS",
@@ -1690,9 +1650,6 @@
         refuse: "Refuse",
         bossDefeated: "BOSS DEFEATED: ",
         levelUp: "LEVEL UP!",
-        offlineTitle: "IDLE REWARDS",
-        offlineDesc: "During your {time} absence, your party fought bravely!",
-        claimLoot: "Claim Loot",
         campTitle: "BASE CAMP",
         campDesc: "No active combat. Resting at camp...",
         bossRaidTitle: "BOSS RAID",
@@ -1834,9 +1791,6 @@
         refuse: "Rechazar",
         bossDefeated: "¡JEFE DERROTADO: ",
         levelUp: "¡NIVEL SUBIDO!",
-        offlineTitle: "RECOMPENSAS IDLE",
-        offlineDesc: "¡Durante tu ausencia de {time}, tu grupo luchó valientemente!",
-        claimLoot: "Recoger botín",
         campTitle: "CAMPAMENTO BASE",
         campDesc: "Sin combate activo. Descansando...",
         bossRaidTitle: "RAID DE JEFE",
@@ -1978,9 +1932,6 @@
         refuse: "Rifiuta",
         bossDefeated: "BOSS SCONFITTO: ",
         levelUp: "AUMENTO DI LIVELLO!",
-        offlineTitle: "RICOMPENSE IDLE",
-        offlineDesc: "Durante la tua assenza di {time}, il tuo gruppo ha combattuto valorosamente!",
-        claimLoot: "Riscatta Bottino",
         campTitle: "CAMPO BASE",
         campDesc: "Nessun combattimento attivo. Riposo al campo...",
         bossRaidTitle: "RAID DEL BOSS",
@@ -2122,9 +2073,6 @@
         refuse: "Ablehnen",
         bossDefeated: "BOSS BESIEGT: ",
         levelUp: "STUFENAUFSTIEG!",
-        offlineTitle: "IDLE-BELOHNUNGEN",
-        offlineDesc: "Während deiner Abwesenheit von {time} hat deine Gruppe tapfer gekämpft!",
-        claimLoot: "Beute beanspruchen",
         campTitle: "BASISLAGER",
         campDesc: "Kein aktiver Kampf. Ausruhen im Lager...",
         bossRaidTitle: "BOSS-RAID",
@@ -2263,9 +2211,6 @@
         refuse: "拒否",
         bossDefeated: "ボス討伐完了：",
         levelUp: "レベルアップ！",
-        offlineTitle: "放置報酬",
-        offlineDesc: "{time} の不在中、あなたのパーティーは勇敢に戦いました！",
-        claimLoot: "報酬を受け取る",
         campTitle: "ベースキャンプ",
         campDesc: "戦闘はありません。キャンプで待機中...",
         bossRaidTitle: "ボスレイド",
@@ -2404,9 +2349,6 @@
         refuse: "拒绝",
         bossDefeated: "击败Boss：",
         levelUp: "等级提升！",
-        offlineTitle: "挂机收益",
-        offlineDesc: "在您离开的 {time} 时间里，您的队伍英勇作战！",
-        claimLoot: "领取收益",
         campTitle: "大本营",
         campDesc: "没有战斗，在营地休息中...",
         bossRaidTitle: "Boss突袭",
@@ -5164,7 +5106,7 @@
     }
 
     // ==========================================================================
-    // SECTION 1.5: Battle Arena Visuals, progressive subtasks, & idle progression
+    // SECTION 1.5: Battle Arena Visuals, progressive subtasks, & camp recovery
     // ==========================================================================
 
     const THEMED_MONSTERS = {
@@ -7021,93 +6963,45 @@
       };
     }
 
-    function checkOfflineRewards() {
+    function checkOfflineRecovery() {
       if (!state.lastSaved || !state.player.setupComplete) return;
-      
-      const now = Date.now();
-      const lastSavedTime = new Date(state.lastSaved).getTime();
-      const elapsedSeconds = Math.floor((now - lastSavedTime) / 1000);
-      
-      if (elapsedSeconds < 120) return;
-      
-      const activeSeconds = Math.min(43200, elapsedSeconds);
-      
-      const tMult = state.transcendenceMultiplier || 1.0;
-      const goldRatePerSec = (((state.player.level * 0.05) + (state.player.stats.WIS * 0.01) + (state.player.stats.CHA * 0.01)) / 60) * tMult;
-      const xpRatePerSec = (((state.player.level * 0.02) + (state.player.stats.INT * 0.005) + (state.player.stats.WIS * 0.005)) / 60) * tMult;
-      
-      const goldEarned = Math.round((goldRatePerSec * activeSeconds) * 10) / 10;
-      const xpEarned = Math.round((xpRatePerSec * activeSeconds) * 10) / 10;
-      
-      if (goldEarned >= 0.1 || xpEarned >= 0.1) {
-        state.player.gold += goldEarned;
-        state.player.xp += xpEarned;
-        
-        const leveledUp = processPlayerLevelUps();
-        
-        saveState();
-        
-        const offlineModal = document.getElementById('offline-rewards-modal');
-        const offlineTimeSpan = document.getElementById('offline-time');
-        const offlineXpSpan = document.getElementById('offline-xp');
-        const offlineGoldSpan = document.getElementById('offline-gold');
-        
-        if (offlineModal && offlineTimeSpan && offlineXpSpan && offlineGoldSpan) {
-          const hours = Math.floor(elapsedSeconds / 3600);
-          const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-          let timeStr = "";
-          if (hours > 0) timeStr += `${hours}h `;
-          timeStr += `${minutes}min`;
-          
-          offlineTimeSpan.textContent = timeStr;
-          offlineXpSpan.textContent = xpEarned;
-          offlineGoldSpan.textContent = goldEarned;
-          
-          setTimeout(() => {
-            openModal(offlineModal);
-          }, 300);
-          
-          if (leveledUp) {
-            setTimeout(() => {
-              triggerLevelUpSplash(state.player.level);
-            }, 800);
-          }
-        }
+
+      const elapsedSeconds = Math.floor((Date.now() - new Date(state.lastSaved).getTime()) / 1000);
+      if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 5 * 60) return;
+
+      const activeWorldId = getActiveWorldId();
+      const hasActiveWorldQuests = (state.quests || []).some(quest =>
+        !quest.completed && !quest.isCommon && questMatchesWorld(quest, activeWorldId)
+      );
+      if (hasActiveWorldQuests) return;
+
+      const restSeconds = Math.min(8 * 60 * 60, elapsedSeconds);
+      const restMultiplier = getHydrationRestMultiplier() * getCampState().multiplier;
+      const previousRest = Math.max(0, Number(state.player.restTimeAccumulated) || 0);
+      state.player.restTimeAccumulated = Math.min(300, previousRest + Math.round(restSeconds * restMultiplier));
+
+      const maxHp = Math.max(1, Number(state.player.maxHp) || 100);
+      const recoverySteps = Math.floor(restSeconds / (15 * 60));
+      const recoveredHp = recoverySteps > 0
+        ? restorePlayerHp(Math.max(1, Math.round(maxHp * 0.02 * recoverySteps * restMultiplier)))
+        : 0;
+
+      if (state.player.restTimeAccumulated >= 300) state.player.restedBuffActive = true;
+      if (recoveredHp > 0) {
+        addRecoveryJournalValue('hpRecovered', recoveredHp);
+        addEventJournalEntry('recovery', `Repos hors ligne: +${recoveredHp} PV`);
       }
+      saveState();
     }
 
-    function runIdleTicker() {
+    function runCampRecoveryTicker() {
       if (!state.player.setupComplete) return;
-      
-      const tMult = state.transcendenceMultiplier || 1.0;
-      const goldRatePerSec = (((state.player.level * 0.05) + (state.player.stats.WIS * 0.01) + (state.player.stats.CHA * 0.01)) / 60) * tMult;
-      const xpRatePerSec = (((state.player.level * 0.02) + (state.player.stats.INT * 0.005) + (state.player.stats.WIS * 0.005)) / 60) * tMult;
-      
-      const goldGained = Math.round((goldRatePerSec * 15) * 100) / 100;
-      const xpGained = Math.round((xpRatePerSec * 15) * 100) / 100;
-      
-      state.player.gold = Math.round((state.player.gold + goldGained) * 100) / 100;
-      state.player.xp = Math.round((state.player.xp + xpGained) * 100) / 100;
-      
-      const leveledUp = processPlayerLevelUps();
-      
-      saveState();
-      renderHUD();
-      
-      if (leveledUp) {
-        triggerLevelUpSplash(state.player.level);
-      }
-      
+
       const campBg = document.getElementById('bg-camp');
       const campfire = document.querySelector('.campfire-container');
       
       if (campBg && campBg.classList.contains('active') && campfire) {
         const rect = campfire.getBoundingClientRect();
-        if (goldGained > 0) {
-          spawnFloatingText(`+${goldGained.toFixed(2)} PO (Idle)`, 'var(--color-gold)', { x: rect.left + 20, y: rect.top - 10 });
-        }
-
-        // Rested Buff logic
         if (!state.pomoActive && !state.player.restedBuffActive) {
           const restMultiplier = getHydrationRestMultiplier() * getCampState().multiplier;
           state.player.restTimeAccumulated = (state.player.restTimeAccumulated || 0) + Math.round(15 * restMultiplier);
@@ -10723,14 +10617,9 @@
     }
 
     function updateFocusModeButtonUI() {
-      const toggleFocusBtn = document.getElementById('toggle-focus-mode-btn');
-      const persistentFocusBtn = document.getElementById('persistent-focus-toggle-btn');
       const globalFocusBtn = document.getElementById('global-focus-toggle-btn');
 
-      const modeName = t('focusMode');
-      const activeText = t('focusActive');
-      const inactiveText = t('focusInactive');
-      const buttons = [toggleFocusBtn, persistentFocusBtn, globalFocusBtn].filter(Boolean);
+      const buttons = [globalFocusBtn].filter(Boolean);
       if (buttons.length === 0) return;
 
       buttons.forEach(btn => {
@@ -10747,16 +10636,12 @@
           return;
         }
         if (state.focusModeActive) {
-          btn.innerHTML = btn.id === 'persistent-focus-toggle-btn'
-            ? `<i data-lucide="eye-off" style="width:12px; height:12px;"></i> Focus actif`
-            : `<i data-lucide="eye-off" style="width:12px; height:12px;"></i> ${modeName} : ${activeText}`;
+          btn.innerHTML = `<i data-lucide="eye-off" style="width:12px; height:12px;"></i> Focus actif`;
           btn.classList.remove('btn-secondary');
           btn.classList.add('btn-primary');
           btn.style.boxShadow = '0 0 10px rgba(0, 245, 212, 0.4)';
         } else {
-          btn.innerHTML = btn.id === 'persistent-focus-toggle-btn'
-            ? `<i data-lucide="eye" style="width:12px; height:12px;"></i> Focus off`
-            : `<i data-lucide="eye" style="width:12px; height:12px;"></i> ${modeName} : ${inactiveText}`;
+          btn.innerHTML = `<i data-lucide="eye" style="width:12px; height:12px;"></i> Focus off`;
           btn.classList.remove('btn-primary');
           btn.classList.add('btn-secondary');
           btn.style.boxShadow = 'none';
@@ -13110,7 +12995,12 @@
 
     function updatePrimaryQuestActionButton(tab = state.dashboardTab || "today") {
       const button = document.getElementById('open-add-quest-btn');
+      const quickJumpButton = document.getElementById('quick-quest-jump-btn');
       if (!button) return;
+      if (quickJumpButton) {
+        quickJumpButton.hidden = tab === "today";
+        quickJumpButton.classList.toggle('hidden', tab === "today");
+      }
       if (tab === "today") {
         button.innerHTML = `<i data-lucide="zap"></i> Ajout rapide`;
         button.setAttribute('title', "Place le curseur dans l'ajout rapide pour capturer une tache sans ouvrir de fenetre.");
@@ -13123,6 +13013,7 @@
     function setPrimaryTab(tab = "today", options = {}) {
       const validTabs = ["today", "quests", "tools", "shop", "party"];
       const nextTab = validTabs.includes(tab) ? tab : "today";
+      const previousTab = state.dashboardTab || "today";
       const navMap = {
         today: document.getElementById('nav-dash-tab'),
         quests: document.getElementById('nav-quests-tab'),
@@ -13169,6 +13060,9 @@
       if (!options.skipSave) saveState();
       renderBattleArena();
       if (window.lucide) lucide.createIcons();
+      if (previousTab !== nextTab && !options.preserveScroll) {
+        requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+      }
     }
 
     function bindUIEvents() {
@@ -13233,10 +13127,6 @@
       document.querySelectorAll('[data-save-day-choice]').forEach(btn => {
         btn.addEventListener('click', () => executeSaveMyDayChoice(btn.dataset.saveDayChoice || 'simplify'));
       });
-      const lowEnergyModeBtn = document.getElementById('low-energy-mode-btn');
-      if (lowEnergyModeBtn) {
-        lowEnergyModeBtn.addEventListener('click', activateLowEnergyMode);
-      }
       const todayLowEnergyBtn = document.getElementById('today-low-energy-btn');
       if (todayLowEnergyBtn) todayLowEnergyBtn.addEventListener('click', activateLowEnergyMode);
       const todaySaveDayBtn = document.getElementById('today-save-day-btn');
@@ -13250,14 +13140,6 @@
         renderTodayPanel();
         renderAdhdNextAction();
       });
-      const persistentGuideNextBtn = document.getElementById('persistent-guide-next-btn');
-      if (persistentGuideNextBtn) {
-        persistentGuideNextBtn.addEventListener('click', guideNextAdhdAction);
-      }
-      const persistentFocusToggleBtn = document.getElementById('persistent-focus-toggle-btn');
-      if (persistentFocusToggleBtn) {
-        persistentFocusToggleBtn.addEventListener('click', toggleFocusMode);
-      }
 
       const dayModeSelect = document.getElementById('day-mode-select');
       if (dayModeSelect) {
@@ -14247,13 +14129,6 @@
         });
       }
 
-      // ADHD Focus Mode Toggle
-      const toggleFocusBtn = document.getElementById('toggle-focus-mode-btn');
-      if (toggleFocusBtn) {
-        updateFocusModeButtonUI();
-        toggleFocusBtn.addEventListener('click', toggleFocusMode);
-      }
-
       // Real-time theme change selector
       const themeSelect = document.getElementById('theme-select');
       if (themeSelect) {
@@ -14476,13 +14351,9 @@
       "today-low-energy-btn": "Passe en mode faible energie: une priorite visible, moins de bruit UI, pression reduite.",
       "today-save-day-btn": "Ouvre l'assistant pour garder une priorite, reporter, simplifier ou faire 2 minutes.",
       "quest-navigation-collapse-btn": "Replie ou affiche les filtres de mondes et de types sans modifier tes quetes.",
-      "persistent-focus-toggle-btn": "Bouton Focus toujours accessible: affiche une seule quete ou revient a la liste normale.",
-      "persistent-guide-next-btn": "Ramene vers la prochaine action conseillee sans supprimer tes autres quetes.",
-      "low-energy-mode-btn": "Mode jour difficile: garde une priorite, replie le bruit visuel et propose un demarrage doux.",
       "calm-mode-btn": "Replie les panneaux secondaires pour une interface plus calme et moins fatigante.",
       "adhd-tools-collapse-btn": "Cache ou affiche les outils TDA(H). La barre de prochaine action reste visible.",
       "adhd-two-minute-btn": "Cree une petite quete timer de 2 minutes pour lancer l'elan sans activer le Focus automatiquement.",
-      "toggle-focus-mode-btn": "Limite l'affichage a une seule quete pour eviter la surcharge. Clique encore pour revenir.",
       "btn-reroll-common-quests": "Propose une nouvelle selection de quetes solo/co-op sans toucher aux quetes deja ajoutees.",
       "btn-toggle-solo-proposals": "Replie ou affiche les quetes solo proposees pour alleger l'ecran.",
       "planner-collapse-btn": "Replie ou affiche le planner. Les quetes planifiees restent sauvegardees.",
@@ -14495,7 +14366,6 @@
       "sound-toggle": "Active ou coupe les effets sonores de l'application.",
       "music-toggle": "Active ou coupe la musique de fond hors mode bruit/focus.",
       "close-inventory-btn": "Ferme l'inventaire et revient a l'ecran precedent.",
-      "claim-offline-btn": "Recupere les gains accumules pendant ton absence.",
       "sync-live-team-btn": "Synchronise les amis live depuis le compte cloud.",
       "open-export-profile-btn": "Genere un lien ou code pour inviter un ami dans ton equipe.",
       "open-import-friend-btn": "Ajoute un ami avec une invitation recue.",
@@ -14776,7 +14646,7 @@
       renderParty();
       renderRaids();
 
-      checkOfflineRewards();
+      checkOfflineRecovery();
       renderBattleArena();
       updateDeviceLayoutFlags();
       checkHydrationReminder(false);
@@ -14814,8 +14684,8 @@
         }
       });
 
-      // Start idle income intervals
-      setInterval(runIdleTicker, 15000);
+      // Rest at camp heals slowly, but XP and PO always require a real action.
+      setInterval(runCampRecoveryTicker, 15000);
       setInterval(() => {
         updateSaveStatus(false);
       }, 60 * 1000);
@@ -14837,7 +14707,7 @@
         }, 1000);
       }
 
-      console.log("QuestLog RPG loaded successfully!");
+      console.log("NeuroQuest loaded successfully!");
     }
 
     function renderWelcomeGate() {
@@ -15028,18 +14898,6 @@
       if (addSubtaskBtn) {
         addSubtaskBtn.addEventListener('click', () => {
           addSubtaskInputRow();
-        });
-      }
-
-      // Claim Offline rewards button
-      const claimOfflineBtn = document.getElementById('claim-offline-btn');
-      if (claimOfflineBtn) {
-        claimOfflineBtn.addEventListener('click', () => {
-          closeModal(document.getElementById('offline-rewards-modal'));
-          playCoinSound();
-          renderHUD();
-          renderCharacterSheet();
-          renderBattleArena();
         });
       }
 

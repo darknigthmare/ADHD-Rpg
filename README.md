@@ -10,6 +10,20 @@ Application web statique RPG/TDA(H) pour transformer les taches, routines, repos
 
 Le fichier principal est `index.html`.
 
+## Structure actuelle
+
+- `index.html` : interface et logique applicative encore consolidee.
+- `assets/css/app.css` : styles de l'application.
+- `assets/` : sprites, decors, objets et autres medias.
+- `api/` : configuration serveur exposee a Vercel.
+- `docs/audits/` : captures et rapports des passes de qualite.
+
+Le decoupage de `index.html` se fait progressivement pour limiter les regressions. Les prochaines extractions JavaScript doivent suivre les domaines fonctionnels : sauvegarde, audio, quetes/planner, bataille, puis equipe/cloud.
+
+## Principe de progression
+
+Les XP et les PO recompensent une action accomplie : quete, sous-tache, Focus Raid ou haut fait. Laisser l'application ouverte ne genere pas de progression. Le repos au camp peut seulement recuperer des PV et preparer le bonus de repos.
+
 ## Comptes utilisateur avec Supabase
 
 1. Creer un projet sur Supabase.
