@@ -680,6 +680,10 @@
       display: none !important;
     }
 
+    #view-dashboard.dashboard-mode-today #low-energy-mode-btn {
+      display: none !important;
+    }
+
     #view-dashboard.dashboard-mode-quests .character-card,
     #view-dashboard.dashboard-mode-quests #today-panel,
     #view-dashboard.dashboard-mode-quests .persistent-next-action-bar,
@@ -2631,6 +2635,7 @@
       z-index: 200;
       padding: 2rem 1rem;
       opacity: 0;
+      visibility: hidden;
       pointer-events: none;
       transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       overflow-y: auto;
@@ -2638,6 +2643,7 @@
     }
     .modal-overlay.active {
       opacity: 1;
+      visibility: visible;
       pointer-events: auto;
     }
 
@@ -6467,21 +6473,27 @@
 
       .nav-bar {
         top: var(--mobile-hud-offset);
-        justify-content: flex-start;
-        gap: 0.35rem;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        justify-content: stretch;
+        gap: 0.25rem;
         padding: 0.25rem 0.55rem;
         min-height: var(--mobile-nav-height);
-        scroll-snap-type: x proximity;
+        overflow-x: visible;
       }
 
       .nav-link {
         min-height: 2.55rem;
-        padding: 0.45rem 0.7rem;
+        min-width: 0;
+        justify-content: center;
+        padding: 0.4rem 0.2rem;
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 7px;
-        font-size: 0.68rem;
-        letter-spacing: 0.02em;
-        scroll-snap-align: start;
+        font-size: 0.58rem;
+        line-height: 1.15;
+        text-align: center;
+        white-space: normal;
+        letter-spacing: 0;
         background: rgba(255,255,255,0.03);
       }
 
@@ -6496,12 +6508,17 @@
       }
 
       .nav-link.focus-toggle {
+        grid-column: 1 / -1;
         margin: 0;
-        padding: 0.45rem 0.7rem;
-        position: sticky;
-        right: 0;
-        z-index: 2;
-        box-shadow: -10px 0 18px rgba(10, 12, 16, 0.8);
+        min-height: 2.2rem;
+        padding: 0.35rem 0.7rem;
+        position: static;
+        box-shadow: none;
+      }
+
+      button[data-tooltip]::before,
+      button[data-tooltip]::after {
+        display: none !important;
       }
 
       .battle-arena-wrapper {
@@ -6581,6 +6598,17 @@
         transform-origin: bottom center;
       }
 
+      .combatant-tag {
+        max-width: 58px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .monster-reward-preview {
+        display: none !important;
+      }
+
       .monsters-battle-side .monster-wrapper {
         transform: perspective(360px) rotateY(-14deg) rotateX(3deg) translateY(1px) scale(0.82);
         transform-origin: bottom center;
@@ -6621,6 +6649,30 @@
       .game-card {
         padding: 1rem;
         border-radius: 8px;
+      }
+
+      #view-dashboard.dashboard-mode-today .quest-log-card {
+        order: 1;
+      }
+
+      #view-dashboard.dashboard-mode-today .character-card {
+        order: 2;
+      }
+
+      .quest-log-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.65rem;
+      }
+
+      .quest-log-header > div {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .quest-log-header #open-add-quest-btn {
+        grid-column: 1 / -1;
       }
 
       .section-title {
@@ -6724,8 +6776,8 @@
       }
 
       .nav-link {
-        font-size: 0.62rem;
-        padding-inline: 0.58rem;
+        font-size: 0.54rem;
+        padding-inline: 0.15rem;
       }
 
       .battle-arena {
@@ -6735,7 +6787,13 @@
       }
 
       .pomo-widget {
-        transform: scale(0.68);
+        min-width: 96px;
+        max-width: 108px;
+        transform: none;
+      }
+
+      .pomo-noise-row {
+        display: none;
       }
 
       .battle-header {
@@ -7347,7 +7405,7 @@
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.6rem;">
             <div style="display:grid; gap:0.35rem;">
               <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:700;">Mode de journee</span>
-              <select id="day-mode-select" style="width:100%; background:rgba(0,0,0,0.38); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); padding:0.42rem 0.55rem; font-size:0.82rem;">
+              <select id="day-mode-select" aria-label="Mode de journee" style="width:100%; background:rgba(0,0,0,0.38); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); padding:0.42rem 0.55rem; font-size:0.82rem;">
                 <option value="normal">Jour normal</option>
                 <option value="low-energy">Jour faible energie</option>
                 <option value="urgent">Urgence</option>
@@ -7405,12 +7463,12 @@
           </div>
           <div class="quest-planner-body">
           <form id="quest-planner-form" class="quest-planner-form">
-            <select class="planner-select" id="planner-existing-quest">
+            <select class="planner-select" id="planner-existing-quest" aria-label="Quete existante a planifier">
               <option value="new">Nouvelle quete</option>
             </select>
             <input class="planner-input" id="planner-title" type="text" placeholder="Tache a placer dans la journee..." maxlength="60" required>
-            <input class="planner-input" id="planner-time" type="time" required>
-            <button class="btn btn-secondary btn-sm" type="submit" style="padding:0.42rem 0.65rem;"><i data-lucide="plus"></i></button>
+            <input class="planner-input" id="planner-time" type="time" aria-label="Heure limite de la quete planifiee" required>
+            <button class="btn btn-secondary btn-sm" type="submit" aria-label="Ajouter au planner" title="Ajouter au planner" style="padding:0.42rem 0.65rem;"><i data-lucide="plus"></i></button>
           </form>
           <div class="planner-day-list" id="planner-day-list">
             <div class="planner-day-empty">Aucune quete planifiee aujourd'hui.</div>
@@ -7427,7 +7485,7 @@
             </div>
           </div>
           <div class="noise-panel-controls">
-            <select id="noise-mode-select">
+            <select id="noise-mode-select" aria-label="Type de bruit">
               <option value="off">Silence</option>
               <option value="theme-music">Musique thème</option>
               <option value="white">White noise</option>
@@ -7451,7 +7509,7 @@
               <option value="lake">Lake</option>
               <option value="beach">Beach</option>
             </select>
-            <select id="noise-volume-select">
+            <select id="noise-volume-select" aria-label="Volume du bruit">
               <option value="0.14">Doux</option>
               <option value="0.24" selected>Normal</option>
               <option value="0.30">Soutenu</option>
@@ -7994,9 +8052,9 @@
       <div class="modal-form">
         <p class="shop-desc" style="margin-bottom:1rem;">Partagez le lien live si votre ami a un compte NeuroQuest. Le code local sert seulement si le cloud est indisponible.</p>
         <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Lien live compte</label>
-        <textarea class="invite-code-textarea" id="export-link-box" readonly onclick="this.select()" style="min-height:72px; margin-bottom:0.75rem;"></textarea>
+        <textarea class="invite-code-textarea" id="export-link-box" aria-label="Lien live du compte" readonly onclick="this.select()" style="min-height:72px; margin-bottom:0.75rem;"></textarea>
         <label style="font-size:0.75rem; color:var(--color-xp); font-family:var(--font-game);">Code local secours</label>
-        <textarea class="invite-code-textarea" id="export-code-box" readonly onclick="this.select()"></textarea>
+        <textarea class="invite-code-textarea" id="export-code-box" aria-label="Code local de secours" readonly onclick="this.select()"></textarea>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="copy-export-link-btn"><i data-lucide="link"></i> Copier le lien</button>
           <button type="button" class="btn btn-primary" id="copy-export-code-btn"><i data-lucide="copy"></i> Copier le code</button>
@@ -8220,7 +8278,7 @@
         </div>
 
         <div style="margin-top:2.5rem; display:flex; justify-content:center;">
-          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;"><i data-lucide="play-circle"></i> Commencer l'Aventure</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="setup-submit-btn" aria-describedby="setup-validation-note" disabled style="width:100%;"><i data-lucide="play-circle"></i> Commencer l'Aventure</button>
         </div>
       </form>
     </div>
@@ -17721,7 +17779,7 @@
             <option value="Creation"></option>
             <option value="Urgences"></option>
           </datalist>
-          <button class="btn btn-secondary btn-sm" type="submit" style="padding:0.35rem 0.55rem;"><i data-lucide="plus"></i></button>
+          <button class="btn btn-secondary btn-sm" type="submit" aria-label="Creer le monde" title="Creer le monde" style="padding:0.35rem 0.55rem;"><i data-lucide="plus"></i></button>
         </form>
         ${settingsPanel}
       `;
@@ -19717,6 +19775,20 @@
       const left = Math.max(0, SETUP_STARTING_POINTS - spent);
       const pointsLeft = document.getElementById('setup-points-left');
       if (pointsLeft) pointsLeft.textContent = left;
+      const submitButton = document.getElementById('setup-submit-btn');
+      const validationNote = document.getElementById('setup-validation-note');
+      if (submitButton) {
+        submitButton.disabled = left > 0;
+        submitButton.setAttribute('aria-disabled', String(left > 0));
+        submitButton.title = left > 0
+          ? `Repartis encore ${left} point(s) avant de commencer.`
+          : "La fiche est prete. Commence l'aventure.";
+      }
+      if (validationNote && !validationNote.textContent) {
+        validationNote.textContent = left > 0
+          ? `Encore ${left} point(s) a repartir.`
+          : "Les 5 points sont repartis. Ton heros est pret.";
+      }
       const statLabels = { STR: "FOR", INT: "INT", WIS: "SAG", CHA: "CHA", CON: "CON" };
       grid.innerHTML = Object.keys(setupBonusStats).map(stat => {
         const bonus = setupBonusStats[stat] || 0;
@@ -19766,7 +19838,8 @@
           "lire", "livre", "etudier", "reviser", "apprendre", "cours", "formation", "coder", "code",
           "developper", "debug", "bug", "documenter", "ecrire rapport", "excel", "calcul", "budget",
           "analyser", "chercher", "recherche", "tuto", "devoir", "prototype", "module", "systeme",
-          "script", "base de donnees", "site", "application", "app", "vaisseau", "portail", "mecanique"
+          "script", "base de donnees", "site", "application", "app", "vaisseau", "portail", "mecanique",
+          "avancer le vaisseau", "travailler sur le vaisseau", "developper le vaisseau"
         ],
         WIS: [
           "ranger", "trier", "organiser", "planifier", "planner", "liste", "priorite", "administratif",
@@ -19805,15 +19878,28 @@
       return ranked[0][0];
     }
 
-    function placeQuestSupportPanels() {
+    function placeQuestSupportPanels(tab = state.dashboardTab || "today") {
       const sideColumn = document.querySelector('.dashboard-side-column');
       const plannerPanel = document.getElementById('quest-planner-panel');
       const soloPanel = document.getElementById('solo-quests-proposals-container');
+      const noisePanel = document.getElementById('noise-panel');
+      const adhdToolsPanel = document.getElementById('adhd-tools-panel');
+      const questLog = document.querySelector('.quest-log-card');
+      const questsList = document.getElementById('quests-list');
       if (!sideColumn || !plannerPanel || !soloPanel) return;
       if (soloPanel.parentElement !== sideColumn || soloPanel.previousElementSibling !== plannerPanel) {
         sideColumn.insertBefore(soloPanel, plannerPanel.nextElementSibling);
         soloPanel.classList.add('game-card');
         soloPanel.style.marginBottom = '0';
+      }
+      if (adhdToolsPanel && questLog && questsList) {
+        if (tab === "tools") {
+          if (adhdToolsPanel.parentElement !== sideColumn) {
+            sideColumn.insertBefore(adhdToolsPanel, noisePanel || sideColumn.firstChild);
+          }
+        } else if (adhdToolsPanel.parentElement !== questLog) {
+          questLog.insertBefore(adhdToolsPanel, questsList);
+        }
       }
     }
 
@@ -19842,7 +19928,8 @@
       const viewDash = document.getElementById('view-dashboard');
       const viewParty = document.getElementById('view-party');
       if (!viewDash || !viewParty) return;
-      placeQuestSupportPanels();
+      state.dashboardTab = nextTab;
+      placeQuestSupportPanels(nextTab);
 
       Object.entries(navMap).forEach(([key, button]) => {
         if (button) button.classList.toggle('active', key === nextTab);
@@ -19873,7 +19960,6 @@
         renderNoiseControls();
       }
 
-      state.dashboardTab = nextTab;
       updatePrimaryQuestActionButton(nextTab);
       if (!options.skipSave) saveState();
       renderBattleArena();
