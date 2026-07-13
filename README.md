@@ -31,34 +31,19 @@ Les XP et les PO recompensent une action accomplie : quete, sous-tache, Focus Ra
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
 3. L'app les lit automatiquement via `/api/supabase-config`.
-4. Dans Supabase, aller dans `SQL Editor` et executer :
-
-```sql
-create table if not exists public.save_states (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  state jsonb not null,
-  updated_at timestamptz not null default now()
-);
-
-alter table public.save_states enable row level security;
-
-create policy "Users can read their own save"
-on public.save_states
-for select
-using (auth.uid() = user_id);
-
-create policy "Users can insert their own save"
-on public.save_states
-for insert
-with check (auth.uid() = user_id);
-
-create policy "Users can update their own save"
-on public.save_states
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-```
+4. Dans Supabase, aller dans `SQL Editor` et executer le fichier `supabase-social.sql`.
+   Il configure la sauvegarde, les profils publics, les invitations atomiques, les amities, les droits Data API et les politiques RLS.
 
 5. Dans `Authentication > URL Configuration`, ajouter l'URL Vercel du site dans les URLs autorisees.
 
-La sauvegarde locale reste active en secours. Quand un utilisateur est connecte, NeuroQuest synchronise aussi la sauvegarde dans `save_states`.
+La sauvegarde locale reste active en secours. Quand un utilisateur est connecte, NeuroQuest synchronise aussi la sauvegarde dans `save_states`. La cle locale actuelle est `neuroquest_state_v2`; l'ancienne sauvegarde `questlog_rpg_state` est migree automatiquement.
+
+## Verification locale
+
+Avant un deploiement, lancer :
+
+```powershell
+node tools/check-app.mjs
+```
+
+Ce controle verifie la syntaxe JavaScript, les identifiants HTML uniques et les references vers les assets locaux.

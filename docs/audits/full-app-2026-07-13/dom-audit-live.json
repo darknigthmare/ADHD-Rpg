@@ -1,0 +1,272 @@
+{
+  "domAudit": {
+    "activeNav": [
+      "nav-party-tab"
+    ],
+    "buttonsNoHelp": [
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Armes",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Armures",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Accessoires",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Compagnons",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Bestiaire",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Familiers",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Hauts Faits",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "add-subtask-input-btn",
+        "text": "+ Ajouter",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "ok-noob-help-btn",
+        "text": "Compris",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Ajouter",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": true,
+        "id": "cloud-sync-now-btn",
+        "text": "Envoyer au cloud",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": true,
+        "id": "cloud-load-btn",
+        "text": "Restaurer cloud",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "export-save-btn",
+        "text": "Exporter",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "import-save-btn",
+        "text": "Importer",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "reset-btn",
+        "text": "Wipe / Reset Total",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "copy-export-link-btn",
+        "text": "Copier le lien",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "copy-export-code-btn",
+        "text": "Copier le code",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Rejoindre l'équipe",
+        "title": "",
+        "visible": true
+      },
+      {
+        "aria": "",
+        "disabled": false,
+        "id": "",
+        "text": "Ouvrir le coffre",
+        "title": "",
+        "visible": true
+      }
+    ],
+    "buttonsTotal": 266,
+    "duplicateIds": [],
+    "fixed": [
+      {
+        "cls": "modal-overlay",
+        "id": "inventory-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "collections-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "add-quest-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "noob-help-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "add-reward-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "edit-profile-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "export-profile-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "import-friend-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "create-raid-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "event-merchant-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "modal-overlay",
+        "id": "event-chest-modal",
+        "tag": "DIV"
+      },
+      {
+        "cls": "",
+        "id": "codex-browser-sidebar-comments-root",
+        "tag": "DIV"
+      }
+    ],
+    "horizontalOverflow": 0,
+    "viewport": {
+      "h": 720,
+      "sh": 1810,
+      "sw": 1272,
+      "w": 1272
+    },
+    "visibleButtons": 61,
+    "visibleSections": [
+      {
+        "cls": "",
+        "id": "",
+        "tag": "DIV",
+        "text": "TABLEAU D'EQUIPE\nEQUIPE\n1/4\nBONUS RAID\n+0%\nRAIDS ACTIFS\n8\nQU"
+      },
+      {
+        "cls": "game-card",
+        "id": "party-qol-summary-card",
+        "tag": "SECTION",
+        "text": "TABLEAU D'EQUIPE\nEQUIPE\n1/4\nBONUS RAID\n+0%\nRAIDS ACTIFS\n8\nQU"
+      },
+      {
+        "cls": "game-card team-drawer",
+        "id": "party-social-card",
+        "tag": "SECTION",
+        "text": "INVITER DES AMIS\nSYNCHRO\nINVITER\nAJOUTER\nInviter un ami\nCrée"
+      },
+      {
+        "cls": "game-card team-drawer is-collapsed",
+        "id": "coop-quests-proposals-container",
+        "tag": "SECTION",
+        "text": "Quêtes Communes Proposées"
+      },
+      {
+        "cls": "game-card team-drawer",
+        "id": "",
+        "tag": "SECTION",
+        "text": "COMPAGNONS D'ARME\n\nInvitez vos amis via leur compte NeuroQue"
+      },
+      {
+        "cls": "game-card raids-section team-drawer is-collapsed",
+        "id": "",
+        "tag": "SECTION",
+        "text": "CO-OP BOSS RAIDS\nNOUVEAU BOSS"
+      }
+    ]
+  },
+  "logs": []
+}

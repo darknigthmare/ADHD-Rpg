@@ -13,6 +13,10 @@
   <!-- Lucide Icons (CDN) -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/neuroquest-config.js"></script>
+  <script src="js/neuroquest-i18n.js"></script>
+  <script src="js/neuroquest-a11y.js"></script>
+  <script src="js/neuroquest-tooltips.js"></script>
 
   <!-- Global Error Handler for Debugging -->
   <script>
@@ -1018,6 +1022,16 @@
           <label for="reward-cost">Coût en Or (PO)</label>
           <input type="number" id="reward-cost" required min="5" max="1000" value="30">
         </div>
+        <div class="form-group">
+          <label for="reward-category">Type de recompense reelle</label>
+          <select id="reward-category" required>
+            <option value="short-break">Pause courte</option>
+            <option value="recovery">Recuperation</option>
+            <option value="wellbeing">Hygiene de vie</option>
+            <option value="social">Social</option>
+            <option value="pleasure">Plaisir</option>
+          </select>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="cancel-add-reward-btn">Annuler</button>
           <button type="submit" class="btn btn-primary">Ajouter</button>
@@ -1042,6 +1056,7 @@
           <div class="form-group">
             <label for="profile-role">Role du heros (titre libre)</label>
             <input type="text" id="profile-role" placeholder="Gardien du focus, Explorateur de projet..." maxlength="28">
+            <p class="settings-desc">Champ narratif uniquement : il n'affecte ni les stats, ni les gains, ni la classe RPG.</p>
           </div>
           <div class="form-group">
             <label for="profile-description">Description courte</label>
@@ -1064,6 +1079,7 @@
           <select id="theme-select" required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.4rem 0.8rem; color: #fff; font-size: 0.85rem;">
             <option value="medieval">Medieval Fantasy</option>
             <option value="horror">Horror Gothic</option>
+            <option value="zombie">Survie Zombie</option>
             <option value="cyberpunk">Cyberpunk Neon</option>
             <option value="scifi">Sci-Fi Steel</option>
             <option value="noir">Film Noir</option>
@@ -1168,7 +1184,7 @@
             <button type="button" class="btn btn-secondary" id="export-save-btn"><i data-lucide="download"></i> Exporter</button>
             <button type="button" class="btn btn-secondary" id="import-save-btn"><i data-lucide="upload"></i> Importer</button>
           </div>
-          <button type="button" class="btn btn-danger" id="reset-btn" style="width:100%; background:var(--color-streak); color:white;" data-i18n="resetBtn">Wipe / Reset Total</button>
+          <button type="button" class="btn btn-danger" id="reset-btn" style="width:100%; background:var(--color-streak); color:white;" data-i18n="resetBtn">Recommencer depuis zero</button>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="cancel-edit-profile-btn" data-i18n="cancel">Annuler</button>
@@ -1255,7 +1271,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <h2><i data-lucide="store" style="color:var(--color-gold)"></i> MARCHAND MYSTÈRE</h2>
-        <button class="modal-close" onclick="document.getElementById('event-merchant-modal').classList.remove('active')">&times;</button>
+        <button class="modal-close" onclick="closeModal(document.getElementById('event-merchant-modal'))">&times;</button>
       </div>
       <div style="padding: 1rem; text-align: center;">
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">"J'ai des reliques rares pour les braves... si vous avez l'or."</p>
@@ -1268,7 +1284,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <h2><i data-lucide="package" style="color:var(--color-xp)"></i> COFFRE MYSTÈRE</h2>
-        <button class="modal-close" onclick="document.getElementById('event-chest-modal').classList.remove('active')">&times;</button>
+        <button class="modal-close" onclick="closeModal(document.getElementById('event-chest-modal'))">&times;</button>
       </div>
       <div style="padding: 1rem; text-align: center;">
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">Un coffre abandonné a été trouvé près du camp !</p>
@@ -1458,990 +1474,7 @@
     // SECTION 1: Game State & Database Logic
     // ==========================================================================
 
-    const TRANSLATIONS = {
-      fr: {
-        questLog: "Journal de Quêtes",
-        myParty: "Mon Équipe",
-        dashboard: "Tableau de Bord",
-        newQuest: "Nouvelle Quête",
-        all: "Toutes",
-        main: "Principales",
-        side: "Secondaires",
-        daily: "Quotidiennes",
-        completed: "Complétées",
-        level: "Niveau",
-        gold: "Or",
-        streak: "Série",
-        pointsToAllocate: "Points à allouer",
-        str: "Force",
-        int: "Intelligence",
-        wis: "Sagesse",
-        cha: "Charisme",
-        con: "Constitution",
-        equipment: "Équipements",
-        rewards: "Récompenses",
-        weaponSlot: "Arme équipée",
-        armorSlot: "Armure équipée",
-        accessorySlot: "Accessoire équipé",
-        none: "Aucun",
-        bareFists: "Poing nu",
-        simpleClothes: "Vêtements simples",
-        settings: "Paramètres",
-        defaultMusic: "Musique activée au démarrage",
-        defaultSounds: "Sons activés au démarrage",
-        language: "Langue",
-        theme: "Thème",
-        prestige: "Transcendance",
-        prestigeCount: "Nombre de Transcendances",
-        prestigeDesc: "Relance un nouveau chapitre au niveau 1 avec +5% Or/XP permanent, +1 aux stats de depart, 1 Essence, un bonus repos, et conserve quetes, mondes, equipement et collections.",
-        prestigeBtn: "Transcender (Niveau 10+)",
-        resetBtn: "Wipe / Reset Total",
-        focusMode: "Mode Focus",
-        focusActive: "Actif 🎯",
-        focusInactive: "Désactivé",
-        focusDesc: "Une seule tâche affichée pour éviter la surcharge cognitive !",
-        quickAddPlaceholder: "⚡ Ajout rapide (ex: Lire 10 pages...) + Entrée",
-        coopTitle: "Quêtes Communes Proposées",
-        coopEmpty: "Pas de proposition de quête commune active.",
-        accept: "Accepter",
-        refuse: "Refuser",
-        bossDefeated: "BOSS VAINCU : ",
-        levelUp: "NIVEAU SUPÉRIEUR !",
-        campTitle: "CAMP DE BASE",
-        campDesc: "Pas de combat actif. Repos au camp...",
-        bossRaidTitle: "RAID DE BOSS",
-        friendJoined: "a rejoint l'équipe !",
-        friendAlreadyIn: "Ce héro est déjà dans votre équipe !",
-        partyFull: "Votre équipe est complète (max 4 membres).",
-        bossRaidActive: "VOLCAN EN FUSION - RAID",
-        recruitFriend: "Recruter un Coéquipier",
-        exportCode: "Partager son Code",
-        importCode: "Importer un Code",
-        createRaid: "Créer un Boss de Raid",
-        deleteRaidConfirm: "Supprimer ce boss de raid ?",
-        resetConfirm: "Voulez-vous réinitialiser TOUTES vos données définitivement ?",
-        transcendSuccess: "Chapitre relance ! Vos reperes sont conserves et votre potentiel augmente.",
-        notEnoughLevel: "Vous devez être niveau 10 ou plus pour transcender !",
-        emptySlot: "Emplacement vide",
-        trivial: "Trivial",
-        easy: "Facile",
-        medium: "Moyen",
-        hard: "Difficile",
-        epic: "Épique",
-        personalReward: "Récompense personnelle dans la vie réelle",
-        equipped: "ÉQUIPÉ",
-        equip: "ÉQUIPER",
-        Rank1: "Novice Polyvalent",
-        Rank2: "Aventurier Agile",
-        Rank3: "Guerrier d'Élite",
-        Rank4: "Savant Sage",
-        Rank5: "Grand Maître",
-        Rank6: "Héros Légendaire",
-        Guerrier: "Guerrier",
-        Mage: "Mage",
-        Voleur: "Voleur",
-        Prêtre: "Prêtre",
-        Novice: "Novice",
-        training_sword: "Épée d'Entraînement",
-        training_sword_effect: "+15% Force XP",
-        novice_wand: "Baguette d'Apprenti",
-        novice_wand_effect: "+15% Intelligence XP",
-        leather_armor: "Plastron en Cuir",
-        leather_armor_effect: "+15% Constitution XP",
-        lucky_coin: "Pièce Porte-Bonheur",
-        lucky_coin_effect: "+20% d'Or sur toutes les quêtes",
-        streak_shield: "Bouclier de Volonté",
-        streak_shield_effect: "Protège votre série quotidienne (Consommable)",
-        streakShieldUsedAlert: "🛡️ Votre Bouclier de Volonté a été consommé pour protéger votre série de quêtes quotidiennes !",
-        petSlotTitle: "Compagnon équipé",
-        pet_griffin: "Bébé Griffon",
-        pet_griffin_effect: "+10% EXP Force",
-        pet_robo_cat: "Robo-Chat",
-        pet_robo_cat_effect: "+10% EXP Intelligence",
-        pet_bat: "Chauve-Souris",
-        pet_bat_effect: "+10% EXP Sagesse",
-        pet_jelly: "Méduse Cosmique",
-        pet_jelly_effect: "+10% EXP Constitution",
-        pet_hound: "Chien Détective",
-        pet_hound_effect: "+10% EXP Charisme",
-        comm_sport_title: "Séance de sport en coop",
-        comm_sport_desc: "Faire 30 minutes d'exercice physique avec un ami ou collègue.",
-        comm_study_title: "Codage ou étude partagé",
-        comm_study_desc: "Travailler ensemble sur un projet ou cours technique pendant 1 heure.",
-        comm_clean_title: "Ménage ou rangement collectif",
-        comm_clean_desc: "Nettoyer ou ranger un espace commun (salon, bureau, cuisine).",
-        comm_meal_title: "Repas sain partagé",
-        comm_meal_desc: "Cuisiner ou manger un repas sain ensemble sans écrans distrayants.",
-        comm_briefing_title: "Briefing d'équipe",
-        comm_briefing_desc: "Organiser les tâches de la semaine et s'encourager mutuellement.",
-        comm_lecture_title: "Lecture & Discussion",
-        comm_lecture_desc: "Discuter d'un article, livre ou sujet intéressant pendant 30 min.",
-        xpTitle: "EXPÉRIENCE",
-        goldUnit: "PO",
-        streakUnit: "JOURS",
-        boutique: "BOUTIQUE",
-        shopDesc: "Dépensez votre or pour acheter des récompenses dans le monde réel.",
-        createRewardBtn: "Créer",
-        noRewards: "Aucune récompense créée.",
-        heroName: "Nom du Héros",
-        selectAvatar: "Sélectionner un Avatar",
-        cancel: "Annuler",
-        save: "Enregistrer",
-        soloProposalsTitle: "Quêtes Solo Proposées",
-        coopProposalsTitle: "Quêtes Communes Proposées",
-        coopProposalsDesc: "Ces quêtes communes exigent la coopération ! Acceptez-les pour les relever ensemble.",
-        solo_sport_title: "Entraînement Solo",
-        solo_sport_desc: "Faire 30 minutes de sport seul (cardio, musculation, étirements).",
-        solo_study_title: "Session d'étude ou focus",
-        solo_study_desc: "Travailler concentré sur un projet, cours ou apprentissage pendant 1h.",
-        solo_clean_title: "Rangement Express",
-        solo_clean_desc: "Ranger ou nettoyer son propre espace personnel (bureau, chambre) pendant 15 minutes.",
-        solo_read_title: "Temps de lecture personnel",
-        solo_read_desc: "Lire un livre, article éducatif ou document technique pendant 20 minutes.",
-        activeCoopQuestsTitle: "Quêtes Communes Actives",
-        activeCoopQuestsDesc: "Accomplissez ces quêtes pour infliger de lourds dégâts aux Boss !",
-        coopBadge: "Co-op"
-      },
-      en: {
-        questLog: "Quest Log",
-        myParty: "My Party",
-        dashboard: "Dashboard",
-        newQuest: "New Quest",
-        all: "All",
-        main: "Main",
-        side: "Side",
-        daily: "Dailies",
-        completed: "Completed",
-        level: "Level",
-        gold: "Gold",
-        streak: "Streak",
-        pointsToAllocate: "Points to spend",
-        str: "Strength",
-        int: "Intelligence",
-        wis: "Wisdom",
-        cha: "Charisma",
-        con: "Constitution",
-        equipment: "Equipment",
-        rewards: "Rewards",
-        weaponSlot: "Equipped Weapon",
-        armorSlot: "Equipped Armor",
-        accessorySlot: "Equipped Accessory",
-        none: "None",
-        bareFists: "Bare fists",
-        simpleClothes: "Simple clothes",
-        settings: "Settings",
-        defaultMusic: "Music enabled on startup",
-        defaultSounds: "Sounds enabled on startup",
-        language: "Language",
-        theme: "Theme",
-        prestige: "Transcendence",
-        prestigeCount: "Transcendence Count",
-        prestigeDesc: "Reset your level and gold in exchange for a permanent +5% Gold/XP bonus and +1 to all starting stats.",
-        prestigeBtn: "Transcend (Level 10+)",
-        resetBtn: "Wipe / Reset All",
-        focusMode: "Focus Mode",
-        focusActive: "Active 🎯",
-        focusInactive: "Disabled",
-        focusDesc: "Show only one task at a time to prevent cognitive overload!",
-        quickAddPlaceholder: "⚡ Quick add (e.g. Clean kitchen...) + Enter",
-        coopTitle: "Proposed Shared Quests",
-        coopEmpty: "No active shared quests proposed.",
-        accept: "Accept",
-        refuse: "Refuse",
-        bossDefeated: "BOSS DEFEATED: ",
-        levelUp: "LEVEL UP!",
-        campTitle: "BASE CAMP",
-        campDesc: "No active combat. Resting at camp...",
-        bossRaidTitle: "BOSS RAID",
-        friendJoined: "joined the party!",
-        friendAlreadyIn: "This hero is already in your party!",
-        partyFull: "Your party is full (max 4 members).",
-        bossRaidActive: "MOLTEN VOLCANO - RAID",
-        recruitFriend: "Recruit a Teammate",
-        exportCode: "Share Invite Code",
-        importCode: "Import Invite Code",
-        createRaid: "Create Raid Boss",
-        deleteRaidConfirm: "Delete this raid boss?",
-        resetConfirm: "Do you want to permanently reset ALL your data?",
-        transcendSuccess: "Congratulations! You have transcended to a new life!",
-        notEnoughLevel: "You need to be level 10 or higher to transcend!",
-        emptySlot: "Empty slot",
-        trivial: "Trivial",
-        easy: "Easy",
-        medium: "Medium",
-        hard: "Hard",
-        epic: "Epic",
-        personalReward: "Personal reward in real life",
-        equipped: "EQUIPPED",
-        equip: "EQUIP",
-        Rank1: "Versatile Novice",
-        Rank2: "Agile Adventurer",
-        Rank3: "Elite Warrior",
-        Rank4: "Wise Scholar",
-        Rank5: "Grand Master",
-        Rank6: "Legendary Hero",
-        Guerrier: "Warrior",
-        Mage: "Mage",
-        Voleur: "Rogue",
-        Prêtre: "Priest",
-        Novice: "Novice",
-        training_sword: "Training Sword",
-        training_sword_effect: "+15% Strength XP",
-        novice_wand: "Apprentice Wand",
-        novice_wand_effect: "+15% Intelligence XP",
-        leather_armor: "Leather Armor",
-        leather_armor_effect: "+15% Constitution XP",
-        lucky_coin: "Lucky Coin",
-        lucky_coin_effect: "+20% Gold on all quests",
-        streak_shield: "Willpower Shield",
-        streak_shield_effect: "Protects your daily streak from reset (Consumable)",
-        streakShieldUsedAlert: "🛡️ Your Willpower Shield was consumed to protect your daily quest streak!",
-        petSlotTitle: "Equipped Pet",
-        pet_griffin: "Baby Griffin",
-        pet_griffin_effect: "+10% Strength XP",
-        pet_robo_cat: "Robo-Cat",
-        pet_robo_cat_effect: "+10% Intelligence XP",
-        pet_bat: "Bat Companion",
-        pet_bat_effect: "+10% Wisdom XP",
-        pet_jelly: "Cosmic Jelly",
-        pet_jelly_effect: "+10% Constitution XP",
-        pet_hound: "Hound Detective",
-        pet_hound_effect: "+10% Charisma XP",
-        comm_sport_title: "Co-op Workout Session",
-        comm_sport_desc: "Do 30 minutes of physical exercise with a friend or colleague.",
-        comm_study_title: "Shared Coding or Study",
-        comm_study_desc: "Work together on a project or technical course for 1 hour.",
-        comm_clean_title: "Collective Cleaning or Tidying",
-        comm_clean_desc: "Clean or tidy a shared space (living room, office, kitchen).",
-        comm_meal_title: "Shared Healthy Meal",
-        comm_meal_desc: "Cook or eat a healthy meal together without distracting screens.",
-        comm_briefing_title: "Team Briefing",
-        comm_briefing_desc: "Organize the week's tasks and encourage each other.",
-        comm_lecture_title: "Reading & Discussion",
-        comm_lecture_desc: "Discuss an interesting article, book, or topic for 30 minutes.",
-        xpTitle: "EXPERIENCE",
-        goldUnit: "GP",
-        streakUnit: "DAYS",
-        boutique: "SHOP",
-        shopDesc: "Spend your gold to purchase rewards in the real life.",
-        createRewardBtn: "Create",
-        noRewards: "No rewards created.",
-        heroName: "Hero Name",
-        selectAvatar: "Select Avatar",
-        cancel: "Cancel",
-        save: "Save",
-        soloProposalsTitle: "Proposed Solo Quests",
-        coopProposalsTitle: "Proposed Shared Quests",
-        coopProposalsDesc: "These shared quests require cooperation! Accept them to complete them together.",
-        solo_sport_title: "Solo Workout",
-        solo_sport_desc: "Do 30 minutes of physical exercise alone (cardio, weights, stretching).",
-        solo_study_title: "Solo Study Session",
-        solo_study_desc: "Work focused on a project, course, or learning for 1 hour.",
-        solo_clean_title: "Express Tidying",
-        solo_clean_desc: "Tidy or clean your own personal space (desk, room) for 15 minutes.",
-        solo_read_title: "Personal Reading Time",
-        solo_read_desc: "Read a book, educational article, or technical document for 20 minutes.",
-        activeCoopQuestsTitle: "Active Shared Quests",
-        activeCoopQuestsDesc: "Complete these quests to deal massive damage to Bosses!",
-        coopBadge: "Co-op"
-      },
-      es: {
-        questLog: "Diario de Misiones",
-        myParty: "Mi Grupo",
-        dashboard: "Tablero",
-        newQuest: "Nueva Misión",
-        all: "Todas",
-        main: "Principales",
-        side: "Secundarias",
-        daily: "Diarias",
-        completed: "Completadas",
-        level: "Nivel",
-        gold: "Oro",
-        streak: "Racha",
-        pointsToAllocate: "Puntos para asignar",
-        str: "Fuerza",
-        int: "Inteligencia",
-        wis: "Sabiduría",
-        cha: "Carisma",
-        con: "Constitución",
-        equipment: "Equipos",
-        rewards: "Recompensas",
-        weaponSlot: "Arma Equipada",
-        armorSlot: "Armadura Equipada",
-        accessorySlot: "Accesorio Equipado",
-        none: "Ninguno",
-        bareFists: "Puño limpio",
-        simpleClothes: "Ropa sencilla",
-        settings: "Ajustes",
-        language: "Idioma",
-        theme: "Tema",
-        prestige: "Trascendencia",
-        prestigeCount: "Cantidad de Trascendencias",
-        prestigeDesc: "Restablece tu nivel y oro a cambio de un bono permanente de +5% Oro/XP y +1 a todas las estadísticas iniciales.",
-        prestigeBtn: "Trascender (Nivel 10+)",
-        resetBtn: "Wipe / Reinicio Total",
-        focusMode: "Modo Enfoque",
-        focusActive: "Activo 🎯",
-        focusInactive: "Desactivado",
-        focusDesc: "¡Muestra una sola tarea a la vez para evitar la sobrecarga cognitiva!",
-        quickAddPlaceholder: "⚡ Añadir rápido (ej: Lavar platos...) + Enter",
-        coopTitle: "Propuestas de Misiones Compartidas",
-        coopEmpty: "No hay propuestas de misiones compartidas activas.",
-        accept: "Aceptar",
-        refuse: "Rechazar",
-        bossDefeated: "¡JEFE DERROTADO: ",
-        levelUp: "¡NIVEL SUBIDO!",
-        campTitle: "CAMPAMENTO BASE",
-        campDesc: "Sin combate activo. Descansando...",
-        bossRaidTitle: "RAID DE JEFE",
-        friendJoined: "¡se unió al grupo!",
-        friendAlreadyIn: "¡Este héroe ya está en tu grupo!",
-        partyFull: "Tu grupo está lleno (máx. 4 miembros).",
-        bossRaidActive: "VOLCÁN DE LAVA - RAID",
-        recruitFriend: "Reclutar Compañero",
-        exportCode: "Compartir Código",
-        importCode: "Importar Código",
-        createRaid: "Crear Jefe de Raid",
-        deleteRaidConfirm: "¿Eliminar este jefe de raid?",
-        resetConfirm: "¿Quieres restablecer TODOS tus datos de forma permanente?",
-        transcendSuccess: "¡Felicidades! ¡Has trascendido a una nueva vida!",
-        notEnoughLevel: "¡Debes tener el nivel 10 o superior para trascender!",
-        emptySlot: "Emplacement vacío",
-        trivial: "Trivial",
-        easy: "Fácil",
-        medium: "Medio",
-        hard: "Difícil",
-        epic: "Épico",
-        personalReward: "Recompensa personal en la vida real",
-        equipped: "EQUIPADO",
-        equip: "EQUIPAR",
-        Rank1: "Novato Versátil",
-        Rank2: "Aventurero Ágil",
-        Rank3: "Guerrero de Élite",
-        Rank4: "Erudito Sabio",
-        Rank5: "Gran Maestro",
-        Rank6: "Héroe Legendario",
-        Guerrier: "Guerrero",
-        Mage: "Mago",
-        Voleur: "Pícaro",
-        Prêtre: "Sacerdote",
-        Novice: "Novato",
-        training_sword: "Espada de Entrenamiento",
-        training_sword_effect: "+15% EXP de Fuerza",
-        novice_wand: "Varita de Aprendiz",
-        novice_wand_effect: "+15% EXP de Inteligencia",
-        leather_armor: "Peto de Cuero",
-        leather_armor_effect: "+15% EXP de Constitución",
-        lucky_coin: "Moneda de la Suerte",
-        lucky_coin_effect: "+20% de oro en todas las misiones",
-        petSlotTitle: "Mascota Equipada",
-        pet_griffin: "Bebé Grifo",
-        pet_griffin_effect: "+10% EXP Fuerza",
-        pet_robo_cat: "Gato-Robo",
-        pet_robo_cat_effect: "+10% EXP Inteligencia",
-        pet_bat: "Murciélago",
-        pet_bat_effect: "+10% EXP Sabiduría",
-        pet_jelly: "Medusa Cósmica",
-        pet_jelly_effect: "+10% EXP Constitución",
-        pet_hound: "Perro Detective",
-        pet_hound_effect: "+10% EXP Carisma",
-        comm_sport_title: "Sesión de ejercicio en cooperativo",
-        comm_sport_desc: "Hacer 30 minutos de ejercicio físico con un amigo o compañero.",
-        comm_study_title: "Estudio o programación compartidos",
-        comm_study_desc: "Trabajar juntos en un proyecto o curso técnico durante 1 hora.",
-        comm_clean_title: "Limpieza o recogida colectiva",
-        comm_clean_desc: "Limpiar o recoger un espacio común (salón, oficina, cocina).",
-        comm_meal_title: "Comida saludable compartida",
-        comm_meal_desc: "Cocinar o comer una comida saludable juntos sin pantallas molestas.",
-        comm_briefing_title: "Reunión de equipo",
-        comm_briefing_desc: "Organizar las tareas de la semana y animarse mutuamente.",
-        comm_lecture_title: "Lectura y debate compartido",
-        comm_lecture_desc: "Debatir sobre un artículo, libro o tema interesante durante 30 minutos.",
-        xpTitle: "EXPERIENCIA",
-        goldUnit: "PO",
-        streakUnit: "DÍAS",
-        boutique: "TIENDA",
-        shopDesc: "Gasta tu oro para comprar recompensas en la vida real.",
-        createRewardBtn: "Crear",
-        noRewards: "No hay recompensas creadas.",
-        heroName: "Nombre del Héroe",
-        selectAvatar: "Seleccionar Avatar",
-        cancel: "Cancelar",
-        save: "Guardar",
-        soloProposalsTitle: "Misiones Solo Propuestas",
-        coopProposalsTitle: "Propuestas de Misiones Compartidas",
-        coopProposalsDesc: "¡Estas misiones compartidas requieren cooperación! Acéptalas para completarlas juntos.",
-        solo_sport_title: "Entrenamiento Solo",
-        solo_sport_desc: "Hacer 30 minutos de ejercicio solo (cardio, pesas, estiramientos).",
-        solo_study_title: "Sesión de Estudio Solo",
-        solo_study_desc: "Trabajar enfocado en un proyecto, curso o aprendizaje durante 1 hora.",
-        solo_clean_title: "Limpieza Exprés",
-        solo_clean_desc: "Ordenar o limpiar tu propio espacio personal (escritorio, habitación) durante 15 minutos.",
-        solo_read_title: "Tiempo de lectura personal",
-        solo_read_desc: "Leer un libro, artículo educativo o documento técnico durante 20 minutos.",
-        activeCoopQuestsTitle: "Misiones Compartidas Activas",
-        activeCoopQuestsDesc: "¡Completa estas misiones para infligir gran daño a los Jefes!",
-        activeSoloQuestsTitle: "Misiones Solo Activas",
-        activeSoloQuestsDesc: "¡Completa estas misiones para ganar Oro y XP!",
-        coopBadge: "Co-op",
-        settingsBtn: "Ajustes"
-      },
-      it: {
-        questLog: "Registro Missioni",
-        myParty: "Mio Gruppo",
-        dashboard: "Pannello",
-        newQuest: "Nuova Missione",
-        all: "Tutte",
-        main: "Principali",
-        side: "Secondarie",
-        daily: "Giornaliere",
-        completed: "Completate",
-        level: "Livello",
-        gold: "Oro",
-        streak: "Serie",
-        pointsToAllocate: "Punti da assegnare",
-        str: "Forza",
-        int: "Intelligenza",
-        wis: "Saggezza",
-        cha: "Carisma",
-        con: "Costituzione",
-        equipment: "Equipaggiamento",
-        rewards: "Ricompense",
-        weaponSlot: "Arma Equipaggiata",
-        armorSlot: "Armatura Equipaggiata",
-        accessorySlot: "Accessorio Equipaggiato",
-        none: "Nessuno",
-        bareFists: "Pugni nudi",
-        simpleClothes: "Vestiti semplici",
-        settings: "Impostazioni",
-        language: "Lingua",
-        theme: "Tema",
-        prestige: "Trascendenza",
-        prestigeCount: "Conteggio Trascendenze",
-        prestigeDesc: "Azzera il tuo livello e oro in cambio di un bonus permanente del +5% Oro/XP e +1 a tutte le statistiche iniziali.",
-        prestigeBtn: "Trascendi (Livello 10+)",
-        resetBtn: "Wipe / Reset Totale",
-        focusMode: "Modo Focus",
-        focusActive: "Attivo 🎯",
-        focusInactive: "Disattivato",
-        focusDesc: "Mostra una sola attività alla volta per evitare il sovraccarico cognitivo!",
-        quickAddPlaceholder: "⚡ Aggiunta rapida (es: Lavare i piatti...) + Invio",
-        coopTitle: "Proposte di Missioni Condivise",
-        coopEmpty: "Nessuna proposta di missione condivisa attiva.",
-        accept: "Accetta",
-        refuse: "Rifiuta",
-        bossDefeated: "BOSS SCONFITTO: ",
-        levelUp: "AUMENTO DI LIVELLO!",
-        campTitle: "CAMPO BASE",
-        campDesc: "Nessun combattimento attivo. Riposo al campo...",
-        bossRaidTitle: "RAID DEL BOSS",
-        friendJoined: "si è unito al gruppo!",
-        friendAlreadyIn: "Questo eroe è già nel tuo gruppo!",
-        partyFull: "Il tuo gruppo è completo (max 4 membri).",
-        bossRaidActive: "VULCANO DI LAVA - RAID",
-        recruitFriend: "Recluta Compagno",
-        exportCode: "Condividi Codice",
-        importCode: "Importa Codice",
-        createRaid: "Crea Boss del Raid",
-        deleteRaidConfirm: "Eliminare questo boss del raid?",
-        resetConfirm: "Vuoi ripristinare permanentemente TUTTI i tuoi dati?",
-        transcendSuccess: "Congratulazioni! Sei trasceso a una nuova vita!",
-        notEnoughLevel: "Devi essere al livello 10 o superiore per trascendere!",
-        emptySlot: "Slot vuoto",
-        trivial: "Triviale",
-        easy: "Facile",
-        medium: "Medio",
-        hard: "Difficile",
-        epic: "Epico",
-        personalReward: "Ricompensa personale nella vita reale",
-        equipped: "EQUIPAGGIATO",
-        equip: "EQUIPAGGIA",
-        Rank1: "Novizio Versatile",
-        Rank2: "Avventuriero Agile",
-        Rank3: "Guerriero d'Élite",
-        Rank4: "Saggio Erudito",
-        Rank5: "Gran Maestro",
-        Rank6: "Eroe Leggendario",
-        Guerrier: "Guerriero",
-        Mage: "Mago",
-        Voleur: "Ladro",
-        Prêtre: "Sacerdote",
-        Novice: "Novizio",
-        training_sword: "Spada d'Allenamento",
-        training_sword_effect: "+15% Forza XP",
-        novice_wand: "Bacchetta da Apprendista",
-        novice_wand_effect: "+15% Intelligenza XP",
-        leather_armor: "Corazza di Cuoio",
-        leather_armor_effect: "+15% Costituzione XP",
-        lucky_coin: "Moneta Portafortuna",
-        lucky_coin_effect: "+20% Oro su tutte le missioni",
-        petSlotTitle: "Compagno Equipaggiato",
-        pet_griffin: "Cucciolo di Grifone",
-        pet_griffin_effect: "+10% Forza XP",
-        pet_robo_cat: "Gatto-Robo",
-        pet_robo_cat_effect: "+10% Intelligenza XP",
-        pet_bat: "Pipistrello",
-        pet_bat_effect: "+10% Saggezza XP",
-        pet_jelly: "Medusa Cosmica",
-        pet_jelly_effect: "+10% Costituzione XP",
-        pet_hound: "Cane Investigatore",
-        pet_hound_effect: "+10% Carisma XP",
-        comm_sport_title: "Sessione di allenamento co-op",
-        comm_sport_desc: "Fare 30 minuti di esercizio fisico con un amico o collega.",
-        comm_study_title: "Studio o programmazione condivisa",
-        comm_study_desc: "Lavorare insieme a un progetto o corso tecnico per 1 ora.",
-        comm_clean_title: "Pulizia o riordino collettivo",
-        comm_clean_desc: "Pulire o riordinare uno spazio comune (soggiorno, ufficio, cucina).",
-        comm_meal_title: "Pasto sano condiviso",
-        comm_meal_desc: "Cucinare o consumare un pasto sano insieme senza schermi fonte di distrazione.",
-        comm_briefing_title: "Briefing di squadra",
-        comm_briefing_desc: "Organizzare i compiti della settimana e incoraggiarsi a vicenda.",
-        comm_lecture_title: "Lettura e discussione condivisa",
-        comm_lecture_desc: "Discutere di un articolo, libro o argomento interessante per 30 minuti.",
-        xpTitle: "ESPERIENZA",
-        goldUnit: "PO",
-        streakUnit: "GIORNI",
-        boutique: "NEGOZIO",
-        shopDesc: "Spendi il tuo oro per acquistare ricompense nella vita reale.",
-        createRewardBtn: "Crea",
-        noRewards: "Nessuna ricompensa creata.",
-        heroName: "Nome dell'Eroe",
-        selectAvatar: "Seleziona Avatar",
-        cancel: "Annulla",
-        save: "Salva",
-        soloProposalsTitle: "Missioni Solo Proposte",
-        coopProposalsTitle: "Missioni Condivise Proposte",
-        coopProposalsDesc: "Queste missioni condivise richiedono cooperazione! Accettale per completarle insieme.",
-        solo_sport_title: "Allenamento Solo",
-        solo_sport_desc: "Fai 30 minuti di esercizio fisico da solo (cardio, pesi, stretching).",
-        solo_study_title: "Sessione di Studio Solo",
-        solo_study_desc: "Lavora concentrato su un progetto, corso o studio per 1 ora.",
-        solo_clean_title: "Riordino Rapido",
-        solo_clean_desc: "Riordina o pulisci il tuo spazio personale (scrivania, stanza) per 15 minuti.",
-        solo_read_title: "Tempo di lettura personale",
-        solo_read_desc: "Leggi un libro, un articolo educativo o un documento tecnico per 20 minuti.",
-        activeCoopQuestsTitle: "Missioni Condivise Attive",
-        activeCoopQuestsDesc: "Completa queste missioni per infliggere enormi danni ai Boss!",
-        activeSoloQuestsTitle: "Missioni Solo Attive",
-        activeSoloQuestsDesc: "Completa queste missioni per guadagnare Oro e XP!",
-        coopBadge: "Co-op",
-        settingsBtn: "Impostazioni"
-      },
-      de: {
-        questLog: "Quest-Log",
-        myParty: "Meine Gruppe",
-        dashboard: "Übersicht",
-        newQuest: "Neue Quest",
-        all: "Alle",
-        main: "Hauptquests",
-        side: "Nebenquests",
-        daily: "Tägliche",
-        completed: "Abgeschlossen",
-        level: "Stufe",
-        gold: "Gold",
-        streak: "Serie",
-        pointsToAllocate: "Verfügbare Punkte",
-        str: "Stärke",
-        int: "Intelligenz",
-        wis: "Weisheit",
-        cha: "Charisma",
-        con: "Konstitution",
-        equipment: "Ausrüstung",
-        rewards: "Belohnungen",
-        weaponSlot: "Waffe",
-        armorSlot: "Rüstung",
-        accessorySlot: "Accessoire",
-        none: "Keine",
-        bareFists: "Bloße Fäuste",
-        simpleClothes: "Einfache Kleidung",
-        settings: "Einstellungen",
-        language: "Sprache",
-        theme: "Design",
-        prestige: "Transzendenz",
-        prestigeCount: "Transzendenzen",
-        prestigeDesc: "Setzt deine Stufe und Gold zurück im Austausch für einen dauerhaften Bonus von +5% Gold/XP und +1 auf alle Startwerte.",
-        prestigeBtn: "Transzendieren (Stufe 10+)",
-        resetBtn: "Wipe / Alles Löschen",
-        focusMode: "Fokus-Modus",
-        focusActive: "Aktiv 🎯",
-        focusInactive: "Deaktiviert",
-        focusDesc: "Zeigt nur eine Aufgabe gleichzeitig an, um kognitive Überlastung zu vermeiden!",
-        quickAddPlaceholder: "⚡ Schnell hinzufügen (z.B. Abwaschen...) + Enter",
-        coopTitle: "Vorgeschlagene Gemeinsame Quests",
-        coopEmpty: "Keine vorgeschlagenen gemeinsamen Quests aktiv.",
-        accept: "Annehmen",
-        refuse: "Ablehnen",
-        bossDefeated: "BOSS BESIEGT: ",
-        levelUp: "STUFENAUFSTIEG!",
-        campTitle: "BASISLAGER",
-        campDesc: "Kein aktiver Kampf. Ausruhen im Lager...",
-        bossRaidTitle: "BOSS-RAID",
-        friendJoined: "ist der Gruppe beigetreten!",
-        friendAlreadyIn: "Dieser Held ist bereits in deiner Gruppe!",
-        partyFull: "Deine Gruppe ist voll (max. 4 Mitglieder).",
-        bossRaidActive: "MOLTEN VOLCANO - RAID",
-        recruitFriend: "Mitglied rekrutieren",
-        exportCode: "Code teilen",
-        importCode: "Code importieren",
-        createRaid: "Raid-Boss erstellen",
-        deleteRaidConfirm: "Diesen Raid-Boss löschen?",
-        resetConfirm: "Möchtest du ALLE deine Daten dauerhaft zurücksetzen?",
-        transcendSuccess: "Glückwunsch! Du bist in ein neues Leben transzendiert!",
-        notEnoughLevel: "Du musst Stufe 10 oder höher sein, um zu transzendieren!",
-        emptySlot: "Leerer Slot",
-        trivial: "Trivial",
-        easy: "Einfach",
-        medium: "Mittel",
-        hard: "Schwer",
-        epic: "Episch",
-        personalReward: "Persönliche Belohnung im echten Leben",
-        equipped: "AUSGERÜSTET",
-        equip: "AUSRÜSTEN",
-        Rank1: "Vielseitiger Neuling",
-        Rank2: "Agiler Abenteurer",
-        Rank3: "Elite-Krieger",
-        Rank4: "Weiser Gelehrter",
-        Rank5: "Großmeister",
-        Rank6: "Legendärer Held",
-        Guerrier: "Krieger",
-        Mage: "Magier",
-        Voleur: "Schurke",
-        Prêtre: "Priester",
-        Novice: "Neuling",
-        training_sword: "Übungsschwert",
-        training_sword_effect: "+15% Stärke-Erfahrung",
-        novice_wand: "Lehrlingszauberstab",
-        novice_wand_effect: "+15% Intelligenz-Erfahrung",
-        leather_armor: "Lederharnisch",
-        leather_armor_effect: "+15% Konstitutions-Erfahrung",
-        lucky_coin: "Glücksmünze",
-        lucky_coin_effect: "+20% Gold bei allen Quests",
-        petSlotTitle: "Ausrüstbares Haustier",
-        pet_griffin: "Baby-Greif",
-        pet_griffin_effect: "+10% Stärke XP",
-        pet_robo_cat: "Roboter-Katze",
-        pet_robo_cat_effect: "+10% Intelligenz XP",
-        pet_bat: "Fledermaus",
-        pet_bat_effect: "+10% Weisheit XP",
-        pet_jelly: "Kosmische Qualle",
-        pet_jelly_effect: "+10% Konstitution XP",
-        pet_hound: "Detektiv-Hund",
-        pet_hound_effect: "+10% Charisma XP",
-        comm_sport_title: "Gemeinsames Workout",
-        comm_sport_desc: "Absolviere 30 Minuten Sport zusammen mit einem Freund oder Kollegen.",
-        comm_study_title: "Gemeinsames Lernen oder Programmieren",
-        comm_study_desc: "Arbeite 1 Stunde lang gemeinsam an einem Projekt oder Kurs.",
-        comm_clean_title: "Gemeinsames Aufräumen",
-        comm_clean_desc: "Räume einen Gemeinschaftsraum auf (Wohnzimmer, Büro, Küche).",
-        comm_meal_title: "Gemeinsame gesunde Mahlzeit",
-        comm_meal_desc: "Koche und esse eine gesunde Mahlzeit zusammen ohne ablenkende Bildschirme.",
-        comm_briefing_title: "Teambesprechung",
-        comm_briefing_desc: "Organisiere die Aufgaben der Woche und ermutige deine Teammitglieder.",
-        comm_lecture_title: "Gemeinsames Lesen & Diskutieren",
-        comm_lecture_desc: "Diskutiere 30 Minuten lang über einen Artikel, ein Buch oder ein interessantes Thema.",
-        xpTitle: "ERFAHRUNG",
-        goldUnit: "GM",
-        streakUnit: "TAGE",
-        boutique: "LADEN",
-        shopDesc: "Gib dein Gold aus, um Belohnungen im echten Leben zu kaufen.",
-        createRewardBtn: "Erstellen",
-        noRewards: "Keine Belohnungen erstellt.",
-        heroName: "Name des Helden",
-        selectAvatar: "Avatar auswählen",
-        cancel: "Abbrechen",
-        save: "Speichern",
-        soloProposalsTitle: "Vorgeschlagene Solo-Quests",
-        coopProposalsTitle: "Vorgeschlagene Gemeinschaftsquests",
-        coopProposalsDesc: "Diese Gemeinschaftsquests erfordern Zusammenarbeit! Akzeptiere sie, um sie gemeinsam zu lösen.",
-        solo_sport_title: "Solo-Workout",
-        solo_sport_desc: "Absolviere 30 Minuten Sport allein (Ausdauer, Kraft, Dehnen).",
-        solo_study_title: "Solo-Lernsitzung",
-        solo_study_desc: "Arbeite 1 Stunde lang konzentriert an einem Projekt oder Kurs.",
-        solo_clean_title: "Express-Aufräumen",
-        solo_clean_desc: "Räume deinen eigenen persönlichen Bereich (Schreibtisch, Zimmer) 15 Minuten lang auf.",
-        solo_read_title: "Persönliche Lesezeit",
-        solo_read_desc: "Lies 20 Minuten lang in einem Buch, Fachartikel oder Dokument.",
-        activeCoopQuestsTitle: "Aktive Gemeinschaftsquests",
-        activeCoopQuestsDesc: "Schließe diese Quests ab, um Bossen massiven Schaden zuzufügen!",
-        coopBadge: "Co-op"
-      },
-      ja: {
-        questLog: "クエストログ",
-        myParty: "パーティー",
-        dashboard: "ダッシュボード",
-        newQuest: "新クエスト",
-        all: "すべて",
-        main: "メイン",
-        side: "サイド",
-        daily: "デイリー",
-        completed: "完了済み",
-        level: "レベル",
-        gold: "ゴールド",
-        streak: "継続日数",
-        pointsToAllocate: "未割り当てポイント",
-        str: "力 (STR)",
-        int: "知力 (INT)",
-        wis: "知恵 (WIS)",
-        cha: "魅力 (CHA)",
-        con: "体力 (CON)",
-        equipment: "装備",
-        rewards: "報酬",
-        weaponSlot: "装備武器",
-        armorSlot: "装備防具",
-        accessorySlot: "装備アクセサリ",
-        none: "なし",
-        bareFists: "素手",
-        simpleClothes: "普通の服",
-        settings: "設定",
-        language: "言語",
-        theme: "テーマ",
-        prestige: "超越",
-        prestigeCount: "超越回数",
-        prestigeDesc: "レベルとゴールドをリセットし、代わりにゴールドとXP獲得量+5%および初期ステータス+1の永続ボーナスを得ます。",
-        prestigeBtn: "超越する (Lv.10以上)",
-        resetBtn: "全データリセット",
-        focusMode: "集中モード",
-        focusActive: "有効 🎯",
-        focusInactive: "無効",
-        focusDesc: "一度に1つのタスクのみを表示し、集中力を維持します！",
-        quickAddPlaceholder: "⚡ クイック追加（例：皿を洗う...）+ Enter",
-        coopTitle: "提案された共同クエスト",
-        coopEmpty: "現在提案されている共同クエストはありません。",
-        accept: "受託",
-        refuse: "拒否",
-        bossDefeated: "ボス討伐完了：",
-        levelUp: "レベルアップ！",
-        campTitle: "ベースキャンプ",
-        campDesc: "戦闘はありません。キャンプで待機中...",
-        bossRaidTitle: "ボスレイド",
-        friendJoined: "がパーティーに参加しました！",
-        friendAlreadyIn: "このキャラクターは既にパーティーに存在します！",
-        partyFull: "パーティーが満員です（最大4名）。",
-        bossRaidActive: "灼熱の火山 - レイド",
-        recruitFriend: "仲間を募る",
-        exportCode: "コードをコピー",
-        importCode: "コードを読み込み",
-        createRaid: "ボスを作成する",
-        deleteRaidConfirm: "このボスを削除しますか？",
-        resetConfirm: "すべてのデータを永久にリセットしますか？",
-        transcendSuccess: "おめでとうございます！あなたは新しい人生へ超越しました！",
-        notEnoughLevel: "超越するにはレベル10以上である必要があります！",
-        emptySlot: "空きスロット",
-        trivial: "超簡単",
-        easy: "簡単",
-        medium: "普通",
-        hard: "難しい",
-        epic: "超難関",
-        personalReward: "現実世界の個人報酬",
-        equipped: "装備中",
-        equip: "装備する",
-        Rank1: "万能の初心者",
-        Rank2: "俊敏な冒険者",
-        Rank3: "精鋭の戦士",
-        Rank4: "賢い学者",
-        Rank5: "グランドマスター",
-        Rank6: "伝説の英雄",
-        Guerrier: "戦士",
-        Mage: "魔法使い",
-        Voleur: "盗賊",
-        Prêtre: "僧侶",
-        Novice: "初心者",
-        training_sword: "練習用の木刀",
-        training_sword_effect: "+15% 力の経験値",
-        novice_wand: "初心者の杖",
-        novice_wand_effect: "+15% 知力の経験値",
-        leather_armor: "レザーアーマー",
-        leather_armor_effect: "+15% 体力の経験値",
-        lucky_coin: "幸運のコイン",
-        lucky_coin_effect: "+20% クエストゴールド獲得量",
-        petSlotTitle: "装備中のペット",
-        pet_griffin: "グリフィンの赤ちゃん",
-        pet_griffin_effect: "+10% 力 XP",
-        pet_robo_cat: "ロボキャット",
-        pet_robo_cat_effect: "+10% 知力 XP",
-        pet_bat: "コウモリ",
-        pet_bat_effect: "+10% 賢さ XP",
-        pet_jelly: "宇宙クラゲ",
-        pet_jelly_effect: "+10% 体力 XP",
-        pet_hound: "名探偵ハウンド",
-        pet_hound_effect: "+10% 魅力 XP",
-        comm_sport_title: "共同ワークアウトセッション",
-        comm_sport_desc: "友人や同僚と一緒に30分間の運動をします。",
-        comm_study_title: "共同プログラミング・学習",
-        comm_study_desc: "1時間一緒にプロジェクト開発や学習を進めます。",
-        comm_clean_title: "共同掃除・整理整頓",
-        comm_clean_desc: "リビング、オフィス、キッチンなどの共用エリアを一緒に清掃します。",
-        comm_meal_title: "ヘルシーな食事の共有",
-        comm_meal_desc: "デジタル画面を見ずに、一緒に健康的な食事を作って食べます。",
-        comm_briefing_title: "チームブリーフィング",
-        comm_briefing_desc: "今週の課題を整理し、お互いを励まし合います。",
-        comm_lecture_title: "読書会とディスカッション",
-        comm_lecture_desc: "興味深い記事や書籍、テーマについて30分間語り合います。",
-        xpTitle: "経験値",
-        goldUnit: "G",
-        streakUnit: "日",
-        boutique: "ショップ",
-        shopDesc: "ゴールドを消費して現実世界の報酬を購入します。",
-        createRewardBtn: "作成",
-        noRewards: "報酬は作成されていません。",
-        heroName: "ヒーローの名前",
-        selectAvatar: "アバターを選択",
-        cancel: "キャンセル",
-        save: "保存する",
-        soloProposalsTitle: "提案されたソロクエスト",
-        coopProposalsTitle: "提案された共有クエスト",
-        coopProposalsDesc: "これらの共有クエストは協力が必要です！一緒に完了するために受け入れましょう。",
-        activeCoopQuestsTitle: "アクティブな共有クエスト",
-        activeCoopQuestsDesc: "これらのクエストを完了して、ボスに大ダメージを与えましょう！",
-        coopBadge: "協力",
-        solo_sport_title: "ソロワークアウト",
-        solo_sport_desc: "一人で30分間の物理的なエクササイズ（カルディオ、ウェイト、ストレッチ）をします。",
-        solo_study_title: "ソロ学習セッション",
-        solo_study_desc: "プロジェクト、コース、または学習に1時間集中して取り組みます。",
-        solo_clean_title: "エクスプレス片付け",
-        solo_clean_desc: "自分のパーソナルスペース（机、部屋）を15分間片付けまたは掃除します。",
-        solo_read_title: "個人読書時間",
-        solo_read_desc: "本、教育記事、または技術ドキュメントを20分間読みます。"
-      },
-      zh: {
-        questLog: "任务日志",
-        myParty: "我的队伍",
-        dashboard: "仪表盘",
-        newQuest: "新任务",
-        all: "全部",
-        main: "主线",
-        side: "支线",
-        daily: "每日",
-        completed: "已完成",
-        level: "等级",
-        gold: "金币",
-        streak: "连击",
-        pointsToAllocate: "未分配点数",
-        str: "力量 (STR)",
-        int: "智力 (INT)",
-        wis: "智慧 (WIS)",
-        cha: "魅力 (CHA)",
-        con: "体质 (CON)",
-        equipment: "装备",
-        rewards: "奖励",
-        weaponSlot: "装备武器",
-        armorSlot: "装备防具",
-        accessorySlot: "装备配件",
-        none: "无",
-        bareFists: "赤手空拳",
-        simpleClothes: "普通衣服",
-        settings: "设置",
-        language: "语言",
-        theme: "主题",
-        prestige: "超越",
-        prestigeCount: "超越次数",
-        prestigeDesc: "重置您的等级和金币，换取永久的金币和经验值获得量+5%以及初始属性点+1的加成。",
-        prestigeBtn: "超越 (需要等级 10+)",
-        resetBtn: "彻底清除数据",
-        focusMode: "专注模式",
-        focusActive: "启用 🎯",
-        focusInactive: "禁用",
-        focusDesc: "一次仅显示一项任务，以避免注意力分散！",
-        quickAddPlaceholder: "⚡ 快速添加（例：洗碗...）+ 回车",
-        coopTitle: "推荐共享任务",
-        coopEmpty: "目前没有推荐的共享任务。",
-        accept: "接受",
-        refuse: "拒绝",
-        bossDefeated: "击败Boss：",
-        levelUp: "等级提升！",
-        campTitle: "大本营",
-        campDesc: "没有战斗，在营地休息中...",
-        bossRaidTitle: "Boss突袭",
-        friendJoined: "加入了队伍！",
-        friendAlreadyIn: "该英雄已在您的队伍中！",
-        partyFull: "队伍已满（最多4名成员）。",
-        bossRaidActive: "熔岩火山 - 突袭",
-        recruitFriend: "召集队友",
-        exportCode: "共享邀请码",
-        importCode: "导入邀请码",
-        createRaid: "创建突袭Boss",
-        deleteRaidConfirm: "删除该突袭Boss？",
-        resetConfirm: "您确定要永久重置所有数据吗？",
-        transcendSuccess: "恭喜！您已经超越进入了新生活！",
-        notEnoughLevel: "您需要达到10级或更高才能超越！",
-        emptySlot: "空槽位",
-        trivial: "极易",
-        easy: "简单",
-        medium: "中等",
-        hard: "困难",
-        epic: "史诗",
-        personalReward: "现实生活中的个人奖励",
-        equipped: "已装备",
-        equip: "装备",
-        Rank1: "全能新手",
-        Rank2: "敏捷冒险家",
-        Rank3: "精英战士",
-        Rank4: "睿智学者",
-        Rank5: "大宗师",
-        Rank6: "传奇英雄",
-        Guerrier: "战士",
-        Mage: "法师",
-        Voleur: "潜行者",
-        Prêtre: "牧师",
-        Novice: "新手",
-        training_sword: "训练木剑",
-        training_sword_effect: "+15% 力量经验值获得",
-        novice_wand: "新手魔杖",
-        novice_wand_effect: "+15% 智力经验值获得",
-        leather_armor: "皮质胸甲",
-        leather_armor_effect: "+15% 体质经验值获得",
-        lucky_coin: "幸运金币",
-        lucky_coin_effect: "+20% 所有任务获得的金币",
-        petSlotTitle: "已装备宠物",
-        pet_griffin: "小狮鹫",
-        pet_griffin_effect: "+10% 力量经验值",
-        pet_robo_cat: "机械猫",
-        pet_robo_cat_effect: "+10% 智力经验值",
-        pet_bat: "蝙蝠同伴",
-        pet_bat_effect: "+10% 智慧经验值",
-        pet_jelly: "宇宙水母",
-        pet_jelly_effect: "+10% 体质经验值",
-        pet_hound: "侦探猎犬",
-        pet_hound_effect: "+10% 魅力经验值",
-        comm_sport_title: "共同锻炼",
-        comm_sport_desc: "与朋友或同事进行30分钟的体育锻炼。",
-        comm_study_title: "共同学习或编程",
-        comm_study_desc: "共同在项目或技术课程上工作1小时。",
-        comm_clean_title: "共同清洁或整理",
-        comm_clean_desc: "清洁或整理共同空间（客厅、办公室、厨房）。",
-        comm_meal_title: "分享健康餐",
-        comm_meal_desc: "一起做饭或吃一顿没有电子屏幕干扰的健康晚餐。",
-        comm_briefing_title: "团队晨会",
-        comm_briefing_desc: "整理本周的任务，并互相鼓励。",
-        comm_lecture_title: "共同阅读与探讨",
-        comm_lecture_desc: "就一篇有趣的文章、书籍或话题讨论30分钟。",
-        xpTitle: "经验值",
-        goldUnit: "金币",
-        streakUnit: "天",
-        boutique: "商店",
-        shopDesc: "花费你的金币购买现实生活中的奖励。",
-        createRewardBtn: "创建",
-        noRewards: "未创建奖励。",
-        heroName: "英雄名字",
-        selectAvatar: "选择头像",
-        cancel: "取消",
-        save: "保存",
-        soloProposalsTitle: "提案的个人任务",
-        coopProposalsTitle: "提案的共享任务",
-        coopProposalsDesc: "这些共享任务需要团队合作！接受它们以共同完成。",
-        activeCoopQuestsTitle: "活动共享任务",
-        activeCoopQuestsDesc: "完成这些任务对 Boss 造成巨额伤害！",
-        coopBadge: "联机",
-        solo_sport_title: "个人有氧运动",
-        solo_sport_desc: "独自进行30分钟的体育锻炼（有氧运动、力量训练、拉伸）。",
-        solo_study_title: "个人学习时间",
-        solo_study_desc: "专注于项目、课程或学习1小时。",
-        solo_clean_title: "快速个人清理",
-        solo_clean_desc: "整理或清洁自己的个人空间（书桌、房间）15分钟。",
-        solo_read_title: "个人阅读时间",
-        solo_read_desc: "阅读书籍、教育文章或技术文档20分钟。"
-      }
-    };
+    const TRANSLATIONS = window.NeuroQuestTranslations || { fr: {} };
 
     function t(key, replacements = {}) {
       const lang = state.language || "fr";
@@ -3153,6 +2186,23 @@
       { name: "Acheter du matériel/vêtement souhaité", cost: 500 }
     ];
 
+    const REWARD_CATEGORY_META = {
+      "short-break": { label: "Pause courte", impact: "pression reduite et reprise plus claire" },
+      recovery: { label: "Recuperation", impact: "repos reel et energie protegee" },
+      wellbeing: { label: "Hygiene de vie", impact: "sante, mouvement, repas ou environnement" },
+      social: { label: "Social", impact: "lien humain ou demande d'aide" },
+      pleasure: { label: "Plaisir", impact: "motivation et recompense choisie" }
+    };
+
+    function inferRewardCategory(name, cost = 0) {
+      const text = String(name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      if (/appel|message|ami|famille|restaurant|cinema|sortie/.test(text)) return "social";
+      if (/douche|bain|repos|sieste|respiration|etirement|marche|promenade|repas/.test(text)) return "recovery";
+      if (/eau|boire|sport|ranger|bureau|dehors/.test(text)) return "wellbeing";
+      if (Number(cost) <= 50 || /pause|musique|video courte|chocolat|cafe|the/.test(text)) return "short-break";
+      return "pleasure";
+    }
+
     function generateShopRewards() {
       const customRewards = state.rewards.filter(r => r.isCustom);
       const shuffled = [...REWARD_POOL].sort(() => 0.5 - Math.random());
@@ -3161,6 +2211,7 @@
         id: `rew-${Date.now()}-${i}`,
         name: r.name,
         cost: r.cost,
+        category: r.category || inferRewardCategory(r.name, r.cost),
         isCustom: false
       }));
       state.rewards = [...customRewards, ...newGenerated];
@@ -3299,7 +2350,8 @@
 
     let editingQuestId = null;
 
-    const STORAGE_KEY = "questlog_rpg_state";
+    const STORAGE_KEY = window.NeuroQuestConfig?.STORAGE_KEY || "neuroquest_state_v2";
+    const LEGACY_STORAGE_KEYS = window.NeuroQuestConfig?.LEGACY_STORAGE_KEYS || ["questlog_rpg_state"];
     let SUPABASE_URL = "";
     let SUPABASE_ANON_KEY = "";
     const CLOUD_SAVE_TABLE = "save_states";
@@ -3382,8 +2434,7 @@
       const player = saveStateObj && saveStateObj.player;
       if (!player || !player.setupComplete) return false;
       const className = (player.class || "").trim();
-      const role = (player.role || "").trim();
-      return Boolean(className && role && player.stats);
+      return Boolean(className && player.stats);
     }
 
     function renderCloudAccountPanel() {
@@ -3485,12 +2536,12 @@
       if (!client || !cloudUser) return false;
       try {
         cloudLastError = null;
-        const { data: sessionData } = await client.auth.getSession();
-        if (!sessionData || !sessionData.session || !sessionData.session.user) {
+        const { data: userData, error: userError } = await client.auth.getUser();
+        if (userError || !userData || !userData.user) {
           cloudUser = null;
           throw new Error("session absente : reconnecte-toi pour activer la sauvegarde cloud");
         }
-        cloudUser = sessionData.session.user;
+        cloudUser = userData.user;
         const payload = JSON.parse(JSON.stringify(state));
         const { error } = await client
           .from(CLOUD_SAVE_TABLE)
@@ -3563,8 +2614,8 @@
       renderCloudAccountPanel();
       if (!client) return;
       try {
-        const { data } = await client.auth.getSession();
-        cloudUser = data && data.session ? data.session.user : null;
+        const { data } = await client.auth.getUser();
+        cloudUser = data && data.user ? data.user : null;
         renderCloudAccountPanel();
         if (cloudUser) {
           loadStateFromCloud({ force: false }).then(() => {
@@ -3948,7 +2999,9 @@
         return;
       }
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const storageKeys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS.filter(key => key !== STORAGE_KEY)];
+        const savedKey = storageKeys.find(key => localStorage.getItem(key));
+        const saved = savedKey ? localStorage.getItem(savedKey) : null;
         if (saved) {
           state = JSON.parse(saved);
           if (!state.player.equipment) state.player.equipment = { weapon: null, armor: null, accessory: null, pet: null };
@@ -4024,6 +3077,9 @@
           if (!state.bestiary) state.bestiary = {};
           if (!state.achievements) state.achievements = [];
           if (!["today", "quests", "tools", "shop", "party"].includes(state.dashboardTab)) state.dashboardTab = "today";
+          if (savedKey && savedKey !== STORAGE_KEY) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          }
         } else {
           resetToDefault();
         }
@@ -4600,13 +3656,14 @@
       }
     }
 
-    function addCustomReward(name, cost) {
+    function addCustomReward(name, cost, category = null) {
       const rewardType = cost <= 50 ? "courte" : cost >= 250 ? "longue" : "standard";
       const reward = {
         id: "rew-" + Date.now(),
         name: name.trim(),
         cost: parseInt(cost, 10),
         rewardType,
+        category: category || inferRewardCategory(name, cost),
         isCustom: true
       };
       state.rewards.push(reward);
@@ -4951,34 +4008,18 @@
       const client = getSupabaseClient();
       if (!client || !cloudUser) return { success: false, message: "Connecte-toi pour accepter une invitation live." };
       try {
-        const { data, error } = await client
-          .from(FRIEND_INVITES_TABLE)
-          .select("code, creator_user_id, public_hero, expires_at")
-          .eq("code", inviteCode)
-          .maybeSingle();
+        const { data: userData, error: userError } = await client.auth.getUser();
+        if (userError || !userData?.user) return { success: false, message: "Session expiree. Reconnecte-toi avant d'accepter l'invitation." };
+        cloudUser = userData.user;
+        const { data, error } = await client.rpc("accept_friend_invite", { p_code: inviteCode });
         if (error) throw error;
-        if (!data || !data.public_hero) return { success: false, message: "Invitation live introuvable ou expiree." };
-        if (data.expires_at && Date.parse(data.expires_at) < Date.now()) return { success: false, message: "Invitation live expiree." };
-        if (data.creator_user_id === cloudUser.id) return { success: false, message: "C'est votre propre invitation." };
-        const { error: friendshipError } = await client
-          .from(FRIENDSHIPS_TABLE)
-          .upsert({
-            user_id: data.creator_user_id,
-            friend_user_id: cloudUser.id,
-            status: "accepted"
-          }, { onConflict: "user_id,friend_user_id" });
-        if (friendshipError) throw friendshipError;
-        await client
-          .from(FRIEND_INVITES_TABLE)
-          .update({
-            status: "accepted",
-            accepted_by_user_id: cloudUser.id,
-            accepted_at: new Date().toISOString()
-          })
-          .eq("code", inviteCode);
+        const acceptedInvite = Array.isArray(data) ? data[0] : data;
+        if (!acceptedInvite?.inviter_user_id || !acceptedInvite?.inviter_public_hero) {
+          return { success: false, message: "Invitation live introuvable, expiree ou deja utilisee." };
+        }
         await upsertPublicHeroProfile();
         await syncLiveFriends({ force: true });
-        const publicHero = { ...data.public_hero, userId: data.creator_user_id || data.public_hero.userId, source: "account" };
+        const publicHero = { ...acceptedInvite.inviter_public_hero, userId: acceptedInvite.inviter_user_id, source: "account" };
         const friend = (state.party || []).find(item => item.userId === publicHero.userId) || null;
         return { success: true, friend: friend || { name: publicHero.name || "Ami NeuroQuest" } };
       } catch (e) {
@@ -6231,10 +5272,29 @@
       });
     });
 
+    let monsterSvgInstanceCounter = 0;
+
+    function uniquifyMonsterSvgReferences(template) {
+      const source = String(template || '');
+      if (!source.includes('<svg') || !source.includes('id=')) return source;
+      const suffix = `-nq-${++monsterSvgInstanceCounter}`;
+      const idMap = new Map();
+      const withUniqueIds = source.replace(/\bid=(["'])([^"']+)\1/g, (match, quote, id) => {
+        const uniqueId = `${id}${suffix}`;
+        idMap.set(id, uniqueId);
+        return `id=${quote}${uniqueId}${quote}`;
+      });
+      return withUniqueIds
+        .replace(/url\(#([^\)]+)\)/g, (match, id) => idMap.has(id) ? `url(#${idMap.get(id)})` : match)
+        .replace(/((?:xlink:)?href=["'])#([^"']+)(["'])/g, (match, prefix, id, suffixQuote) => {
+          return idMap.has(id) ? `${prefix}#${idMap.get(id)}${suffixQuote}` : match;
+        });
+    }
+
     function getBattleMonsterTemplate(monsterId) {
       normalizeQoLSettings();
       if (state.qol.calmVisuals && CALM_MONSTER_TEMPLATES[monsterId]) {
-        return CALM_MONSTER_TEMPLATES[monsterId];
+        return uniquifyMonsterSvgReferences(CALM_MONSTER_TEMPLATES[monsterId]);
       }
       if (state.qol.calmVisuals) {
         const premiumMatch = String(monsterId || '').match(/^([a-z]+)_(monster|boss)_\d{2}$/);
@@ -6243,10 +5303,10 @@
           const calmId = premiumMatch[2] === 'boss'
             ? pickMonsterFromPool(themeSet.boss || themeSet.epic || 'dragon', monsterId)
             : pickMonsterFromPool(themeSet.trivial || 'slime', monsterId);
-          return CALM_MONSTER_TEMPLATES[calmId] || CALM_MONSTER_TEMPLATES.slime || MONSTER_TEMPLATES.slime;
+          return uniquifyMonsterSvgReferences(CALM_MONSTER_TEMPLATES[calmId] || CALM_MONSTER_TEMPLATES.slime || MONSTER_TEMPLATES.slime);
         }
       }
-      return MONSTER_TEMPLATES[monsterId] || MONSTER_TEMPLATES.slime;
+      return uniquifyMonsterSvgReferences(MONSTER_TEMPLATES[monsterId] || MONSTER_TEMPLATES.slime);
     }
 
     const WEAPON_TEMPLATES = {
@@ -6891,6 +5951,24 @@
       totalXp = Math.max(1, Math.round(totalXp * pacing.multiplier));
       totalGold = Math.max(1, Math.round(totalGold * pacing.multiplier));
 
+      if (!quest.rewardSnapshot) {
+        const preview = getQuestRewardEstimate(quest);
+        quest.rewardSnapshot = {
+          xp: preview.xp,
+          gold: preview.gold,
+          stat: preview.stat,
+          pacingLabel: preview.pacingLabel || "",
+          usedRestedBonus: !!state.player.restedBuffActive
+        };
+        if (quest.rewardSnapshot.usedRestedBonus) {
+          state.player.restedBuffActive = false;
+          state.player.restTimeAccumulated = 0;
+        }
+      }
+      totalXp = quest.rewardSnapshot.xp;
+      totalGold = quest.rewardSnapshot.gold;
+      const rewardPacingLabel = quest.rewardSnapshot.pacingLabel || pacing.label;
+
       let xpGained = Math.floor(totalXp / N);
       let goldGained = Math.floor(totalGold / N);
       
@@ -6900,7 +5978,7 @@
       if (isFinal) {
         xpGained = totalXp - (xpGained * (N - 1));
         goldGained = totalGold - (goldGained * (N - 1));
-        statGained = getScaledStatGain(quest.associatedStat, baseRewards.stat);
+        statGained = quest.rewardSnapshot.stat;
         
         quest.completed = true;
         quest.completedAt = new Date().toISOString();
@@ -6914,12 +5992,7 @@
           state.bestiary[monsterType] = (state.bestiary[monsterType] || 0) + 1;
         }
 
-        if (state.player.restedBuffActive) {
-          xpGained = Math.round(xpGained * 1.15);
-          goldGained = Math.round(goldGained * 1.15);
-          state.player.restedBuffActive = false;
-          state.player.restTimeAccumulated = 0;
-        }
+        delete quest.rewardSnapshot;
       }
       
       state.player.gold += goldGained;
@@ -6959,7 +6032,7 @@
         bossesDefeated,
         isQuestFinal: isFinal,
         quest,
-        pacingLabel: pacing.label
+        pacingLabel: rewardPacingLabel
       };
     }
 
@@ -7753,6 +6826,7 @@
               inferno: { forest: "PLAINES DE CENDRES", dungeon: "CITADELLE INFERNALE", ruins: "AUTEL BRULE", sartorius: "FORGE INTERDITE", all: "CERCLES DE L'ENFER" },
               arcane: { forest: "SERRES ENCHANTEES", dungeon: "COULOIRS INTERDITS", ruins: "TOUR DES RUNES", sartorius: "LABO D'ALCHIMIE", all: "ECOLE DE MAGIE" },
               stargate: { forest: "OASIS DES GLYPHES", dungeon: "PYRAMIDE ANCIENNE", ruins: "TEMPLE DU PORTAIL", sartorius: "ATELIER DES CHEVRONS", all: "NECROPOLE DES PORTAILS" },
+              zombie: { forest: "ROUTE ENVAHIE", dungeon: "HOPITAL ABANDONNE", ruins: "QUARTIER EN RUINE", sartorius: "LABO DE QUARANTAINE", all: "ZONE DE SURVIE" },
               medieval: { forest: "FORÊT DES ELFES", dungeon: "DONJON OBSCUR", ruins: "RUINES MAUDITES", sartorius: "SARTORIUS LAB", all: "TOUTES LES ZONES" }
             };
             const biomeNames = themedBiomeNames[state.theme] || themedBiomeNames.medieval;
@@ -8248,6 +7322,8 @@
     function spawnAmbientParticle() {
       const container = document.getElementById('battle-particles-container');
       if (!container || document.hidden) return;
+      if (state.qol?.calmVisuals || state.qol?.reduceMotion) return;
+      if (document.body.classList.contains('is-mobile-layout') && Math.random() < 0.7) return;
       
       // Limit active particles to avoid memory / CPU overhead
       if (container.children.length > 20) {
@@ -9286,6 +8362,10 @@
             const freqs = [32.70, 34.65, 49.00, 46.25]; // C1, C#1, G1, F#1
             root = freqs[measure];
             chordNotes = [root * 2, root * 2 * 1.05946, root * 4, root * 4 * 1.05946];
+          } else if (theme === 'zombie') {
+            const freqs = [41.20, 43.65, 36.71, 46.25];
+            root = freqs[measure];
+            chordNotes = [root * 2, root * 2.38, root * 3.17, root * 4.24];
           } else if (theme === 'noir') {
             const freqs = [98.00, 116.54, 138.59, 116.54]; // G2, Bb2, Db3, Bb2
             root = freqs[measure];
@@ -9312,6 +8392,7 @@
           else if (theme === 'stargate') { bassType = 'sine'; leadType = 'sine'; }
           else if (theme === 'cyberpunk') { bassType = 'square'; leadType = 'square'; }
           else if (theme === 'horror') { bassType = 'sawtooth'; leadType = 'sawtooth'; }
+          else if (theme === 'zombie') { bassType = 'triangle'; leadType = 'sawtooth'; }
           else if (theme === 'scifi') { bassType = 'sawtooth'; leadType = 'sine'; }
           else if (theme === 'noir') { bassType = 'sawtooth'; leadType = 'triangle'; }
           
@@ -9348,6 +8429,9 @@
              activeChord = chords[chordIndex];
           } else if (theme === 'horror') {
              const chords = [[65.41, 77.78, 98.00], [73.42, 87.31, 110.00], [65.41, 77.78, 98.00], [55.00, 65.41, 82.41]];
+             activeChord = chords[chordIndex];
+          } else if (theme === 'zombie') {
+             const chords = [[73.42, 87.31, 110.00], [65.41, 77.78, 98.00], [55.00, 73.42, 92.50], [61.74, 82.41, 103.83]];
              activeChord = chords[chordIndex];
           } else if (theme === 'cyberpunk') {
              const chords = [[130.81, 196.00, 261.63], [116.54, 174.61, 233.08], [98.00, 146.83, 196.00], [130.81, 196.00, 261.63]];
@@ -9421,6 +8505,14 @@
               [55.00, 65.41, 77.78, 98.00]
             ];
             instrument = 'sawtooth';
+          } else if (theme === 'zombie') {
+            chords = [
+              [55.00, 73.42, 87.31, 110.00],
+              [49.00, 65.41, 77.78, 98.00],
+              [46.25, 61.74, 73.42, 92.50],
+              [55.00, 73.42, 87.31, 110.00]
+            ];
+            instrument = 'triangle';
           } else if (theme === 'cyberpunk') {
             chords = [
               [65.41, 130.81, 155.56, 196.00],
@@ -9494,6 +8586,10 @@
               playMusicNote(freq, 'sawtooth', 1.5, now, 0.12);
               playMusicNote(freq * 1.5, 'sawtooth', 1.5, now, 0.08);
             }
+          } else if (theme === 'zombie') {
+            const pulse = [55.00, 55.00, 65.41, 49.00, 55.00, 73.42, 46.25, 61.74];
+            if (musicBeat % 2 === 0) playMusicNote(pulse[(musicBeat / 2) % pulse.length], 'triangle', 0.7, now, 0.12);
+            if (musicBeat % 8 === 6) playMusicNote(174.61, 'sawtooth', 0.16, now + 0.04, 0.035);
           } else if (theme === 'scifi') {
             const notes = [261.63, 392.00, 466.16, 523.25, 466.16, 392.00, 261.63, 392.00]; // Space arpeggio
             const freq = notes[musicBeat % 8];
@@ -9553,6 +8649,7 @@
         if (phraseBeat !== 24 && phraseBeat !== 30) return;
         const notesByTheme = {
           horror: [98.00, 87.31, 77.78],
+          zombie: [110.00, 98.00, 82.41],
           noir: [164.81, 146.83, 130.81],
           cyberpunk: [261.63, 329.63, 392.00],
           scifi: [493.88, 554.37, 659.25],
@@ -9571,6 +8668,7 @@
         if (phraseBeat !== 16 && phraseBeat !== 28) return;
         const notesByTheme = {
           horror: [73.42, 65.41, 55.00],
+          zombie: [82.41, 73.42, 61.74],
           noir: [146.83, 123.47, 98.00],
           cyberpunk: [196.00, 155.56, 130.81],
           scifi: [392.00, 293.66, 261.63],
@@ -9588,6 +8686,7 @@
         if (phraseBeat !== 20 && phraseBeat !== 28) return;
         const notesByTheme = {
           horror: [98.00, 92.50, 87.31, 65.41],
+          zombie: [110.00, 98.00, 82.41, 73.42],
           noir: [196.00, 174.61, 146.83, 116.54],
           cyberpunk: [392.00, 466.16, 523.25, 622.25],
           scifi: [523.25, 659.25, 739.99, 987.77],
@@ -9606,6 +8705,7 @@
       if (phraseBeat !== 14 && phraseBeat !== 30) return;
       const notesByTheme = {
         horror: [82.41, 73.42, 65.41, 58.27],
+        zombie: [110.00, 98.00, 82.41, 73.42],
         noir: [220.00, 196.00, 164.81, 137.50],
         cyberpunk: [261.63, 311.13, 392.00, 466.16],
         scifi: [523.25, 587.33, 659.25, 783.99],
@@ -9867,9 +8967,10 @@
     let openWorldSettingsId = null;
     let welcomeGateOpen = true;
     let pendingInviteCode = null;
-    const WORLD_THEME_OPTIONS = [
+    const WORLD_THEME_OPTIONS = window.NeuroQuestConfig?.WORLD_THEME_OPTIONS || [
       { id: "medieval", label: "Medieval" },
       { id: "horror", label: "Horror" },
+      { id: "zombie", label: "Survie zombie" },
       { id: "cyberpunk", label: "Cyberpunk" },
       { id: "scifi", label: "Sci-Fi" },
       { id: "noir", label: "Noir" },
@@ -11022,24 +10123,53 @@
 
     function getQuestRewardEstimate(quest) {
       const difficultyData = DIFFICULTY_VALUES[quest?.difficulty] || DIFFICULTY_VALUES.trivial;
+      if (quest?.rewardSnapshot) {
+        return {
+          xp: quest.rewardSnapshot.xp,
+          gold: quest.rewardSnapshot.gold,
+          stat: quest.rewardSnapshot.stat,
+          statBase: difficultyData.stat,
+          baseXp: difficultyData.xp,
+          baseGold: difficultyData.gold,
+          breakdown: [{
+            label: "Gains verrouilles au premier sous-objectif",
+            xpDelta: quest.rewardSnapshot.xp - difficultyData.xp,
+            goldDelta: quest.rewardSnapshot.gold - difficultyData.gold,
+            kind: quest.rewardSnapshot.xp < difficultyData.xp || quest.rewardSnapshot.gold < difficultyData.gold ? "malus" : "bonus"
+          }],
+          pacingLabel: quest.rewardSnapshot.pacingLabel || ""
+        };
+      }
       let xpReward = difficultyData.xp;
       let goldReward = difficultyData.gold;
       const statReward = getScaledStatGain(quest?.associatedStat, difficultyData.stat);
+      const breakdown = [];
+
+      const applyRewardModifier = (label, xpMultiplier = 1, goldMultiplier = 1) => {
+        const previousXp = xpReward;
+        const previousGold = goldReward;
+        xpReward = Math.max(1, Math.round(xpReward * xpMultiplier));
+        goldReward = Math.max(1, Math.round(goldReward * goldMultiplier));
+        const xpDelta = xpReward - previousXp;
+        const goldDelta = goldReward - previousGold;
+        if (xpDelta || goldDelta) {
+          breakdown.push({ label, xpDelta, goldDelta, kind: xpDelta < 0 || goldDelta < 0 ? "malus" : "bonus" });
+        }
+      };
 
       if (quest?.type === 'main') {
-        xpReward = Math.round(xpReward * 1.5);
-        goldReward = Math.round(goldReward * 1.5);
+        applyRewardModifier("Quete principale x1.5", 1.5, 1.5);
       }
 
       const stat = quest?.associatedStat;
       const weaponItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.weapon);
       if (weaponItem && weaponItem.statBoost === stat) {
-        xpReward = Math.round(xpReward * (1 + weaponItem.boostPercent));
+        applyRewardModifier(getGearDisplayName(weaponItem), 1 + weaponItem.boostPercent, 1);
       }
 
       const armorItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.armor);
       if (armorItem && armorItem.statBoost === stat) {
-        xpReward = Math.round(xpReward * (1 + armorItem.boostPercent));
+        applyRewardModifier(getGearDisplayName(armorItem), 1 + armorItem.boostPercent, 1);
       }
 
       const petId = state.player.equipment.pet;
@@ -11047,33 +10177,68 @@
       if (petItem && petItem.statBoost === stat) {
         const petLevel = (state.player.petLevels && state.player.petLevels[petId]) ? state.player.petLevels[petId].level : 1;
         const actualBoost = petItem.boostPercent + (petLevel - 1) * 0.02;
-        xpReward = Math.round(xpReward * (1 + actualBoost));
+        applyRewardModifier(`${getGearDisplayName(petItem)} niv. ${petLevel}`, 1 + actualBoost, 1);
       }
 
       const accessoryItem = GEAR_CATALOG.find(i => i.id === state.player.equipment.accessory);
       if (accessoryItem && accessoryItem.id === "lucky_coin") {
-        goldReward = Math.round(goldReward * (1 + accessoryItem.boostPercent));
+        applyRewardModifier(getGearDisplayName(accessoryItem), 1, 1 + accessoryItem.boostPercent);
       }
 
       if (quest?.type === "daily") {
         const streakBonus = Math.min(0.5, state.player.streak * 0.05);
-        xpReward = Math.round(xpReward * (1 + streakBonus));
-        goldReward = Math.round(goldReward * (1 + streakBonus));
+        if (streakBonus > 0) applyRewardModifier(`Serie ${state.player.streak} jour(s)`, 1 + streakBonus, 1 + streakBonus);
       }
 
       const tMult = state.transcendenceMultiplier || 1.0;
-      xpReward = Math.round(xpReward * tMult);
-      goldReward = Math.round(goldReward * tMult);
+      if (tMult !== 1) applyRewardModifier(`Transcendance x${tMult.toFixed(2)}`, tMult, tMult);
 
       const pacing = getQuestPacingModifier(quest);
-      xpReward = Math.max(1, Math.round(xpReward * pacing.multiplier));
-      goldReward = Math.max(1, Math.round(goldReward * pacing.multiplier));
+      if (pacing.multiplier !== 1) applyRewardModifier(pacing.label || "Rythme de la journee", pacing.multiplier, pacing.multiplier);
 
-      return { xp: xpReward, gold: goldReward, stat: statReward, pacingLabel: pacing.label };
+      if (state.player.restedBuffActive) {
+        applyRewardModifier("Bonus repose x1.15", 1.15, 1.15);
+      }
+
+      return {
+        xp: xpReward,
+        gold: goldReward,
+        stat: statReward,
+        statBase: difficultyData.stat,
+        baseXp: difficultyData.xp,
+        baseGold: difficultyData.gold,
+        breakdown,
+        pacingLabel: pacing.label
+      };
     }
 
     function getQuestRewardPreview(quest) {
       return getQuestRewardEstimate(quest);
+    }
+
+    function renderQuestRewardBreakdown(rewardPreview) {
+      if (!rewardPreview) return "";
+      const signed = value => value > 0 ? `+${value}` : `${value}`;
+      const modifierRows = (rewardPreview.breakdown || []).map(step => `
+        <div class="quest-reward-breakdown-row ${step.kind === 'malus' ? 'is-malus' : 'is-bonus'}">
+          <span>${escapeHTML(step.label)}</span>
+          <span>${step.xpDelta ? `${signed(step.xpDelta)} XP` : ''}${step.xpDelta && step.goldDelta ? ' / ' : ''}${step.goldDelta ? `${signed(step.goldDelta)} PO` : ''}</span>
+        </div>
+      `).join('');
+      const statAdjustment = rewardPreview.stat !== rewardPreview.statBase
+        ? `<div class="quest-reward-breakdown-row is-malus"><span>Rendement de stat</span><span>${rewardPreview.statBase} vers ${rewardPreview.stat}</span></div>`
+        : '';
+      return `
+        <details class="quest-reward-details">
+          <summary><i data-lucide="circle-help"></i> Pourquoi ce gain ?</summary>
+          <div class="quest-reward-breakdown">
+            <div class="quest-reward-breakdown-row"><span>Base difficulte</span><span>${rewardPreview.baseXp} XP / ${rewardPreview.baseGold} PO</span></div>
+            ${modifierRows || '<div class="quest-reward-breakdown-row"><span>Aucun bonus ou malus</span><span>-</span></div>'}
+            ${statAdjustment}
+            <div class="quest-reward-breakdown-row is-total"><span>Total prevu</span><span>${rewardPreview.xp} XP / ${rewardPreview.gold} PO / +${rewardPreview.stat} stat</span></div>
+          </div>
+        </details>
+      `;
     }
 
     function renderQuests() {
@@ -11229,6 +10394,7 @@
                 <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${rewardPreview.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
+            ${renderQuestRewardBreakdown(rewardPreview)}
           </div>
           <div class="quest-actions">
             ${btnTimer}
@@ -11348,6 +10514,7 @@
                 <i data-lucide="${statIcons[quest.associatedStat]}"></i>+${rewardPreview.stat} ${statNameTranslated[quest.associatedStat]}
               </span>
             </div>
+            ${renderQuestRewardBreakdown(rewardPreview)}
           </div>
           <div class="quest-actions">
             ${!quest.completed && !hasSubtasks ? `
@@ -11633,8 +10800,11 @@
           const row = document.createElement('div');
           row.className = 'shop-item-card';
           const rewardType = rew.rewardType || (rew.cost <= 50 ? "courte" : rew.cost >= 250 ? "longue" : "standard");
-          const rewardHint = rewardType === "courte" ? "Pause courte conseillee" : rewardType === "longue" ? "Longue recompense: a planifier" : "Recompense reelle";
-          const rewardImpact = rewardType === "courte" ? "Impact: pause courte, pression reduite" : rewardType === "longue" ? "Impact: vraie recompense a planifier" : "Impact: motivation reelle";
+          const rewardCategory = rew.category || inferRewardCategory(rew.name, rew.cost);
+          const categoryMeta = REWARD_CATEGORY_META[rewardCategory] || REWARD_CATEGORY_META.pleasure;
+          const durationHint = rewardType === "longue" ? " - a planifier" : rewardType === "courte" ? " - courte" : "";
+          const rewardHint = `${categoryMeta.label}${durationHint}`;
+          const rewardImpact = `Impact: ${categoryMeta.impact}`;
           row.innerHTML = `
             <div class="shop-item-icon"><i data-lucide="gift"></i></div>
             <div class="shop-item-info">
@@ -12043,8 +11213,8 @@
           const raidMatch = INITIAL_RAIDS.find(r => r.id === id);
           if (raidMatch) { name = raidMatch.name; isBoss = true; }
           
-          const iconHtml = MONSTER_TEMPLATES[id] 
-            ? `<div style="width:100%; height:100%; padding:4px;">${MONSTER_TEMPLATES[id]}</div>` 
+          const iconHtml = MONSTER_TEMPLATES[id]
+            ? `<div style="width:100%; height:100%; padding:4px;">${uniquifyMonsterSvgReferences(MONSTER_TEMPLATES[id])}</div>`
             : `<i data-lucide="${isBoss ? 'shield-alert' : 'skull'}"></i>`;
 
           const html = `
@@ -12380,6 +11550,7 @@
       visibleSuggestions.forEach(suggestion => {
         const alreadyActive = (state.raids || []).some(raid => !raid.completed && raid.suggestionId === suggestion.id);
         const scaled = scaleRaidValues(suggestion.hp, suggestion.rewardXp, suggestion.rewardGold);
+        const raidScale = getRaidScaleMeta(scaled.hp);
         const monsterType = resolveRaidBossMonsterType(suggestion);
         const bossSprite = getBattleMonsterTemplate(monsterType);
         const card = document.createElement('div');
@@ -12391,6 +11562,7 @@
               <h4>${escapeHTML(suggestion.name)}</h4>
               <div class="raid-suggestion-meta">
                 <span>${escapeHTML(suggestion.tag)}</span>
+                <span class="raid-scale-badge ${raidScale.className}" title="${escapeHTML(raidScale.detail)}">${raidScale.label}</span>
                 <span>${scaled.hp} HP</span>
                 <span>+${scaled.rewardXp} XP</span>
                 <span>+${scaled.rewardGold} PO</span>
@@ -12404,6 +11576,25 @@
         list.appendChild(card);
       });
       createIcons();
+    }
+
+    function getRaidScaleMeta(maxHp) {
+      const hp = Math.max(1, Number(maxHp) || 1);
+      const mediumQuestDamage = Math.max(25, Math.round((DIFFICULTY_VALUES.medium?.xp || 50) * (state.transcendenceMultiplier || 1)));
+      const soloActions = Math.max(1, Math.ceil(hp / mediumQuestDamage));
+      const partySize = Math.max(0, (state.party || []).length);
+      const teamMultiplier = 1 + partySize * 0.25;
+      const teamActions = Math.max(1, Math.ceil(hp / (mediumQuestDamage * teamMultiplier)));
+      if (soloActions <= 8) {
+        return { label: "Solo", className: "is-solo", detail: `Environ ${soloActions} quete(s) moyenne(s) en solo.` };
+      }
+      if (soloActions <= 24) {
+        return { label: "Raid long", className: "is-long", detail: `Environ ${soloActions} quete(s) moyenne(s) en solo. A faire sur plusieurs jours.` };
+      }
+      const teamDetail = partySize > 0
+        ? `Environ ${teamActions} quete(s) moyenne(s) avec l'equipe actuelle (${partySize + 1} heros).`
+        : `Environ ${soloActions} quete(s) moyenne(s) en solo. Invite une equipe ou garde ce raid comme objectif long.`;
+      return { label: "Equipe", className: "is-team", detail: teamDetail };
     }
 
     function renderRaids() {
@@ -12435,6 +11626,7 @@
         if (!boss.completed) card.title = "Cliquer pour choisir comme cible principale";
 
         const hpPercent = Math.max(0, Math.round((boss.currentHp / boss.maxHp) * 100));
+        const raidScale = getRaidScaleMeta(boss.maxHp);
         const monsterType = resolveRaidBossMonsterType(boss, { persist: true });
         const bossSprite = getBattleMonsterTemplate(monsterType);
 
@@ -12443,6 +11635,7 @@
             <span class="boss-badge ${boss.completed ? 'victory' : ''}">
               ${boss.completed ? 'VAINCU' : state.activeRaidId === boss.id ? 'CIBLE PRINCIPALE' : 'RAID ACTIF'}
             </span>
+            <span class="raid-scale-badge ${raidScale.className}" title="${escapeHTML(raidScale.detail)}">${raidScale.label}</span>
             <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">HP Max : ${boss.maxHp}</span>
           </div>
           <div class="boss-card-main">
@@ -12696,17 +11889,20 @@
       const hasSetup = setupOverlay && !setupOverlay.classList.contains('hidden');
       const hasModal = !!document.querySelector('.modal-overlay.active');
       document.body.classList.toggle('modal-open', hasWelcome || hasSetup || hasModal);
+      window.NeuroQuestA11y?.sync();
     }
 
     function openModal(modal) {
-      modal.classList.add('active');
+      if (!modal) return;
+      if (window.NeuroQuestA11y) window.NeuroQuestA11y.open(modal);
+      else modal.classList.add('active');
       syncModalScrollLock();
-      const input = modal.querySelector('input');
-      if (input) input.focus();
     }
 
     function closeModal(modal) {
-      modal.classList.remove('active');
+      if (!modal) return;
+      if (window.NeuroQuestA11y) window.NeuroQuestA11y.close(modal);
+      else modal.classList.remove('active');
       syncModalScrollLock();
       const form = modal.querySelector('form');
       if (form) form.reset();
@@ -14201,11 +13397,17 @@
       // Wipe Reset button click
       const resetBtn = document.getElementById('reset-btn');
       if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-          if (confirm(t('resetConfirm'))) {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
+        resetBtn.addEventListener('click', async () => {
+          if (!confirm(t('resetConfirm'))) return;
+          const typed = window.prompt("Pour confirmer, tape RECOMMENCER. La sauvegarde cloud sera aussi remplacee.");
+          if ((typed || "").trim().toUpperCase() !== "RECOMMENCER") {
+            spawnFloatingText("Reinitialisation annulee", "var(--text-muted)", "reset-btn");
+            return;
           }
+          LEGACY_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+          resetToDefault();
+          if (cloudUser) await saveStateToCloud();
+          location.reload();
         });
       }
 
@@ -14327,158 +13529,12 @@
         .replace(/'/g, "&#039;");
     }
 
-    const BUTTON_TOOLTIP_BY_ID = {
-      "welcome-start-btn": "Entre dans NeuroQuest. Si une sauvegarde existe, tu continues; sinon l'app lance la creation du heros.",
-      "welcome-cloud-login-btn": "Connecte ton compte pour retrouver ta sauvegarde cloud sur plusieurs appareils.",
-      "welcome-cloud-register-btn": "Cree un compte NeuroQuest. Une validation email peut etre demandee avant la sauvegarde cloud.",
-      "welcome-cloud-logout-btn": "Deconnecte le compte actuel. La sauvegarde locale reste disponible en secours.",
-      "open-cloud-account-btn": "Ouvre le compte, la sauvegarde cloud et les options d'import/export.",
-      "open-collections-btn": "Ouvre les collections: bestiaire, familiers, objets et hauts faits debloques.",
-      "open-settings-btn": "Ouvre les parametres generaux: theme, profil, sons, sauvegarde et preferences.",
-      "nav-dash-tab": "Vue Aujourd'hui: priorite, bataille, prochaine action et outils TDA(H).",
-      "nav-quests-tab": "Vue Quetes: journal complet, filtres, planner et quetes proposees.",
-      "nav-tools-tab": "Vue Outils: sons, bruit, focus, recuperation et controles d'aide.",
-      "nav-shop-tab": "Vue Boutique: acheter de l'equipement, des soins et des recompenses reelles.",
-      "nav-party-tab": "Vue Mon Equipe: inviter des amis, voir l'escouade et lancer les raids.",
-      "global-focus-toggle-btn": "Active ou coupe le Focus depuis n'importe quel onglet. Le Focus limite l'affichage a une quete.",
-      "pomo-play-btn": "Lance un Focus Raid de 25 minutes avec le bruit choisi. La musique se coupe sauf si tu choisis musique theme.",
-      "pomo-stop-btn": "Arrete le Focus Raid en cours. A utiliser si tu veux vraiment abandonner la session.",
-      "change-avatar-btn": "Change l'apparence du heros sans toucher aux stats ni a la progression.",
-      "open-add-quest-btn": "Ajoute une nouvelle quete complete avec type, difficulte, stat, timer et sous-taches.",
-      "today-refresh-btn": "Actualise les priorites, le planner et le bilan affiche dans Aujourd'hui.",
-      "today-guide-btn": "Choisit la quete la plus utile maintenant et t'aide a commencer par une micro-action.",
-      "stuck-help-btn": "Quand tu bloques, reduit la marche: mode faible energie, micro-action et choix simples.",
-      "today-low-energy-btn": "Passe en mode faible energie: une priorite visible, moins de bruit UI, pression reduite.",
-      "today-save-day-btn": "Ouvre l'assistant pour garder une priorite, reporter, simplifier ou faire 2 minutes.",
-      "quest-navigation-collapse-btn": "Replie ou affiche les filtres de mondes et de types sans modifier tes quetes.",
-      "calm-mode-btn": "Replie les panneaux secondaires pour une interface plus calme et moins fatigante.",
-      "adhd-tools-collapse-btn": "Cache ou affiche les outils TDA(H). La barre de prochaine action reste visible.",
-      "adhd-two-minute-btn": "Cree une petite quete timer de 2 minutes pour lancer l'elan sans activer le Focus automatiquement.",
-      "btn-reroll-common-quests": "Propose une nouvelle selection de quetes solo/co-op sans toucher aux quetes deja ajoutees.",
-      "btn-toggle-solo-proposals": "Replie ou affiche les quetes solo proposees pour alleger l'ecran.",
-      "planner-collapse-btn": "Replie ou affiche le planner. Les quetes planifiees restent sauvegardees.",
-      "noise-collapse-btn": "Replie ou affiche le panneau bruit. Le son choisi continue d'etre gere par l'app.",
-      "noise-stop-btn": "Coupe le bruit actif et revient au silence ou a la musique selon le mode.",
-      "noise-play-btn": "Lance le bruit selectionne dans le mode Bruit et coupe la musique de fond.",
-      "btn-reroll-rewards": "Rafraichit les recompenses reelles proposees dans la boutique.",
-      "open-add-reward-btn": "Cree une recompense personnelle a acheter avec tes PO.",
-      "open-create-raid-btn": "Cree un boss de raid personnalise pour representer un gros objectif.",
-      "sound-toggle": "Active ou coupe les effets sonores de l'application.",
-      "music-toggle": "Active ou coupe la musique de fond hors mode bruit/focus.",
-      "close-inventory-btn": "Ferme l'inventaire et revient a l'ecran precedent.",
-      "sync-live-team-btn": "Synchronise les amis live depuis le compte cloud.",
-      "open-export-profile-btn": "Genere un lien ou code pour inviter un ami dans ton equipe.",
-      "open-import-friend-btn": "Ajoute un ami avec une invitation recue.",
-      "close-level-up-splash-btn": "Ferme l'ecran de niveau gagne et reprend l'aventure."
-    };
-
-    function getContextualButtonTooltip(button) {
-      if (!button) return "";
-      if (button.id && BUTTON_TOOLTIP_BY_ID[button.id]) return BUTTON_TOOLTIP_BY_ID[button.id];
-      if (button.dataset.saveDayChoice) {
-        const choices = {
-          keep: "Garde seulement la meilleure priorite et active le Focus dessus.",
-          postpone: "Reporte deux quetes plus tard pour liberer de la place mentale.",
-          simplify: "Cree une mini-action de 2 minutes a partir de la priorite actuelle.",
-          "two-minute": "Cree un demarrage 2 minutes sans repenser toute la liste."
-        };
-        return choices[button.dataset.saveDayChoice] || "";
-      }
-      if (button.dataset.filter) {
-        const filters = {
-          all: "Affiche toutes les quetes du monde selectionne.",
-          main: "Affiche les quetes principales, souvent les objectifs les plus importants.",
-          side: "Affiche les quetes secondaires, utiles mais moins critiques.",
-          daily: "Affiche les quetes quotidiennes et routines recurrentes.",
-          completed: "Affiche les quetes terminees dans le cimetiere ou l'historique."
-        };
-        return filters[button.dataset.filter] || "";
-      }
-      if (button.dataset.world) return button.dataset.world === "all" ? "Affiche les quetes de tous les mondes/projets." : "Selectionne ce monde/projet et affiche ses quetes.";
-      if (button.dataset.category) {
-        const categories = {
-          all: "Affiche tous les objets disponibles dans la boutique.",
-          weapon: "Filtre les armes qui aident certaines stats de quetes.",
-          armor: "Filtre les armures et protections.",
-          accessory: "Filtre les accessoires et objets utilitaires.",
-          pet: "Filtre les familiers a collectionner ou equiper.",
-          healing: "Filtre les soins pour recuperer des PV ou soutenir le repos.",
-          consumable: "Filtre les consommables lies a des actions reelles."
-        };
-        return categories[button.dataset.category] || "";
-      }
-      if (button.dataset.teamDrawerToggle) return "Replie ou affiche cette section de Mon Equipe pour reduire le bruit visuel.";
-      if (button.dataset.emptyAction) {
-        const emptyActions = {
-          all: "Retire le filtre actuel pour revoir toutes les quetes.",
-          quick: "Place le curseur dans l'ajout rapide pour capturer une nouvelle quete.",
-          micro: "Cree une micro-quete de 2 minutes pour relancer l'elan."
-        };
-        return emptyActions[button.dataset.emptyAction] || "";
-      }
-      if (button.dataset.shopJump) return "Va directement vers la section de boutique recommandee.";
-      if (button.dataset.deleteWorld) return "Supprime ce monde et replace ses quetes dans General.";
-      if (button.dataset.closeWorldSettings !== undefined) return "Ferme les parametres du monde selectionne.";
-      if (button.dataset.worldSettings) return "Ouvre les parametres du monde: nom, theme et statut.";
-      if (button.classList.contains('accept-prop-btn')) return "Ajoute cette quete proposee a ton journal.";
-      if (button.classList.contains('refuse-prop-btn')) return "Ignore cette proposition et la retire de la liste.";
-      if (button.classList.contains('btn-toggle-timer')) return "Demarre ou met en pause le timer de cette quete.";
-      if (button.classList.contains('btn-complete-quest')) return "Valide la quete, donne les gains et blesse le monstre associe.";
-      if (button.classList.contains('btn-edit-quest')) return "Ouvre cette quete pour modifier le nom, monde, difficulte, stat, timer et sous-taches.";
-      if (button.classList.contains('btn-delete-quest')) return "Supprime cette quete. A utiliser seulement si elle n'est plus utile.";
-      if (button.classList.contains('btn-delete-planner-item')) return "Retire cette entree du planner sans supprimer la quete.";
-      if (button.classList.contains('btn-purchase-reward')) return "Achete cette recompense reelle avec tes PO apres avoir confirme l'action.";
-      if (button.classList.contains('btn-delete-reward')) return "Supprime cette recompense personnalisee.";
-      if (button.classList.contains('btn-purchase-gear')) return "Achete cet objet avec tes PO. Les consommables peuvent demander une action reelle.";
-      if (button.classList.contains('btn-equip-gear') || button.classList.contains('btn-equip-inv')) return "Equipe cet objet pour appliquer ses bonus.";
-      if (button.classList.contains('btn-unequip-inv')) return "Retire cet objet equipe et laisse l'emplacement vide.";
-      if (button.classList.contains('btn-remove-member')) return "Retire cet ami de ton equipe locale.";
-      if (button.classList.contains('btn-launch-suggested-raid')) return "Ajoute ce boss suggere aux raids actifs.";
-      if (button.classList.contains('boss-delete-btn')) return "Supprime ce boss de raid.";
-      if (button.classList.contains('modal-close')) return "Ferme cette fenetre sans valider d'action.";
-      if (button.classList.contains('setup-stat-btn')) return "Ajuste les points de depart de cette stat pendant la creation du heros.";
-      if (button.classList.contains('remove-subtask-input-btn')) return "Retire cette sous-tache du formulaire.";
-      const text = (button.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-      if (text === "annuler") return "Annule et ferme cette fenetre sans enregistrer.";
-      if (text.includes("enregistrer")) return "Sauvegarde les changements de cette section.";
-      if (text.includes("créer") || text.includes("creer")) return "Cree un nouvel element avec les informations saisies.";
-      if (text.includes("invoquer")) return "Cree ce boss et l'ajoute aux raids.";
-      if (text.includes("continuer")) return "Ferme cet ecran et continue l'aventure.";
-      if (text.includes("connexion")) return "Connecte ton compte avec l'email et le mot de passe saisis.";
-      if (text.includes("deconnexion")) return "Deconnecte le compte actuel.";
-      return "";
-    }
-
     function hydrateButtonTooltips(root = document) {
-      const targets = root.querySelectorAll ? root.querySelectorAll('button, [role="button"]') : [];
-      targets.forEach(button => {
-        const existing = (button.getAttribute('title') || button.getAttribute('aria-label') || '').trim();
-        const tooltip = getContextualButtonTooltip(button) || existing;
-        if (!tooltip) return;
-        button.setAttribute('title', tooltip);
-        button.setAttribute('data-tooltip', tooltip);
-        if (!button.getAttribute('aria-label')) {
-          const label = (button.textContent || '').replace(/\s+/g, ' ').trim();
-          button.setAttribute('aria-label', label ? `${label} - ${tooltip}` : tooltip);
-        }
-      });
+      return window.NeuroQuestTooltips?.hydrate(root);
     }
 
     function startTooltipObserver() {
-      if (window.neuroQuestTooltipObserver) return;
-      hydrateButtonTooltips(document);
-      window.neuroQuestTooltipObserver = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType !== 1) return;
-            if (node.matches && (node.matches('button') || node.matches('[role="button"]'))) {
-              hydrateButtonTooltips({ querySelectorAll: selector => node.matches(selector) ? [node] : [] });
-            }
-            hydrateButtonTooltips(node);
-          });
-        });
-      });
-      window.neuroQuestTooltipObserver.observe(document.body, { childList: true, subtree: true });
+      return window.NeuroQuestTooltips?.startObserver();
     }
 
     function createIcons() {
@@ -14912,8 +13968,9 @@
         e.preventDefault();
         const title = document.getElementById('reward-title').value;
         const cost = document.getElementById('reward-cost').value;
+        const category = document.getElementById('reward-category').value;
         
-        addCustomReward(title, cost);
+        addCustomReward(title, cost, category);
         closeRewardModal();
         renderShop();
       }, 'addRewardForm');
@@ -15315,11 +14372,11 @@
       setInterval(triggerPetInteraction, 30000);
       setTimeout(triggerHeroInteraction, 2000); // Trigger immediately after a short delay
       setInterval(triggerHeroInteraction, 15000); // Trigger every 15s
-      window.openMysteryMerchant = function() {
-      document.getElementById('event-merchant-modal').classList.add('active');
+    window.openMysteryMerchant = function() {
+      openModal(document.getElementById('event-merchant-modal'));
     };
     window.openMysteryChest = function() {
-      document.getElementById('event-chest-modal').classList.add('active');
+      openModal(document.getElementById('event-chest-modal'));
     };
     window.buyMysteryRelic = function() {
       if (state.player.gold >= 300) {
@@ -15333,7 +14390,7 @@
         renderHUD();
         renderBattleArena();
         renderCharacterSheet();
-        document.getElementById('event-merchant-modal').classList.remove('active');
+        closeModal(document.getElementById('event-merchant-modal'));
         playLevelUpSound();
         spawnHeroFloatingText("Relique Obtenue ! (+2 Pts de Stat, +100 XP)", "var(--color-gold)");
         checkAchievements();
@@ -15350,7 +14407,7 @@
       saveState();
       renderHUD();
       renderBattleArena();
-      document.getElementById('event-chest-modal').classList.remove('active');
+      closeModal(document.getElementById('event-chest-modal'));
       playQuestCompleteSound();
       spawnHeroFloatingText("Coffre ouvert ! (+150 PO, +50 XP)", "var(--color-xp)");
       checkAchievements();

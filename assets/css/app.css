@@ -6853,6 +6853,11 @@
       --battle-layer-floor: url("../backgrounds/layers/horror/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/horror/props.png");
     }
+    body.theme-zombie {
+      --battle-layer-back: url("../backgrounds/layers/zombie/back.webp");
+      --battle-layer-floor: url("../backgrounds/layers/zombie/floor.webp");
+      --battle-layer-props: url("../backgrounds/layers/zombie/props.png");
+    }
     body.theme-cyberpunk {
       --battle-layer-back: url("../backgrounds/layers/cyberpunk/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/cyberpunk/floor.webp");
@@ -6938,5 +6943,104 @@
         height: 36%;
         bottom: 2%;
         background-size: max(100%, 560px) auto !important;
+      }
+    }
+
+    .quest-reward-details {
+      margin-top: 0.45rem;
+      max-width: 34rem;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+    .quest-reward-details summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--color-xp);
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+    }
+    .quest-reward-details summary::-webkit-details-marker { display: none; }
+    .quest-reward-details summary svg { width: 13px; height: 13px; }
+    .quest-reward-breakdown {
+      margin-top: 0.35rem;
+      padding: 0.45rem 0.55rem;
+      border-left: 2px solid rgba(0, 245, 212, 0.35);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .quest-reward-breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.15rem 0;
+    }
+    .quest-reward-breakdown-row span:last-child { white-space: nowrap; }
+    .quest-reward-breakdown-row.is-bonus span:last-child { color: var(--color-xp); }
+    .quest-reward-breakdown-row.is-malus span:last-child { color: #f59e0b; }
+    .quest-reward-breakdown-row.is-total {
+      margin-top: 0.2rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .raid-scale-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.4rem;
+      border: 1px solid rgba(0, 245, 212, 0.28);
+      border-radius: 4px;
+      color: var(--color-xp);
+      background: rgba(0, 245, 212, 0.07);
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    .raid-scale-badge.is-long { color: #fbbf24; border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.07); }
+    .raid-scale-badge.is-team { color: #fb7185; border-color: rgba(251, 113, 133, 0.38); background: rgba(251, 113, 133, 0.08); }
+
+    body.qol-calm-visuals .weather-layer,
+    body.qol-calm-visuals .battle-particles-container {
+      display: none !important;
+    }
+    @media (max-width: 760px) {
+      body.is-mobile-layout.qol-calm-visuals .battle-arena {
+        height: 112px;
+        min-height: 112px;
+      }
+      body.is-mobile-layout.qol-calm-visuals .battle-header {
+        max-width: 42%;
+        font-size: 0.58rem;
+      }
+      body.is-mobile-layout.qol-calm-visuals .pomo-widget {
+        min-width: 78px;
+        max-width: 88px;
+        padding: 0.3rem 0.35rem;
+      }
+      body.is-mobile-layout.qol-calm-visuals .pomo-header {
+        font-size: 0.52rem;
+      }
+      body.is-mobile-layout.qol-calm-visuals .pomo-timer {
+        font-size: 0.75rem;
+      }
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .combatant-tag,
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .combatant-hp,
+      body.is-mobile-layout.qol-calm-visuals .monster-reward-preview {
+        visibility: hidden;
+      }
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .monster-wrapper:first-child .combatant-tag,
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .monster-wrapper:first-child .combatant-hp,
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .monster-wrapper.is-selected-quest .combatant-tag,
+      body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .monster-wrapper.is-selected-quest .combatant-hp {
+        visibility: visible;
+      }
+      .quest-reward-breakdown-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.1rem;
       }
     }
