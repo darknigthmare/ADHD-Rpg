@@ -64,6 +64,7 @@ assert(!/body\.theme-noir\s*\{[^}]*\bfilter\s*:/s.test(css), "film noir must not
 assert(html.includes("function syncDeviceStickyOffsets()"), "mobile sticky offset synchronization is missing");
 assert(html.includes("window.requestAnimationFrame(syncDeviceStickyOffsets)"), "mobile sticky offsets must be remeasured after layout");
 assert(html.includes('id="arena-rest-message"'), "shared centered rest message is missing from the battle viewport");
+assert((html.match(/- RAID"/g) || []).length >= 10, "each visual theme must expose a coherent raid arena title");
 
 function checkReference(reference, baseDir, label) {
   if (/^(?:https?:|data:|#|mailto:|javascript:|\$|\{|%23)/i.test(reference)) return;

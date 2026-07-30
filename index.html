@@ -6642,6 +6642,19 @@
       sleeper.innerHTML = `<div class="camp-pet-bed">${petSvg}</div>`;
     }
 
+    const RAID_ARENA_TITLES = {
+      medieval: "SALLE DU DRAGON - RAID",
+      horror: "CRYPTES DU CAUCHEMAR - RAID",
+      zombie: "ZONE ROUGE - RAID",
+      cyberpunk: "NEXUS NEON - RAID",
+      scifi: "SAS OMEGA - RAID",
+      noir: "QUAI INTERDIT - RAID",
+      inferno: "FOSSE INFERNALE - RAID",
+      arcane: "CHAMBRE DES SORTS - RAID",
+      stargate: "SANCTUAIRE DU PORTAIL - RAID",
+      sartorius: "LABORATOIRE OMEGA - RAID"
+    };
+
     function renderBattleArena() {
       const viewParty = document.getElementById('view-party');
       const activeTab = viewParty?.classList.contains('active') ? 'party' : 'dash';
@@ -6944,7 +6957,7 @@
         } else {
           const bgVolcano = document.getElementById('bg-volcano');
           if (bgVolcano) bgVolcano.classList.add('active');
-          titleTag.textContent = "VOLCAN EN FUSION - RAID";
+          titleTag.textContent = RAID_ARENA_TITLES[state.theme] || "ARENE DE RAID";
           
           const boss = activeRaids[0];
           const currentTheme = state.theme || 'medieval';
