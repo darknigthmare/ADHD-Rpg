@@ -157,7 +157,9 @@
     .nav-bar button[data-tooltip]:hover::after,
     .nav-bar button[data-tooltip]:focus-visible::after,
     .welcome-gate button[data-tooltip]:hover::after,
-    .welcome-gate button[data-tooltip]:focus-visible::after {
+    .welcome-gate button[data-tooltip]:focus-visible::after,
+    .game-hud .currency-group button[data-tooltip]:hover::after,
+    .game-hud .currency-group button[data-tooltip]:focus-visible::after {
       bottom: auto;
       top: calc(100% + 8px);
     }
@@ -167,6 +169,23 @@
     .welcome-gate button[data-tooltip]:focus-visible::before {
       bottom: auto;
       top: calc(100% + 3px);
+      border: 0;
+      border-left: 1px solid rgba(0, 245, 212, 0.22);
+      border-top: 1px solid rgba(0, 245, 212, 0.22);
+    }
+    .game-hud .currency-group button[data-tooltip]:hover::after,
+    .game-hud .currency-group button[data-tooltip]:focus-visible::after {
+      left: auto;
+      right: 0;
+      transform: none;
+    }
+    .game-hud .currency-group button[data-tooltip]:hover::before,
+    .game-hud .currency-group button[data-tooltip]:focus-visible::before {
+      left: auto;
+      right: 15px;
+      bottom: auto;
+      top: calc(100% + 3px);
+      transform: rotate(45deg);
       border: 0;
       border-left: 1px solid rgba(0, 245, 212, 0.22);
       border-top: 1px solid rgba(0, 245, 212, 0.22);
@@ -355,7 +374,7 @@
     }
     .welcome-subtitle {
       max-width: 46rem;
-      color: var(--text-secondary);
+      color: var(--text-primary);
       font-size: clamp(0.95rem, 1.6vw, 1.08rem);
       margin-bottom: 1.35rem;
     }
@@ -552,11 +571,12 @@
     .nav-bar {
       background: rgba(18, 22, 30, 0.6);
       border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: center;
-      gap: 1.5rem;
-      padding: 0 1rem;
-      overflow-x: auto;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(8.75rem, 0.82fr);
+      justify-content: stretch;
+      gap: 0.35rem;
+      padding: 0 max(1rem, calc((100% - 1300px) / 2 + 1rem));
+      overflow-x: hidden;
       position: sticky;
       top: 73px; /* Just below header */
       z-index: 90;
@@ -567,17 +587,19 @@
       background: none;
       border: none;
       font-family: var(--font-game);
-      font-size: 0.9rem;
+      font-size: 0.82rem;
       font-weight: 700;
       color: var(--text-secondary);
       cursor: pointer;
-      padding: 0.85rem 1.25rem;
+      min-width: 0;
+      padding: 0.85rem 0.55rem;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
-      letter-spacing: 0.08em;
+      letter-spacing: 0;
       white-space: nowrap;
     }
     .nav-link:hover, .nav-link.active {
@@ -590,8 +612,11 @@
       border-bottom-width: 1px;
       border-radius: 6px;
       margin: 0.35rem 0;
-      padding: 0.5rem 0.85rem;
+      padding: 0.5rem 0.65rem;
       background: rgba(0, 245, 212, 0.06);
+    }
+    body.theme-cyberpunk .nav-link {
+      font-size: 0.7rem;
     }
     .nav-link.focus-toggle.focus-on {
       color: #071018;
@@ -4107,21 +4132,21 @@
     }
     .weather-rain::before {
       background-image:
-        repeating-linear-gradient(105deg, rgba(180, 220, 255, 0) 0 12px, rgba(180, 220, 255, 0.72) 13px 15px, rgba(180, 220, 255, 0) 18px 34px),
-        repeating-linear-gradient(102deg, rgba(255, 255, 255, 0) 0 28px, rgba(255, 255, 255, 0.35) 29px 30px, rgba(255, 255, 255, 0) 32px 58px);
-      background-size: 90px 120px, 160px 180px;
+        repeating-linear-gradient(105deg, rgba(180, 220, 255, 0) 0 20px, rgba(180, 220, 255, 0.42) 21px 22px, rgba(180, 220, 255, 0) 24px 46px),
+        repeating-linear-gradient(102deg, rgba(255, 255, 255, 0) 0 42px, rgba(255, 255, 255, 0.22) 43px 44px, rgba(255, 255, 255, 0) 46px 78px);
+      background-size: 120px 150px, 190px 220px;
       filter: blur(0.15px);
-      opacity: 0.72;
-      animation: weatherRainSheets 0.55s linear infinite;
+      opacity: 0.48;
+      animation: weatherRainSheets 0.72s linear infinite;
     }
     .weather-rain::after {
       inset: auto 0 0 0;
-      height: 42%;
+      height: 34%;
       background:
-        radial-gradient(ellipse at 30% 92%, rgba(148, 163, 184, 0.3), transparent 42%),
-        radial-gradient(ellipse at 70% 96%, rgba(59, 130, 246, 0.22), transparent 48%),
-        linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.38));
-      opacity: 0.82;
+        radial-gradient(ellipse at 30% 92%, rgba(148, 163, 184, 0.2), transparent 42%),
+        radial-gradient(ellipse at 70% 96%, rgba(59, 130, 246, 0.14), transparent 48%),
+        linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.26));
+      opacity: 0.58;
       animation: weatherMistDrift 4.5s ease-in-out infinite alternate;
     }
     
@@ -4413,7 +4438,7 @@
       background-size: 290px 100%, 360px 100%, 430px 100%, 520px 100%;
       background-position: 0 0, 46px 0, 120px 0, -80px 0;
       filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.85));
-      opacity: 0.92;
+      opacity: 0.96;
       animation: lavaPulse 2.8s ease-in-out infinite alternate;
     }
     .biome-volcano .battle-ground::after {
@@ -4591,6 +4616,25 @@
       animation: pixelFlickerInner 0.88s steps(2, end) infinite alternate;
     }
 
+    .arena-rest-message {
+      position: absolute;
+      top: 31%;
+      left: 50%;
+      z-index: 15;
+      width: min(50%, 36rem);
+      transform: translate(-50%, -50%);
+      color: var(--text-secondary);
+      font-family: var(--font-game);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.95);
+      opacity: 0.92;
+      pointer-events: none;
+    }
+    .arena-rest-message--raid {
+      width: min(42%, 26rem);
+    }
     .camp-scene-props {
       position: absolute;
       left: 50%;
@@ -5507,7 +5551,6 @@
       --color-gold: #ffffff;
       --font-game: 'Special Elite', serif;
       --font-body: 'Courier Prime', monospace;
-      filter: grayscale(1) contrast(1.15);
       background-image: 
         radial-gradient(circle at 50% 50%, #222222 0%, #000000 100%);
     }
@@ -7104,51 +7147,71 @@
       --battle-layer-back: url("../backgrounds/layers/medieval/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/medieval/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/medieval/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(3px, 1.05vw, 14px);
     }
     body.theme-horror {
       --battle-layer-back: url("../backgrounds/layers/horror/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/horror/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/horror/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(4px, 1.55vw, 20px);
     }
     body.theme-zombie {
       --battle-layer-back: url("../backgrounds/layers/zombie/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/zombie/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/zombie/props.png");
+      --battle-props-width: 84%;
+      --battle-props-alpha-shift: clamp(18px, 7.8vw, 96px);
     }
     body.theme-cyberpunk {
       --battle-layer-back: url("../backgrounds/layers/cyberpunk/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/cyberpunk/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/cyberpunk/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(2px, 0.72vw, 10px);
     }
     body.theme-scifi {
       --battle-layer-back: url("../backgrounds/layers/scifi/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/scifi/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/scifi/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(3px, 1vw, 14px);
     }
     body.theme-noir {
       --battle-layer-back: url("../backgrounds/layers/noir/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/noir/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/noir/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(1px, 0.3vw, 5px);
     }
     body.theme-inferno {
       --battle-layer-back: url("../backgrounds/layers/inferno/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/inferno/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/inferno/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: 0px;
     }
     body.theme-arcane {
       --battle-layer-back: url("../backgrounds/layers/arcane/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/arcane/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/arcane/props.png");
+      --battle-props-width: 76%;
+      --battle-props-alpha-shift: clamp(3px, 1vw, 14px);
     }
     body.theme-stargate {
       --battle-layer-back: url("../backgrounds/layers/stargate/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/stargate/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/stargate/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: 0px;
     }
     body.theme-sartorius {
       --battle-layer-back: url("../backgrounds/layers/sartorius/back.webp");
       --battle-layer-floor: url("../backgrounds/layers/sartorius/floor.webp");
       --battle-layer-props: url("../backgrounds/layers/sartorius/props.png");
+      --battle-props-width: 78%;
+      --battle-props-alpha-shift: clamp(3px, 0.9vw, 13px);
     }
     body:not(.qol-calm-visuals) .battle-bg::before {
       background-image: none !important;
@@ -7170,36 +7233,71 @@
     body:not(.qol-calm-visuals) .battle-bg .battle-ground::after {
       background: none !important;
     }
-    body:not(.qol-calm-visuals) .battle-bg .battle-objects {
-      height: 42%;
-      top: auto;
-      bottom: 3%;
+    body:not(.qol-calm-visuals) .battle-bg:not(.biome-camp) .battle-objects {
+      height: 100%;
+      top: 0;
+      bottom: auto;
       z-index: 2;
       background-image: var(--battle-layer-props) !important;
-      background-repeat: repeat-x !important;
-      background-position: center bottom !important;
-      background-size: max(100%, 980px) auto !important;
-      opacity: 0.46 !important;
-      filter: drop-shadow(0 8px 8px rgba(0,0,0,0.28));
+      background-repeat: no-repeat !important;
+      background-position:
+        center
+        calc(100% - var(--battle-ground-line) + var(--battle-props-alpha-shift, 0px)) !important;
+      background-size: var(--battle-props-width, 78%) auto !important;
+      opacity: 0.9 !important;
+      filter:
+        saturate(0.88)
+        brightness(0.82)
+        drop-shadow(0 8px 8px rgba(0,0,0,0.34));
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0 20%,
+        #000 22% 29%,
+        transparent 31% 35%,
+        #000 37% 44%,
+        transparent 46% 51%,
+        #000 53% 61%,
+        transparent 63% 66%,
+        #000 68% 75%,
+        transparent 77% 80%,
+        #000 82% 89%,
+        transparent 91% 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        transparent 0 20%,
+        #000 22% 29%,
+        transparent 31% 35%,
+        #000 37% 44%,
+        transparent 46% 51%,
+        #000 53% 61%,
+        transparent 63% 66%,
+        #000 68% 75%,
+        transparent 77% 80%,
+        #000 82% 89%,
+        transparent 91% 100%
+      );
     }
-    body:not(.qol-calm-visuals) .battle-bg.active .battle-objects {
-      background-repeat: repeat-x !important;
-      background-position: center bottom !important;
-      background-size: max(100%, 980px) auto !important;
+    body:not(.qol-calm-visuals) .battle-bg.active:not(.biome-camp) .battle-objects {
+      background-repeat: no-repeat !important;
+      background-position:
+        center
+        calc(100% - var(--battle-ground-line) + var(--battle-props-alpha-shift, 0px)) !important;
+      background-size: var(--battle-props-width, 78%) auto !important;
     }
-    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg.active .battle-objects {
-      background-size: max(100%, 720px) auto !important;
+    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg.active:not(.biome-camp) .battle-objects {
+      background-image: none !important;
     }
-    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg .battle-objects {
-      height: 38%;
-      bottom: 3%;
-      background-size: max(100%, 720px) auto !important;
+    body:not(.qol-calm-visuals) .battle-arena-wrapper.compact-arena .battle-bg:not(.biome-camp) .battle-objects {
+      background-image: none !important;
     }
     @media (max-width: 760px) {
-      body:not(.qol-calm-visuals) .battle-bg .battle-objects {
-        height: 36%;
-        bottom: 2%;
-        background-size: max(100%, 560px) auto !important;
+      body:not(.qol-calm-visuals) .battle-bg:not(.biome-camp) .battle-objects {
+        background-size: min(88%, 560px) auto !important;
+        filter:
+          saturate(0.84)
+          brightness(0.78)
+          drop-shadow(0 5px 5px rgba(0,0,0,0.3));
       }
     }
 
@@ -7265,6 +7363,9 @@
       display: none !important;
     }
     @media (max-width: 760px) {
+      .arena-rest-message {
+        display: none;
+      }
       body.is-mobile-layout.qol-calm-visuals .battle-arena {
         height: 112px;
         min-height: 112px;
@@ -7274,15 +7375,25 @@
         font-size: 0.58rem;
       }
       body.is-mobile-layout.qol-calm-visuals .pomo-widget {
-        min-width: 78px;
-        max-width: 88px;
+        width: 96px;
+        min-width: 96px;
+        max-width: 96px;
         padding: 0.3rem 0.35rem;
+      }
+      body.is-mobile-layout.qol-calm-visuals .pomo-widget:not(.active) {
+        width: 96px;
+        min-width: 96px;
+        max-width: 96px;
+      }
+      body.is-mobile-layout.qol-calm-visuals .pomo-widget:not(.active) .pomo-controls {
+        flex: 0 0 28px;
+        width: 28px;
       }
       body.is-mobile-layout.qol-calm-visuals .pomo-header {
         font-size: 0.52rem;
       }
       body.is-mobile-layout.qol-calm-visuals .pomo-timer {
-        font-size: 0.75rem;
+        font-size: 0.66rem;
       }
       body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .combatant-tag,
       body.is-mobile-layout.qol-calm-visuals .monsters-battle-side .combatant-hp,

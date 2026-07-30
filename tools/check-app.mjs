@@ -54,6 +54,16 @@ assert((html.match(/\bdata-settings-panel=/g) || []).length === 4, "settings tab
 assert(html.includes("card.id = `coop-quest-${quest.id}`"), "cooperative quest ids are not namespaced");
 assert((html.match(/checkRandomEvents\(\{ allowSpawn: arenaCleared/g) || []).length >= 2, "random events are not connected to all quest completion paths");
 assert(css.includes("minmax(0, 1fr)"), "responsive form grid guard is missing");
+assert(css.includes("grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(8.75rem, 0.82fr)"), "desktop navigation grid guard is missing");
+assert(css.includes("--battle-props-alpha-shift"), "premium prop grounding offsets are missing");
+assert(css.includes(".battle-bg:not(.biome-camp) .battle-objects"), "premium props must preserve the dedicated camp scene");
+assert(css.includes("background-repeat: no-repeat !important"), "premium props must render as a single scene layer");
+assert(css.includes("compact-arena .battle-bg.active:not(.biome-camp) .battle-objects"), "compact arena prop guard is missing");
+assert(!css.includes("background-size: max(100%, 980px)"), "legacy repeated premium prop sizing is still active");
+assert(!/body\.theme-noir\s*\{[^}]*\bfilter\s*:/s.test(css), "film noir must not filter the body or displace fixed UI");
+assert(html.includes("function syncDeviceStickyOffsets()"), "mobile sticky offset synchronization is missing");
+assert(html.includes("window.requestAnimationFrame(syncDeviceStickyOffsets)"), "mobile sticky offsets must be remeasured after layout");
+assert(html.includes('id="arena-rest-message"'), "shared centered rest message is missing from the battle viewport");
 
 function checkReference(reference, baseDir, label) {
   if (/^(?:https?:|data:|#|mailto:|javascript:|\$|\{|%23)/i.test(reference)) return;
