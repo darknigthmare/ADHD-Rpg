@@ -17,6 +17,7 @@ Date : 30 juillet 2026
 7. **Mode calme — Sain.** Les anciens décors simplifiés reviennent, la météo disparaît et le timer réduit reste lisible.
 8. **Monde vide / repos — Sain.** Le camp garde ses propres objets; le message de repos est centré et visible sur bureau.
 9. **Météo — Sain.** La pluie est moins dense et moins lumineuse; aucune météo n'est imposée à chaque scène.
+10. **Boss de raid actif — Sain.** Le boss est opaque, proportionné, ancré au sol et rendu devant le décor. Le titre de l'arène correspond désormais au thème actif.
 
 ## Corrections appliquées
 
@@ -25,6 +26,7 @@ Date : 30 juillet 2026
 - Navigation : grille stable de six commandes et police cyberpunk ajustée.
 - Mobile : hauteurs du HUD et des onglets remesurées après le rendu.
 - Repos : message extrait de la colonne des monstres et centré sur le viewport complet.
+- Raid : dix titres d'arène cohérents remplacent l'ancien libellé volcan générique.
 
 ## Captures
 
@@ -36,6 +38,8 @@ Date : 30 juillet 2026
 
 ![Camp de repos final](./26-medieval-camp-rest.png)
 
+![Boss de raid actif en production](./27-production-boss-active.png)
+
 ## Limite du contrôle
 
-Le profil local d'audit ne contenait ni boss de raid actif ni familier équipé. Leurs règles de couche utilisent les mêmes conteneurs, mais ces deux états n'ont pas fait l'objet d'une capture active pendant cette passe.
+Le profil d'audit ne contenait pas de familier équipé. Sa position de sommeil près du feu n'a donc pas fait l'objet d'une capture active pendant cette passe.
