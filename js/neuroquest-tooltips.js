@@ -62,6 +62,11 @@
 
   function contextual(button) {
     if (!button) return "";
+    if (button.id === "global-focus-toggle-btn") {
+      return button.getAttribute("aria-pressed") === "true"
+        ? "Coupe le Focus et revient a la liste normale."
+        : "Active le Focus et garde une seule quete prioritaire.";
+    }
     if (button.id && BY_ID[button.id]) return BY_ID[button.id];
     if (button.dataset.saveDayChoice) {
       return ({
@@ -136,6 +141,12 @@
   function hydrate(root) {
     const scope = root && root.querySelectorAll ? root : document;
     scope.querySelectorAll("button, [role='button']").forEach(button => {
+      if (button.classList.contains("modal-close")) {
+        button.removeAttribute("title");
+        button.removeAttribute("data-tooltip");
+        if (!button.getAttribute("aria-label")) button.setAttribute("aria-label", "Fermer");
+        return;
+      }
       const existing = (button.getAttribute("title") || button.getAttribute("aria-label") || "").trim();
       const tooltip = contextual(button) || existing;
       if (!tooltip) return;

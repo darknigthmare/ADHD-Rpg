@@ -2598,12 +2598,13 @@
     .modal-card {
       background: #12161f;
       border: 1px solid var(--border-focus);
-      border-radius: 12px;
+      border-radius: 8px;
       width: 100%;
       max-width: 500px;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       box-shadow: var(--shadow-lg);
       margin: auto 0;
       transform: translateY(20px) scale(0.95);
@@ -2632,31 +2633,47 @@
       color: var(--color-main);
     }
     .modal-close {
-      background: none;
-      border: none;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       color: var(--text-muted);
-      font-size: 1.8rem;
       cursor: pointer;
       line-height: 1;
-      transition: color 0.15s ease;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
-    .modal-close:hover {
+    .modal-close:hover,
+    .modal-close:focus-visible {
       color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--color-main);
+    }
+    .modal-close svg {
+      width: 18px;
+      height: 18px;
     }
 
     .modal-form, .modal-body {
       padding: 1.5rem;
       overflow-y: auto;
+      overflow-x: hidden;
+      min-width: 0;
     }
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
       margin-bottom: 1.25rem;
+      min-width: 0;
     }
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
     }
     .setup-sheet-grid {
@@ -2825,6 +2842,10 @@
     .form-group input,
     .form-group select,
     .form-group textarea {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -2851,6 +2872,122 @@
       justify-content: flex-end;
       gap: 0.75rem;
       margin-top: 1.5rem;
+    }
+
+    .settings-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.35rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .settings-tab {
+      min-width: 0;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.35rem;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .settings-tab:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .settings-tab.active {
+      color: var(--color-xp);
+      border-color: rgba(0, 245, 212, 0.35);
+      background: rgba(0, 245, 212, 0.08);
+    }
+    .settings-tab svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+    }
+    .settings-panel[hidden] {
+      display: none;
+    }
+    .settings-panel > :last-child {
+      margin-bottom: 0;
+    }
+    .backup-status {
+      min-height: 1.2rem;
+      margin: 0 0 0.75rem;
+    }
+    .backup-status.is-error {
+      color: var(--color-streak);
+    }
+
+    .noob-glossary {
+      display: grid;
+      gap: 0.45rem;
+    }
+    .noob-glossary-row {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: start;
+      padding: 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .noob-glossary-row > svg {
+      width: 18px;
+      height: 18px;
+      margin: 0.12rem auto 0;
+      color: var(--color-xp);
+    }
+    .noob-glossary-row div {
+      min-width: 0;
+    }
+    .noob-glossary-row strong,
+    .noob-glossary-row span {
+      display: block;
+    }
+    .noob-glossary-row strong {
+      margin-bottom: 0.15rem;
+      color: var(--text-primary);
+      font-size: 0.84rem;
+    }
+    .noob-glossary-row span {
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .app-error-toast {
+      position: fixed;
+      left: 1rem;
+      bottom: 1rem;
+      z-index: 999999;
+      width: min(360px, calc(100vw - 2rem));
+      padding: 0.8rem 0.9rem;
+      border: 1px solid rgba(255, 77, 109, 0.55);
+      border-radius: 6px;
+      background: #171018;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-lg);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    @media (max-width: 560px) {
+      .settings-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .settings-tab {
+        min-height: 44px;
+      }
     }
 
     /* Avatar Selector Modal */
@@ -6073,7 +6210,8 @@
       flex-direction: column;
       align-items: center;
       gap: 0.2rem;
-      min-width: 100px;
+      width: min(190px, calc(100% - 2rem));
+      min-width: 0;
       font-family: var(--font-pixel);
       font-size: 0.65rem;
       color: var(--text-primary);
@@ -6278,6 +6416,81 @@
       z-index: 100;
       border: 1px solid rgba(255,255,255,0.2);
     }
+    .hero-speech-bubble {
+      top: -70px;
+      left: -0.75rem;
+      width: min(220px, calc(100vw - 4rem));
+      max-width: none;
+      min-height: 2.4rem;
+      transform: none;
+      display: grid;
+      place-items: center;
+      background: rgba(248, 250, 252, 0.97);
+      color: #111827;
+      border-color: rgba(15, 23, 42, 0.22);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+      line-height: 1.35;
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: normal;
+      word-break: normal;
+      animation: heroBubblePop 4.5s ease-out forwards;
+    }
+    .pet-interaction-btn {
+      appearance: none;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+    .pet-interaction-btn:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 3px;
+    }
+    .arena-event {
+      position: absolute;
+      left: 50%;
+      z-index: 24;
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 0.35rem;
+      min-width: 7.5rem;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--color-gold);
+      cursor: pointer;
+      font-family: var(--font-game);
+      font-size: 0.68rem;
+    }
+    .arena-event svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0.45rem;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      background: rgba(4, 8, 18, 0.88);
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+    .arena-event span {
+      padding: 0.3rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(4, 8, 18, 0.88);
+    }
+    .arena-event:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 4px;
+    }
+    .mystery-merchant {
+      top: 60%;
+    }
+    .mystery-chest {
+      top: 65%;
+      color: var(--color-xp);
+      animation: pulseGlow 2s infinite alternate;
+    }
     @media (max-width: 820px), (pointer: coarse) and (max-width: 1024px) {
       .pet-speech-bubble {
         max-width: min(58vw, 180px);
@@ -6285,12 +6498,25 @@
         text-align: center;
         overflow-wrap: anywhere;
       }
+      .hero-speech-bubble {
+        top: -62px;
+        left: -0.5rem;
+        width: min(190px, calc(100vw - 3rem));
+        max-width: none;
+        overflow-wrap: normal;
+      }
     }
     @keyframes bubblePop {
       0% { transform: translate(-50%, 10px) scale(0.5); opacity: 0; }
       15% { transform: translate(-50%, 0) scale(1); opacity: 1; }
       85% { transform: translate(-50%, 0) scale(1); opacity: 1; }
       100% { transform: translate(-50%, -10px) scale(0.5); opacity: 0; }
+    }
+    @keyframes heroBubblePop {
+      0% { transform: translateY(10px) scale(0.85); opacity: 0; }
+      15% { transform: translateY(0) scale(1); opacity: 1; }
+      85% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-8px) scale(0.92); opacity: 0; }
     }
     /* Streak Glows */
     .streak-glow-1 { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); animation: pulseGlow 2s infinite alternate; }
@@ -6382,6 +6608,8 @@
       }
 
       .player-info {
+        grid-column: 1;
+        grid-row: 1;
         min-width: 0;
         gap: 0.55rem;
         padding: 0.15rem;
@@ -6409,6 +6637,7 @@
 
       .xp-bar-wrapper {
         grid-column: 1 / -1;
+        grid-row: 2;
         order: initial;
         min-width: 0;
         width: 100%;
@@ -6424,12 +6653,13 @@
       }
 
       .currency-group {
+        grid-column: 2;
+        grid-row: 1;
         justify-self: end;
         flex-wrap: nowrap;
-        gap: 0.35rem;
-        max-width: 50vw;
-        overflow-x: auto;
-        scrollbar-width: none;
+        gap: 0.2rem;
+        max-width: none;
+        overflow: visible;
       }
 
       .currency-group::-webkit-scrollbar,
@@ -6439,7 +6669,7 @@
 
       .hud-stat {
         min-height: 2.15rem;
-        padding: 0.35rem 0.55rem;
+        padding: 0.35rem 0.4rem;
         flex: 0 0 auto;
       }
 
@@ -6799,7 +7029,7 @@
       }
 
       .currency-group {
-        max-width: 46vw;
+        max-width: none;
       }
 
       .gold-unit,
@@ -6824,6 +7054,33 @@
         min-width: 96px;
         max-width: 108px;
         transform: none;
+      }
+      .pomo-widget:not(.active) {
+        width: 128px;
+        min-width: 128px;
+        max-width: 128px;
+        min-height: 44px;
+        height: 44px;
+        padding: 0.3rem 0.4rem;
+        flex-direction: row;
+      }
+      .pomo-widget:not(.active) .pomo-header {
+        display: none;
+      }
+      .pomo-widget:not(.active) .pomo-body {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.2rem;
+      }
+      .pomo-widget:not(.active) .pomo-timer {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 0.72rem;
+      }
+      .pomo-widget:not(.active) .pomo-controls {
+        flex: 0 0 44px;
+        width: 44px;
+        gap: 0;
       }
 
       .pomo-noise-row {
