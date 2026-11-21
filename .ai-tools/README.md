@@ -1,6 +1,6 @@
 # Outils IA du dépôt
 
-Ce dépôt peut utiliser **GitHub Spec Kit**, **Superpowers** et, avec **Claude Code**, **Claude Code Game Studios**. Les consignes du projet et les demandes de l'utilisateur restent la référence. Les points d'entrée se trouvent dans `AGENTS.md` et `CLAUDE.md` à la racine.
+Ce dépôt peut utiliser **GitHub Spec Kit**, **Superpowers** et, avec **Claude Code**, **Claude Code Game Studios**. **3Dviz Pro Max** est fourni avec ses ressources dans le dépôt pour les tâches de visualisation 3D. Les consignes du projet et les demandes de l'utilisateur restent la référence. Les points d'entrée se trouvent dans `AGENTS.md` et `CLAUDE.md` à la racine.
 
 Les références, versions et révisions vérifiées le **4 novembre 2026** sont consignées dans [sources.json](sources.json). Leur présence dans GitHub rend cette intégration disponible ; elle ne prouve pas qu'un plugin ou un client est installé sur la machine.
 
@@ -9,6 +9,7 @@ Les références, versions et révisions vérifiées le **4 novembre 2026** sont
 | [Spec Kit](https://github.com/github/spec-kit) | Définir une évolution précise, son plan et ses tâches | Préparer puis appliquer les fichiers pour Codex et Claude Code |
 | [Superpowers](https://github.com/obra/superpowers) | Implémentation, diagnostic, revue et vérification | Installer le plugin dans le client utilisé |
 | [Claude Code Game Studios](https://github.com/Donchitos/Claude-Code-Game-Studios) | Agents et compétences spécialisés dans les jeux | Préparer puis appliquer les fichiers utiles à Claude Code |
+| [3Dviz Pro Max](3dviz-pro-max/README.md) | Scènes 3D, perspective, objets, caméras, matériaux et éclairage | `$3dviz-pro-max` dans Codex ou `/3dviz-pro-max` dans Claude Code après découverte du skill du dépôt |
 
 ## Vérifier l'état local
 
@@ -28,10 +29,11 @@ Le diagnostic fonctionne **hors ligne**, sans téléchargement ni modification d
 - Reprendre les spécifications, plans, listes de tâches et décisions déjà présents. Relier leurs chemins aux nouveaux travaux plutôt que produire des plans concurrents.
 - Employer Spec Kit pour cadrer la prochaine évolution délimitée ; employer les compétences pertinentes de Superpowers pour la réaliser et la vérifier.
 - Sous Claude Code, ajouter les compétences de Game Studios utiles au sujet : gameplay, moteur, niveau, interface, assets, audio ou QA. Dans un dépôt sans jeu, leur utilisation reste facultative et dépend de la tâche.
+- Pour une tâche 3D, combiner les parties pertinentes de 3Dviz Pro Max avec les autres compétences et reprendre le moteur et la direction artistique du projet.
 - Adapter la vérification au changement et aux exigences du projet. Documenter les commandes réellement exécutées et les limites observées.
 - Conserver les choix et autorisations déjà donnés par l'utilisateur. Un modèle externe ne doit pas introduire une nouvelle demande d'approbation générique pour une action déjà autorisée. Les contrôles réels du client et les règles applicables restent en vigueur.
 
-Cette répartition est une convention de ce dépôt. Les trois projets externes ne constituent pas un système unique dont l'interopérabilité serait automatiquement assurée.
+Cette répartition est une convention de ce dépôt. Ces projets externes ne constituent pas un système unique dont l'interopérabilité serait automatiquement assurée.
 
 ## Spec Kit : préparer la prochaine évolution
 
@@ -131,6 +133,16 @@ Dans Claude Code, reprendre le projet avec ses instructions existantes. Les comp
 
 Le framework peut proposer des structures ou réglages de jeu supplémentaires. Les introduire selon le besoin du projet, sans remplacer les choix du moteur, les documents ni le suivi déjà établis. Pour un dépôt qui utilise déjà Game Studios, conserver sa configuration et rapprocher les différences par une modification normale du code.
 
+## 3Dviz Pro Max dans Codex et Claude Code
+
+Le dépôt inclut le [skill complet](3dviz-pro-max/skill/SKILL.md) et ses ressources à la révision consignée dans le [manifeste](3dviz-pro-max/source.json). Les points d’entrée se trouvent dans [Codex](../.agents/skills/3dviz-pro-max/SKILL.md) et [Claude Code](../.claude/skills/3dviz-pro-max/SKILL.md). Le [guide d’intégration](3dviz-pro-max/README.md) décrit les outils facultatifs et la mise à jour du skill.
+
+Vérifier l’intégrité de la copie depuis la racine du dépôt.
+
+```bash
+python3 -B .ai-tools/3dviz-pro-max/verify.py
+```
+
 ## Application, conflits et mises à jour
 
 `apply` vérifie les empreintes du dossier préparé et les destinations avant les copies. Un fichier identique est conservé. Une destination qui contient des données différentes bloque l'application entière : résoudre ce conflit explicitement dans le travail en cours, puis préparer une nouvelle étape cohérente. L'outil n'écrase pas silencieusement les personnalisations.
@@ -156,8 +168,9 @@ plugins dans un client ni le gameplay du projet.
 - [Spec Kit : README](https://github.com/github/spec-kit), version 1.3.0.
 - [Superpowers : README](https://github.com/obra/superpowers) et [version 7.0.2](https://github.com/obra/superpowers/releases/tag/v7.0.2).
 - [Claude Code Game Studios : README](https://github.com/Donchitos/Claude-Code-Game-Studios), version 1.2.0.
+- [3Dviz Pro Max](https://github.com/viettranx/3dviz-pro-max) et sa [licence MIT](3dviz-pro-max/skill/LICENSE).
 - [Claude Code : installation et portée des plugins](https://code.claude.com/docs/en/discover-plugins).
 - [Claude Code : réglages `enabledPlugins` et `extraKnownMarketplaces`](https://code.claude.com/docs/en/settings-reference).
 - [Claude Code : sources de plugins et révisions verrouillées](https://code.claude.com/docs/en/plugins/marketplace-reference).
 
-Ces trois projets utilisent une licence MIT. Conserver leurs mentions de licence lors de la copie de leurs fichiers. Les adresses exactes des sources à la révision vérifiée figurent dans [sources.json](sources.json).
+Spec Kit, Superpowers, Claude Code Game Studios et 3Dviz Pro Max utilisent une licence MIT. Conserver leurs mentions de licence lors de la copie de leurs fichiers. Les révisions des trois premiers outils figurent dans [sources.json](sources.json) et celle de 3Dviz Pro Max dans son [manifeste](3dviz-pro-max/source.json).
