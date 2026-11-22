@@ -5,3 +5,8 @@
 Thumbs.db
 node_modules/
 .vercel/
+
+# CodeGraph — index local (ne pas versionner)
+.codegraph/
+.codegraph-wsl/
+.codegraph-*/
